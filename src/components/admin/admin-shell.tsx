@@ -7,6 +7,7 @@ import {
   Images,
   LayoutDashboard,
   Menu,
+  Package,
   Settings,
   Users,
 } from 'lucide-react';
@@ -18,6 +19,7 @@ const navigation = [
   { href: '/admin/accueil', label: 'Page d’accueil', icon: Home },
   { href: '/admin/navigation', label: 'Menus', icon: Menu },
   { href: '/admin/services', label: 'Services', icon: Boxes },
+  { href: '/admin/logiciels', label: 'Logiciels', icon: Package },
   { href: '/admin/articles', label: 'Articles', icon: BookOpen },
   { href: '/admin/categories', label: 'Catégories', icon: FolderTree },
   { href: '/admin/medias', label: 'Médias', icon: Images },
