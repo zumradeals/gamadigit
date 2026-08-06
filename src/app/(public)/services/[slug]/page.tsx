@@ -3,25 +3,32 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowRight, Check, MessageCircle } from 'lucide-react';
 import { FamilyIcon } from '@/components/family-icon';
-import { families, familyBySlug, servicesByFamily } from '@/lib/content';
+import {
+  getPublicFamilies,
+  getPublicFamilyBySlug,
+  getPublicServicesByFamily,
+} from '@/lib/public-content';
 import { whatsappUrl } from '@/lib/site';
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const families = await getPublicFamilies();
   return families.map((family) => ({ slug: family.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const family = familyBySlug(slug);
+  const family = await getPublicFamilyBySlug(slug);
   if (!family) return {};
   return { title: family.name, description: family.description };
 }
 
 export default async function ServiceFamilyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const family = familyBySlug(slug);
+  const [family, items] = await Promise.all([
+    getPublicFamilyBySlug(slug),
+    getPublicServicesByFamily(slug),
+  ]);
   if (!family) notFound();
-  const items = servicesByFamily(slug);
 
   return (
     <>

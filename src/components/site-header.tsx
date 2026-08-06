@@ -1,10 +1,15 @@
 import Link from 'next/link';
 import { ChevronDown, Menu, MessageCircle } from 'lucide-react';
-import { families } from '@/lib/content';
-import { whatsappUrl } from '@/lib/site';
 import { Logo } from '@/components/brand/logo';
+import { getPublicFamilies, getPublicSiteSettings } from '@/lib/public-content';
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const [families, settings] = await Promise.all([
+    getPublicFamilies(),
+    getPublicSiteSettings(),
+  ]);
+  const whatsappLink = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent('Bonjour GamaDigit, je souhaite parler de mon projet numérique.')}`;
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -32,7 +37,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <a href={whatsappUrl('Bonjour GamaDigit, je souhaite parler de mon projet numérique.')} target="_blank" rel="noreferrer" className="hidden items-center gap-2 rounded-xl bg-mint px-4 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-200/50 transition hover:-translate-y-0.5 sm:inline-flex">
+          <a href={whatsappLink} target="_blank" rel="noreferrer" className="hidden items-center gap-2 rounded-xl bg-mint px-4 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-200/50 transition hover:-translate-y-0.5 sm:inline-flex">
             <MessageCircle className="h-4 w-4" />
             Parler de mon projet
           </a>

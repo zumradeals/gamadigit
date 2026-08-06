@@ -1,14 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { blogPosts } from '@/lib/content';
+import { getPublicBlogPosts } from '@/lib/public-content';
 
 export const metadata: Metadata = {
   title: 'Blog',
   description: 'Conseils pratiques sur les sites web, logiciels, formations, hébergement et transformation numérique.',
 };
 
-export default function BlogPage() {
-  const posts = blogPosts.filter((post) => post.status === 'published');
+export default async function BlogPage() {
+  const posts = await getPublicBlogPosts();
   return (
     <>
       <section className="bg-ink px-4 py-20 text-white sm:px-6 lg:px-8"><div className="mx-auto max-w-7xl"><p className="text-sm font-black uppercase tracking-[0.17em] text-cyan">Conseils et ressources</p><h1 className="mt-4 text-4xl font-black sm:text-6xl">Le blog GamaDigit</h1><p className="mt-6 max-w-3xl text-lg leading-8 text-slate-300">Des contenus utiles pour comprendre les outils numériques et prendre de meilleures décisions.</p></div></section>
