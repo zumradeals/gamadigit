@@ -10,9 +10,10 @@ Exécuter dans l’éditeur SQL, dans cet ordre :
 
 1. `supabase/migrations/20260806214500_initial_schema.sql`
 2. `supabase/migrations/20260806220000_homepage_sections.sql`
-3. `supabase/seed.sql`
+3. `supabase/migrations/20260806223000_navigation_and_storage.sql`
+4. `supabase/seed.sql`
 
-La première migration crée le socle, les fonctions, déclencheurs et politiques RLS. La deuxième ajoute les sections administrables de la page d’accueil. Le seed ajoute les six familles initiales et les catégories du blog.
+La première migration crée le socle, les fonctions, déclencheurs et politiques RLS. La deuxième ajoute les sections administrables de la page d’accueil. La troisième initialise les menus et le bucket média sécurisé. Le seed ajoute les six familles initiales et les catégories du blog.
 
 ## 3. Configurer l’application
 
@@ -42,6 +43,9 @@ values ('UUID_UTILISATEUR', 'Administrateur GamaDigit', 'admin');
 - le compte sans profil est refusé ;
 - le compte avec rôle `admin` accède au tableau de bord ;
 - `/admin/accueil` permet de modifier les sections publiées ;
+- `/admin/navigation` pilote les menus du site ;
+- `/admin/categories` organise les thèmes du blog ;
+- `/admin/medias` permet de téléverser une image ou un PDF ;
 - le formulaire public enregistre une ligne dans `public.leads` ;
 - un visiteur non authentifié ne peut ni lire les prospects, ni modifier les contenus.
 
@@ -51,4 +55,5 @@ values ('UUID_UTILISATEUR', 'Administrateur GamaDigit', 'admin');
 - ne jamais committer `.env.local` ;
 - vérifier les politiques RLS après chaque nouvelle table ;
 - limiter le nombre de comptes administrateurs ;
-- le rôle `editor` est réservé à un lot ultérieur avec des politiques RLS spécifiques.
+- le rôle `editor` est réservé à un lot ultérieur avec des politiques RLS spécifiques ;
+- le bucket `media` est public en lecture, mais seuls les administrateurs authentifiés peuvent téléverser, modifier ou supprimer des fichiers.
