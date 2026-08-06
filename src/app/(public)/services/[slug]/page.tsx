@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { ArrowRight, Check, MessageCircle } from 'lucide-react';
 import { FamilyIcon } from '@/components/family-icon';
 import {
@@ -17,6 +17,12 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  if (slug === 'logiciels-abonnements') {
+    return {
+      title: 'Logiciels et abonnements',
+      description: 'Catalogue de logiciels professionnels et abonnements numériques GamaDigit.',
+    };
+  }
   const family = await getPublicFamilyBySlug(slug);
   if (!family) return {};
   return { title: family.name, description: family.description };
@@ -24,6 +30,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ServiceFamilyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  if (slug === 'logiciels-abonnements') redirect('/logiciels');
+
   const [family, items] = await Promise.all([
     getPublicFamilyBySlug(slug),
     getPublicServicesByFamily(slug),
