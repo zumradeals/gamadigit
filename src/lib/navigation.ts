@@ -13,13 +13,15 @@ export type PublicMenuItem = {
 async function fallbackMenu(location: 'header' | 'footer'): Promise<PublicMenuItem[]> {
   if (location === 'footer') {
     return [
-      { id: 'footer-blog', label: 'Blog', url: '/blog', target: '_self', sortOrder: 10, children: [] },
-      { id: 'footer-contact', label: 'Demander un devis', url: '/contact', target: '_self', sortOrder: 20, children: [] },
-      { id: 'footer-admin', label: 'Administration', url: '/admin', target: '_self', sortOrder: 30, children: [] },
+      { id: 'footer-software', label: 'Logiciels', url: '/logiciels', target: '_self', sortOrder: 10, children: [] },
+      { id: 'footer-blog', label: 'Blog', url: '/blog', target: '_self', sortOrder: 20, children: [] },
+      { id: 'footer-contact', label: 'Demander un devis', url: '/contact', target: '_self', sortOrder: 30, children: [] },
+      { id: 'footer-admin', label: 'Administration', url: '/admin', target: '_self', sortOrder: 40, children: [] },
     ];
   }
 
   const families = await getPublicFamilies();
+  const serviceFamilies = families.filter((family) => family.slug !== 'logiciels-abonnements');
   return [
     { id: 'header-home', label: 'Accueil', url: '/', target: '_self', sortOrder: 10, children: [] },
     {
@@ -28,7 +30,7 @@ async function fallbackMenu(location: 'header' | 'footer'): Promise<PublicMenuIt
       url: '#services',
       target: '_self',
       sortOrder: 20,
-      children: families.map((family, index) => ({
+      children: serviceFamilies.map((family, index) => ({
         id: family.id,
         label: family.shortName,
         url: `/services/${family.slug}`,
@@ -37,7 +39,7 @@ async function fallbackMenu(location: 'header' | 'footer'): Promise<PublicMenuIt
         children: [],
       })),
     },
-    { id: 'header-software', label: 'Logiciels', url: '/services/logiciels-abonnements', target: '_self', sortOrder: 30, children: [] },
+    { id: 'header-software', label: 'Logiciels', url: '/logiciels', target: '_self', sortOrder: 30, children: [] },
     { id: 'header-blog', label: 'Blog', url: '/blog', target: '_self', sortOrder: 40, children: [] },
     { id: 'header-contact', label: 'Contact', url: '/contact', target: '_self', sortOrder: 50, children: [] },
   ];
