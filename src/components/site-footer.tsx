@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { Logo } from '@/components/brand/logo';
+import { getPublicMenu } from '@/lib/navigation';
 import { getPublicFamilies, getPublicSiteSettings } from '@/lib/public-content';
 
 export async function SiteFooter() {
-  const [families, settings] = await Promise.all([
+  const [families, settings, footerMenu] = await Promise.all([
     getPublicFamilies(),
     getPublicSiteSettings(),
+    getPublicMenu('footer'),
   ]);
   const whatsappLink = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent('Bonjour GamaDigit, je souhaite obtenir des informations.')}`;
 
@@ -28,9 +30,9 @@ export async function SiteFooter() {
         <div>
           <h2 className="font-bold text-white">Explorer</h2>
           <div className="mt-4 space-y-3 text-sm">
-            <Link href="/blog" className="block hover:text-white">Blog</Link>
-            <Link href="/contact" className="block hover:text-white">Demander un devis</Link>
-            <Link href="/admin" className="block hover:text-white">Administration</Link>
+            {footerMenu.map((item) => (
+              <Link key={item.id} href={item.url} target={item.target} className="block hover:text-white">{item.label}</Link>
+            ))}
           </div>
         </div>
         <div>

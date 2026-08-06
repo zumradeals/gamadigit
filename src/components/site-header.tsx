@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { ChevronDown, Menu, MessageCircle } from 'lucide-react';
 import { Logo } from '@/components/brand/logo';
-import { getPublicFamilies, getPublicSiteSettings } from '@/lib/public-content';
+import { getPublicMenu } from '@/lib/navigation';
+import { getPublicSiteSettings } from '@/lib/public-content';
 
 export async function SiteHeader() {
-  const [families, settings] = await Promise.all([
-    getPublicFamilies(),
+  const [menuItems, settings] = await Promise.all([
+    getPublicMenu('header'),
     getPublicSiteSettings(),
   ]);
   const whatsappLink = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent('Bonjour GamaDigit, je souhaite parler de mon projet numérique.')}`;
@@ -18,22 +19,24 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-700 lg:flex">
-          <Link href="/" className="hover:text-ocean">Accueil</Link>
-          <div className="group relative">
-            <button className="flex items-center gap-1 py-7 hover:text-ocean">Services <ChevronDown className="h-4 w-4" /></button>
-            <div className="invisible absolute left-1/2 top-[4.6rem] w-[34rem] -translate-x-1/2 rounded-2xl border border-slate-200 bg-white p-3 opacity-0 shadow-soft transition group-hover:visible group-hover:opacity-100">
-              <div className="grid grid-cols-2 gap-1">
-                {families.map((family) => (
-                  <Link key={family.id} href={`/services/${family.slug}`} className="rounded-xl p-3 hover:bg-cloud">
-                    <span className="block font-bold text-ink">{family.shortName}</span>
-                    <span className="mt-1 block text-xs font-normal leading-5 text-slate-500">{family.description}</span>
-                  </Link>
-                ))}
+          {menuItems.map((item) => item.children.length ? (
+            <div key={item.id} className="group relative">
+              <Link href={item.url} target={item.target} className="flex items-center gap-1 py-7 hover:text-ocean">
+                {item.label} <ChevronDown className="h-4 w-4" />
+              </Link>
+              <div className="invisible absolute left-1/2 top-[4.6rem] w-80 -translate-x-1/2 rounded-2xl border border-slate-200 bg-white p-3 opacity-0 shadow-soft transition group-hover:visible group-hover:opacity-100">
+                <div className="space-y-1">
+                  {item.children.map((child) => (
+                    <Link key={child.id} href={child.url} target={child.target} className="block rounded-xl px-4 py-3 font-bold text-ink hover:bg-cloud hover:text-ocean">
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-          <Link href="/blog" className="hover:text-ocean">Blog</Link>
-          <Link href="/contact" className="hover:text-ocean">Contact</Link>
+          ) : (
+            <Link key={item.id} href={item.url} target={item.target} className="hover:text-ocean">{item.label}</Link>
+          ))}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -46,18 +49,17 @@ export async function SiteHeader() {
             <summary className="flex cursor-pointer list-none items-center rounded-xl border border-slate-200 p-3 text-ink marker:content-none" aria-label="Ouvrir le menu">
               <Menu className="h-5 w-5" />
             </summary>
-            <div className="absolute right-0 top-14 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-3 shadow-soft">
-              <Link href="/" className="block rounded-xl px-4 py-3 font-bold text-ink hover:bg-cloud">Accueil</Link>
-              <div className="mt-1 border-t border-slate-100 pt-2">
-                <p className="px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">Services</p>
-                {families.map((family) => (
-                  <Link key={family.id} href={`/services/${family.slug}`} className="block rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-cloud">{family.shortName}</Link>
-                ))}
-              </div>
-              <div className="mt-1 border-t border-slate-100 pt-2">
-                <Link href="/blog" className="block rounded-xl px-4 py-3 font-bold text-ink hover:bg-cloud">Blog</Link>
-                <Link href="/contact" className="block rounded-xl px-4 py-3 font-bold text-ink hover:bg-cloud">Contact</Link>
-              </div>
+            <div className="absolute right-0 top-14 max-h-[75vh] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-soft">
+              {menuItems.map((item) => item.children.length ? (
+                <div key={item.id} className="mt-1 border-t border-slate-100 pt-2 first:border-t-0 first:pt-0">
+                  <Link href={item.url} target={item.target} className="block rounded-xl px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-400 hover:bg-cloud">{item.label}</Link>
+                  {item.children.map((child) => (
+                    <Link key={child.id} href={child.url} target={child.target} className="block rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-cloud">{child.label}</Link>
+                  ))}
+                </div>
+              ) : (
+                <Link key={item.id} href={item.url} target={item.target} className="block rounded-xl px-4 py-3 font-bold text-ink hover:bg-cloud">{item.label}</Link>
+              ))}
             </div>
           </details>
         </div>
