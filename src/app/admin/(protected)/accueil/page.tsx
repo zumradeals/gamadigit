@@ -35,6 +35,7 @@ export default async function AdminHomepagePage() {
     if (row.section_key === 'promises') Object.assign(content.promises, payload);
     if (row.section_key === 'process') Object.assign(content.process, payload);
     if (row.section_key === 'families_intro') Object.assign(content.familiesIntro, payload);
+    if (row.section_key === 'software_intro') Object.assign(content.softwareIntro, payload);
     if (row.section_key === 'offers_intro') Object.assign(content.offersIntro, payload);
     if (row.section_key === 'blog_intro') Object.assign(content.blogIntro, payload);
     if (row.section_key === 'final_cta') Object.assign(content.finalCta, payload);
@@ -104,9 +105,22 @@ export default async function AdminHomepagePage() {
         </details>
 
         <details className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <summary className="cursor-pointer list-none text-xl font-black text-ink marker:content-none">Section Logiciels et abonnements</summary>
+          <form action={saveHomepageSectionAction} className="mt-6 space-y-5 border-t border-slate-100 pt-6">
+            <SectionMeta sectionKey="software_intro" {...sectionMeta('software_intro', 50)} />
+            <div><label className={labelClass}>Petit titre</label><input name="eyebrow" defaultValue={content.softwareIntro.eyebrow} required className={inputClass} /></div>
+            <div><label className={labelClass}>Titre</label><input name="title" defaultValue={content.softwareIntro.title} required className={inputClass} /></div>
+            <div><label className={labelClass}>Description</label><textarea name="description" defaultValue={content.softwareIntro.description} required rows={4} className={inputClass} /></div>
+            <div className="grid gap-4 sm:grid-cols-2"><div><label className={labelClass}>Lien vers tous les logiciels</label><input name="linkLabel" defaultValue={content.softwareIntro.linkLabel} required className={inputClass} /></div><div><label className={labelClass}>Bouton WhatsApp</label><input name="whatsappLabel" defaultValue={content.softwareIntro.whatsappLabel} required className={inputClass} /></div></div>
+            <div><label className={labelClass}>Message WhatsApp général</label><textarea name="whatsappMessage" defaultValue={content.softwareIntro.whatsappMessage} required rows={3} className={inputClass} /></div>
+            <SubmitButton />
+          </form>
+        </details>
+
+        <details className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <summary className="cursor-pointer list-none text-xl font-black text-ink marker:content-none">Introduction des offres en vedette</summary>
           <form action={saveHomepageSectionAction} className="mt-6 space-y-5 border-t border-slate-100 pt-6">
-            <SectionMeta sectionKey="offers_intro" {...sectionMeta('offers_intro', 50)} />
+            <SectionMeta sectionKey="offers_intro" {...sectionMeta('offers_intro', 60)} />
             <div><label className={labelClass}>Petit titre</label><input name="eyebrow" defaultValue={content.offersIntro.eyebrow} required className={inputClass} /></div>
             <div><label className={labelClass}>Titre</label><input name="title" defaultValue={content.offersIntro.title} required className={inputClass} /></div>
             <div><label className={labelClass}>Texte du lien</label><input name="linkLabel" defaultValue={content.offersIntro.linkLabel} required className={inputClass} /></div>
@@ -117,7 +131,7 @@ export default async function AdminHomepagePage() {
         <details className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <summary className="cursor-pointer list-none text-xl font-black text-ink marker:content-none">Introduction du blog</summary>
           <form action={saveHomepageSectionAction} className="mt-6 space-y-5 border-t border-slate-100 pt-6">
-            <SectionMeta sectionKey="blog_intro" {...sectionMeta('blog_intro', 60)} />
+            <SectionMeta sectionKey="blog_intro" {...sectionMeta('blog_intro', 70)} />
             <div><label className={labelClass}>Petit titre</label><input name="eyebrow" defaultValue={content.blogIntro.eyebrow} required className={inputClass} /></div>
             <div><label className={labelClass}>Titre</label><input name="title" defaultValue={content.blogIntro.title} required className={inputClass} /></div>
             <div><label className={labelClass}>Description</label><textarea name="description" defaultValue={content.blogIntro.description} required rows={4} className={inputClass} /></div>
@@ -128,7 +142,7 @@ export default async function AdminHomepagePage() {
         <details className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <summary className="cursor-pointer list-none text-xl font-black text-ink marker:content-none">Appel à l’action final</summary>
           <form action={saveHomepageSectionAction} className="mt-6 space-y-5 border-t border-slate-100 pt-6">
-            <SectionMeta sectionKey="final_cta" {...sectionMeta('final_cta', 70)} />
+            <SectionMeta sectionKey="final_cta" {...sectionMeta('final_cta', 80)} />
             <div><label className={labelClass}>Titre</label><input name="title" defaultValue={content.finalCta.title} required className={inputClass} /></div>
             <div><label className={labelClass}>Description</label><textarea name="description" defaultValue={content.finalCta.description} required rows={4} className={inputClass} /></div>
             <div><label className={labelClass}>Texte du bouton</label><input name="buttonLabel" defaultValue={content.finalCta.buttonLabel} required className={inputClass} /></div>
