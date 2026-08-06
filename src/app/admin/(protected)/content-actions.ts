@@ -104,6 +104,17 @@ export async function saveMenuItemAction(formData: FormData) {
 
   if (id && payload.parent_id === id) throw new Error('Un élément ne peut pas être son propre parent.');
 
+  if (payload.parent_id) {
+    const { data: parent, error: parentError } = await supabase
+      .from('menu_items')
+      .select('menu_id, parent_id')
+      .eq('id', payload.parent_id)
+      .maybeSingle();
+    if (parentError || !parent) throw new Error('Le parent sélectionné est introuvable.');
+    if (parent.menu_id !== payload.menu_id) throw new Error('Le parent doit appartenir au même menu.');
+    if (parent.parent_id) throw new Error('Les menus sont limités à deux niveaux dans la V1.');
+  }
+
   const query = id
     ? supabase.from('menu_items').update(payload).eq('id', id)
     : supabase.from('menu_items').insert(payload);
