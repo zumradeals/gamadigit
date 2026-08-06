@@ -21,6 +21,7 @@ export type HomepageSectionName =
   | 'promises'
   | 'process'
   | 'familiesIntro'
+  | 'softwareIntro'
   | 'offersIntro'
   | 'blogIntro'
   | 'finalCta';
@@ -30,6 +31,14 @@ export type HomepageContent = {
   promises: { items: string[] };
   process: { eyebrow: string; title: string; steps: ProcessStep[] };
   familiesIntro: { eyebrow: string; title: string; description: string };
+  softwareIntro: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    linkLabel: string;
+    whatsappLabel: string;
+    whatsappMessage: string;
+  };
   offersIntro: { eyebrow: string; title: string; linkLabel: string };
   blogIntro: { eyebrow: string; title: string; description: string };
   finalCta: { title: string; description: string; buttonLabel: string; whatsappMessage: string };
@@ -41,6 +50,7 @@ const defaultVisibility: Record<HomepageSectionName, boolean> = {
   promises: true,
   process: true,
   familiesIntro: true,
+  softwareIntro: true,
   offersIntro: true,
   blogIntro: true,
   finalCta: true,
@@ -75,6 +85,15 @@ export const defaultHomepageContent: HomepageContent = {
     description:
       'La version minimale démarre avec des offres simples dans chaque famille, puis évolue selon les besoins réels des clients.',
   },
+  softwareIntro: {
+    eyebrow: 'Logiciels et abonnements',
+    title: 'Équipez-vous pour apprendre, pratiquer et travailler.',
+    description:
+      'Découvrez une sélection de logiciels professionnels pour le bâtiment, l’architecture, la structure et l’industrie. Contactez-nous sur WhatsApp pour connaître la formule disponible, le tarif et la formation associée.',
+    linkLabel: 'Voir tous les logiciels',
+    whatsappLabel: 'Demander conseil sur WhatsApp',
+    whatsappMessage: 'Bonjour GamaDigit, je recherche un logiciel professionnel et je souhaite être conseillé.',
+  },
   offersIntro: {
     eyebrow: 'Commencer simplement',
     title: 'Nos premières offres essentielles',
@@ -101,6 +120,7 @@ const sectionMap = {
   promises: 'promises',
   process: 'process',
   families_intro: 'familiesIntro',
+  software_intro: 'softwareIntro',
   offers_intro: 'offersIntro',
   blog_intro: 'blogIntro',
   final_cta: 'finalCta',
@@ -125,6 +145,7 @@ export async function getHomepageContent(): Promise<HomepageContent> {
     promises: false,
     process: false,
     familiesIntro: false,
+    softwareIntro: false,
     offersIntro: false,
     blogIntro: false,
     finalCta: false,
