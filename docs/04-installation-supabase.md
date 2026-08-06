@@ -39,7 +39,7 @@ values ('UUID_UTILISATEUR', 'Administrateur GamaDigit', 'admin');
 
 - `/admin/connexion` affiche le formulaire de connexion ;
 - le compte sans profil est refusé ;
-- le compte avec rôle `admin` ou `editor` accède au tableau de bord ;
+- le compte avec rôle `admin` accède au tableau de bord ;
 - le formulaire public enregistre une ligne dans `public.leads` ;
 - un visiteur non authentifié ne peut ni lire les prospects, ni modifier les contenus.
 
@@ -49,4 +49,4 @@ values ('UUID_UTILISATEUR', 'Administrateur GamaDigit', 'admin');
 - ne jamais committer `.env.local` ;
 - vérifier les politiques RLS après chaque nouvelle table ;
 - limiter le nombre de comptes administrateurs ;
-- utiliser le rôle `editor` pour la rédaction et le rôle `admin` pour la configuration sensible.
+- le rôle `editor` est réservé à un lot ultérieur avec des politiques RLS spécifiques.
