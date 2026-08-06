@@ -1,12 +1,12 @@
 import { blogPosts as fallbackPosts, families as fallbackFamilies, services as fallbackServices } from '@/lib/content';
 import { siteConfig } from '@/lib/site';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabasePublicClient } from '@/lib/supabase/public';
 import type { BlogPost, ServiceFamily, ServiceItem } from '@/types/content';
 
 export type PublicSiteSettings = typeof siteConfig;
 
 export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   if (!supabase) return siteConfig;
   const { data, error } = await supabase.from('site_settings').select('payload').eq('id', 'main').maybeSingle();
   if (error || !data?.payload) return siteConfig;
@@ -24,7 +24,7 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
 }
 
 export async function getPublicFamilies(): Promise<ServiceFamily[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   if (!supabase) return fallbackFamilies;
   const { data, error } = await supabase
     .from('service_families')
@@ -46,7 +46,7 @@ export async function getPublicFamilies(): Promise<ServiceFamily[]> {
 }
 
 export async function getPublicServices(): Promise<ServiceItem[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   if (!supabase) return fallbackServices;
   const { data, error } = await supabase
     .from('services')
@@ -70,7 +70,7 @@ export async function getPublicServices(): Promise<ServiceItem[]> {
 }
 
 export async function getPublicBlogPosts(): Promise<BlogPost[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   if (!supabase) return fallbackPosts;
   const { data, error } = await supabase
     .from('blog_posts')
