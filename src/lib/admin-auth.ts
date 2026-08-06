@@ -5,7 +5,7 @@ export type AdminSession =
   | { status: 'unconfigured' }
   | { status: 'unauthenticated' }
   | { status: 'forbidden'; email: string | null }
-  | { status: 'authorized'; email: string | null; role: 'admin' | 'editor'; displayName: string | null };
+  | { status: 'authorized'; email: string | null; role: 'admin'; displayName: string | null };
 
 export async function getAdminSession(): Promise<AdminSession> {
   const supabase = await createSupabaseServerClient();
@@ -21,14 +21,14 @@ export async function getAdminSession(): Promise<AdminSession> {
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (!profile || !['admin', 'editor'].includes(profile.role)) {
+  if (!profile || profile.role !== 'admin') {
     return { status: 'forbidden', email: user.email ?? null };
   }
 
   return {
     status: 'authorized',
     email: user.email ?? null,
-    role: profile.role as 'admin' | 'editor',
+    role: 'admin',
     displayName: profile.display_name,
   };
 }
