@@ -1,9 +1,28 @@
 import { blogPosts as fallbackPosts, families as fallbackFamilies, services as fallbackServices } from '@/lib/content';
 import { siteConfig } from '@/lib/site';
 import { createSupabasePublicClient } from '@/lib/supabase/public';
-import type { BlogPost, ServiceFamily, ServiceItem } from '@/types/content';
+import type { BlogPost, ServiceFamily, ServiceItem, ServiceMedia, SoftwareCategory } from '@/types/content';
 
 export type PublicSiteSettings = typeof siteConfig;
+
+function normalizeMedia(value: unknown): ServiceMedia[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    .map((item) => ({
+      url: typeof item.url === 'string' ? item.url : undefined,
+      publicUrl: typeof item.publicUrl === 'string'
+        ? item.publicUrl
+        : typeof item.public_url === 'string'
+          ? item.public_url
+          : undefined,
+      alt: typeof item.alt === 'string'
+        ? item.alt
+        : typeof item.alt_text === 'string'
+          ? item.alt_text
+          : undefined,
+    }));
+}
 
 export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
   const supabase = createSupabasePublicClient();
@@ -45,28 +64,64 @@ export async function getPublicFamilies(): Promise<ServiceFamily[]> {
   }));
 }
 
+export async function getPublicSoftwareCategories(): Promise<SoftwareCategory[]> {
+  const supabase = createSupabasePublicClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('software_categories')
+    .select('*')
+    .eq('status', 'published')
+    .order('sort_order');
+  if (error || !data?.length) return [];
+  return data.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description || '',
+    accent: row.accent || '#0877C9',
+    sortOrder: Number(row.sort_order || 0),
+    status: 'published',
+  }));
+}
+
 export async function getPublicServices(): Promise<ServiceItem[]> {
   const supabase = createSupabasePublicClient();
   if (!supabase) return fallbackServices;
   const { data, error } = await supabase
     .from('services')
-    .select('*, service_families!inner(slug)')
+    .select('*, service_families!inner(slug), software_categories(slug, name, accent, sort_order)')
     .eq('status', 'published')
     .order('sort_order');
   if (error || !data?.length) return fallbackServices;
-  return data.map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    familySlug: row.service_families.slug,
-    name: row.name,
-    excerpt: row.excerpt,
-    description: row.description,
-    priceLabel: row.price_label || 'Sur devis',
-    deliveryLabel: row.delivery_label || 'Délai selon le projet',
-    features: Array.isArray(row.features) ? row.features.map(String) : [],
-    featured: Boolean(row.is_featured),
-    status: 'published',
-  }));
+  return data.map((row) => {
+    const family = Array.isArray(row.service_families) ? row.service_families[0] : row.service_families;
+    const category = Array.isArray(row.software_categories) ? row.software_categories[0] : row.software_categories;
+    return {
+      id: row.id,
+      slug: row.slug,
+      familySlug: family?.slug || '',
+      name: row.name,
+      excerpt: row.excerpt,
+      description: row.description,
+      priceLabel: row.price_label || 'Sur devis',
+      deliveryLabel: row.delivery_label || 'Délai selon le projet',
+      features: Array.isArray(row.features) ? row.features.map(String) : [],
+      featured: Boolean(row.is_featured),
+      status: 'published',
+      productCode: row.product_code || undefined,
+      categorySlug: category?.slug || undefined,
+      categoryName: category?.name || undefined,
+      categoryAccent: category?.accent || undefined,
+      categorySortOrder: category ? Number(category.sort_order || 0) : undefined,
+      whatsappMessage: row.whatsapp_message || undefined,
+      media: normalizeMedia(row.media),
+    };
+  });
+}
+
+export async function getPublicSoftwareProducts(): Promise<ServiceItem[]> {
+  const services = await getPublicServices();
+  return services.filter((service) => service.familySlug === 'logiciels-abonnements');
 }
 
 export async function getPublicBlogPosts(): Promise<BlogPost[]> {
