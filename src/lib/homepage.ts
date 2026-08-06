@@ -16,6 +16,15 @@ export type ProcessStep = {
   text: string;
 };
 
+export type HomepageSectionName =
+  | 'hero'
+  | 'promises'
+  | 'process'
+  | 'familiesIntro'
+  | 'offersIntro'
+  | 'blogIntro'
+  | 'finalCta';
+
 export type HomepageContent = {
   hero: HeroContent;
   promises: { items: string[] };
@@ -24,6 +33,17 @@ export type HomepageContent = {
   offersIntro: { eyebrow: string; title: string; linkLabel: string };
   blogIntro: { eyebrow: string; title: string; description: string };
   finalCta: { title: string; description: string; buttonLabel: string; whatsappMessage: string };
+  visible: Record<HomepageSectionName, boolean>;
+};
+
+const defaultVisibility: Record<HomepageSectionName, boolean> = {
+  hero: true,
+  promises: true,
+  process: true,
+  familiesIntro: true,
+  offersIntro: true,
+  blogIntro: true,
+  finalCta: true,
 };
 
 export const defaultHomepageContent: HomepageContent = {
@@ -73,6 +93,7 @@ export const defaultHomepageContent: HomepageContent = {
     buttonLabel: 'Présenter mon projet',
     whatsappMessage: 'Bonjour GamaDigit, voici le projet que je souhaite lancer : ',
   },
+  visible: defaultVisibility,
 };
 
 const sectionMap = {
@@ -87,7 +108,7 @@ const sectionMap = {
 
 export async function getHomepageContent(): Promise<HomepageContent> {
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return defaultHomepageContent;
+  if (!supabase) return structuredClone(defaultHomepageContent);
 
   const { data, error } = await supabase
     .from('page_sections')
@@ -96,13 +117,24 @@ export async function getHomepageContent(): Promise<HomepageContent> {
     .eq('status', 'published')
     .order('sort_order');
 
-  if (error || !data?.length) return defaultHomepageContent;
+  if (error) return structuredClone(defaultHomepageContent);
 
   const result: HomepageContent = structuredClone(defaultHomepageContent);
-  for (const row of data) {
+  result.visible = {
+    hero: false,
+    promises: false,
+    process: false,
+    familiesIntro: false,
+    offersIntro: false,
+    blogIntro: false,
+    finalCta: false,
+  };
+
+  for (const row of data || []) {
     const target = sectionMap[row.section_key as keyof typeof sectionMap];
     if (!target || !row.payload || typeof row.payload !== 'object') continue;
     Object.assign(result[target], row.payload);
+    result.visible[target] = true;
   }
   return result;
 }
