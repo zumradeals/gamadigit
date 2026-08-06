@@ -1,0 +1,44 @@
+import Link from 'next/link';
+import { Menu, MessageCircle } from 'lucide-react';
+import { families } from '@/lib/content';
+import { whatsappUrl } from '@/lib/site';
+import { Logo } from '@/components/brand/logo';
+
+export function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link href="/" aria-label="Accueil GamaDigit">
+          <Logo className="h-12 w-auto" />
+        </Link>
+        <nav className="hidden items-center gap-7 text-sm font-semibold text-slate-700 lg:flex">
+          <Link href="/" className="hover:text-ocean">Accueil</Link>
+          <div className="group relative">
+            <button className="py-7 hover:text-ocean">Services</button>
+            <div className="invisible absolute left-1/2 top-[4.6rem] w-[34rem] -translate-x-1/2 rounded-2xl border border-slate-200 bg-white p-3 opacity-0 shadow-soft transition group-hover:visible group-hover:opacity-100">
+              <div className="grid grid-cols-2 gap-1">
+                {families.map((family) => (
+                  <Link key={family.id} href={`/services/${family.slug}`} className="rounded-xl p-3 hover:bg-cloud">
+                    <span className="block font-bold text-ink">{family.shortName}</span>
+                    <span className="mt-1 block text-xs font-normal leading-5 text-slate-500">{family.description}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+          <Link href="/blog" className="hover:text-ocean">Blog</Link>
+          <Link href="/contact" className="hover:text-ocean">Contact</Link>
+        </nav>
+        <div className="flex items-center gap-2">
+          <a href={whatsappUrl('Bonjour GamaDigit, je souhaite parler de mon projet numérique.')} target="_blank" rel="noreferrer" className="hidden items-center gap-2 rounded-xl bg-mint px-4 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-200/50 transition hover:-translate-y-0.5 sm:inline-flex">
+            <MessageCircle className="h-4 w-4" />
+            Parler de mon projet
+          </a>
+          <button className="rounded-xl border border-slate-200 p-3 text-ink lg:hidden" aria-label="Ouvrir le menu">
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
