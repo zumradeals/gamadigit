@@ -5,6 +5,7 @@ import {
   Check,
   ChevronRight,
   MessageCircle,
+  PackageCheck,
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
@@ -34,8 +35,12 @@ export default async function HomePage() {
 
   const explicitlyFeatured = services.filter((service) => service.featured);
   const featured = (explicitlyFeatured.length ? explicitlyFeatured : services).slice(0, 3);
+  const softwareServices = services
+    .filter((service) => service.familySlug === 'logiciels-abonnements')
+    .slice(0, 6);
   const latestPosts = posts.slice(0, 3);
   const heroWhatsapp = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(homepage.hero.primaryMessage)}`;
+  const softwareWhatsapp = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(homepage.softwareIntro.whatsappMessage)}`;
   const finalWhatsapp = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(homepage.finalCta.whatsappMessage)}`;
 
   return (
@@ -121,6 +126,53 @@ export default async function HomePage() {
                   <span className="mt-6 inline-flex items-center gap-2 text-sm font-black text-ocean">Découvrir <ChevronRight className="h-4 w-4 transition group-hover:translate-x-1" /></span>
                 </Link>
               ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {homepage.visible.softwareIntro && softwareServices.length > 0 && (
+        <section id="logiciels" className="bg-ink px-4 py-20 text-white sm:px-6 lg:px-8 lg:py-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
+              <div className="max-w-3xl">
+                <p className="text-sm font-black uppercase tracking-[0.17em] text-cyan">{homepage.softwareIntro.eyebrow}</p>
+                <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-5xl">{homepage.softwareIntro.title}</h2>
+                <p className="mt-5 text-lg leading-8 text-slate-300">{homepage.softwareIntro.description}</p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link href="/services/logiciels-abonnements" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-5 py-3 font-black text-white hover:bg-white/10">
+                  {homepage.softwareIntro.linkLabel} <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a href={softwareWhatsapp} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl bg-mint px-5 py-3 font-black text-white">
+                  <MessageCircle className="h-4 w-4" />{homepage.softwareIntro.whatsappLabel}
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {softwareServices.map((service) => {
+                const productWhatsapp = `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent(
+                  `Bonjour GamaDigit, je souhaite connaître le tarif et la disponibilité de ${service.name}. Je souhaite aussi recevoir les informations sur la formation associée.`
+                )}`;
+
+                return (
+                  <article key={service.id} className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan/15 text-cyan"><PackageCheck className="h-6 w-6" /></span>
+                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-black text-slate-200">{service.priceLabel}</span>
+                    </div>
+                    <h3 className="mt-5 text-2xl font-black">{service.name}</h3>
+                    <p className="mt-3 flex-1 text-sm leading-7 text-slate-300">{service.excerpt}</p>
+                    <ul className="mt-5 space-y-2 text-sm text-slate-200">
+                      {service.features.slice(0, 3).map((feature) => <li key={feature} className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-mint" />{feature}</li>)}
+                    </ul>
+                    <a href={productWhatsapp} target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-black text-ink transition hover:-translate-y-0.5">
+                      <MessageCircle className="h-4 w-4 text-mint" />Commander ou demander le tarif
+                    </a>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
