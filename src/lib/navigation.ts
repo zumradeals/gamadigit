@@ -37,8 +37,9 @@ async function fallbackMenu(location: 'header' | 'footer'): Promise<PublicMenuIt
         children: [],
       })),
     },
-    { id: 'header-blog', label: 'Blog', url: '/blog', target: '_self', sortOrder: 30, children: [] },
-    { id: 'header-contact', label: 'Contact', url: '/contact', target: '_self', sortOrder: 40, children: [] },
+    { id: 'header-software', label: 'Logiciels', url: '/services/logiciels-abonnements', target: '_self', sortOrder: 30, children: [] },
+    { id: 'header-blog', label: 'Blog', url: '/blog', target: '_self', sortOrder: 40, children: [] },
+    { id: 'header-contact', label: 'Contact', url: '/contact', target: '_self', sortOrder: 50, children: [] },
   ];
 }
 
