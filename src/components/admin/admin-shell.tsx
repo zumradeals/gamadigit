@@ -1,13 +1,26 @@
 import Link from 'next/link';
-import { BookOpen, Boxes, Home, LayoutDashboard, Settings, Users } from 'lucide-react';
+import {
+  BookOpen,
+  Boxes,
+  FolderTree,
+  Home,
+  Images,
+  LayoutDashboard,
+  Menu,
+  Settings,
+  Users,
+} from 'lucide-react';
 import { Logo } from '@/components/brand/logo';
 import { LogoutButton } from '@/components/admin/logout-button';
 
 const navigation = [
   { href: '/admin', label: 'Tableau de bord', icon: LayoutDashboard },
   { href: '/admin/accueil', label: 'Page d’accueil', icon: Home },
+  { href: '/admin/navigation', label: 'Menus', icon: Menu },
   { href: '/admin/services', label: 'Services', icon: Boxes },
   { href: '/admin/articles', label: 'Articles', icon: BookOpen },
+  { href: '/admin/categories', label: 'Catégories', icon: FolderTree },
+  { href: '/admin/medias', label: 'Médias', icon: Images },
   { href: '/admin/prospects', label: 'Prospects', icon: Users },
   { href: '/admin/parametres', label: 'Paramètres', icon: Settings },
 ];
