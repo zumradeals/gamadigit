@@ -23,6 +23,7 @@ const baseSchema = z.object({
     'promises',
     'process',
     'families_intro',
+    'software_intro',
     'offers_intro',
     'blog_intro',
     'final_cta',
@@ -96,6 +97,23 @@ function buildPayload(sectionKey: string, formData: FormData) {
         eyebrow: text(formData, 'eyebrow'),
         title: text(formData, 'title'),
         description: text(formData, 'description'),
+      });
+
+    case 'software_intro':
+      return z.object({
+        eyebrow: z.string().min(2),
+        title: z.string().min(5),
+        description: z.string().min(10),
+        linkLabel: z.string().min(2),
+        whatsappLabel: z.string().min(2),
+        whatsappMessage: z.string().min(5),
+      }).parse({
+        eyebrow: text(formData, 'eyebrow'),
+        title: text(formData, 'title'),
+        description: text(formData, 'description'),
+        linkLabel: text(formData, 'linkLabel'),
+        whatsappLabel: text(formData, 'whatsappLabel'),
+        whatsappMessage: text(formData, 'whatsappMessage'),
       });
 
     case 'offers_intro':
