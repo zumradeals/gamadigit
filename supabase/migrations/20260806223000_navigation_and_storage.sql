@@ -6,18 +6,17 @@ on conflict (location) do nothing;
 
 with header_menu as (
   select id from public.menus where location = 'header'
-), services_parent as (
-  insert into public.menu_items (menu_id, label, url, sort_order, status)
-  select id, 'Services', '#services', 20, 'published' from header_menu
-  on conflict do nothing
-  returning id, menu_id
 )
 insert into public.menu_items (menu_id, parent_id, label, url, sort_order, status)
-select header_menu.id, null, 'Accueil', '/', 10, 'published' from header_menu
-union all
-select header_menu.id, null, 'Blog', '/blog', 30, 'published' from header_menu
-union all
-select header_menu.id, null, 'Contact', '/contact', 40, 'published' from header_menu;
+select header_menu.id, null::uuid, values_table.label, values_table.url, values_table.sort_order, 'published'::public.publication_status
+from header_menu
+cross join (
+  values
+    ('Accueil', '/', 10),
+    ('Services', '#services', 20),
+    ('Blog', '/blog', 30),
+    ('Contact', '/contact', 40)
+) as values_table(label, url, sort_order);
 
 with header_menu as (
   select id from public.menus where location = 'header'
@@ -43,8 +42,8 @@ cross join (
 with footer_menu as (
   select id from public.menus where location = 'footer'
 )
-insert into public.menu_items (menu_id, label, url, sort_order, status)
-select footer_menu.id, values_table.label, values_table.url, values_table.sort_order, 'published'::public.publication_status
+insert into public.menu_items (menu_id, parent_id, label, url, sort_order, status)
+select footer_menu.id, null::uuid, values_table.label, values_table.url, values_table.sort_order, 'published'::public.publication_status
 from footer_menu
 cross join (
   values
