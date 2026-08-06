@@ -15,19 +15,61 @@ GamaDigit est un satellite de l’écosystème GAMAD.
 5. Formation et accompagnement
 6. Solutions numériques pour entreprises
 
-## Produit V1
+## Stack
 
-La première version comprend :
+- Next.js avec App Router
+- React et TypeScript
+- Tailwind CSS
+- Supabase Auth, PostgreSQL et RLS
+- Lucide pour les icônes
 
-- un site public responsive ;
-- un catalogue de services et logiciels ;
-- des pages de formation ;
-- un blog ;
-- des formulaires de devis ;
-- un back-office connecté à Supabase ;
-- des contenus configurables sans modification du code ;
-- une base SEO et analytique propre.
+## Fonctionnalités déjà posées
 
-## Statut
+- accueil responsive ;
+- navigation desktop et mobile ;
+- pages des six familles ;
+- premières offres minimales ;
+- blog et articles ;
+- contact, WhatsApp et formulaire de devis ;
+- sitemap et robots ;
+- logo vectoriel, favicon et charte V1 ;
+- schéma Supabase avec politiques de sécurité ;
+- authentification du back-office ;
+- tableau de bord et écrans de lecture pour services, articles, prospects et paramètres.
 
-Le dépôt est en cours d’initialisation.
+## Installation locale
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Ouvrir ensuite `http://localhost:3000`.
+
+## Supabase
+
+Consulter [`docs/04-installation-supabase.md`](docs/04-installation-supabase.md) pour :
+
+- appliquer les migrations ;
+- charger les données initiales ;
+- créer le premier administrateur ;
+- configurer les variables d’environnement.
+
+## Commandes qualité
+
+```bash
+npm run typecheck
+npm run build
+```
+
+## Documentation
+
+- [`docs/01-vision-produit.md`](docs/01-vision-produit.md)
+- [`docs/02-architecture-information.md`](docs/02-architecture-information.md)
+- [`docs/03-charte-graphique.md`](docs/03-charte-graphique.md)
+- [`docs/04-installation-supabase.md`](docs/04-installation-supabase.md)
+
+## État actuel
+
+Le socle public et la fondation du back-office sont en place. Le prochain lot concerne les formulaires CRUD sécurisés et la connexion des contenus publics à Supabase.
