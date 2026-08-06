@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { AdminShell } from '@/components/admin/admin-shell';
+import { LogoutButton } from '@/components/admin/logout-button';
 import { requireAdmin } from '@/lib/admin-auth';
 
 export default async function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +22,11 @@ export default async function ProtectedAdminLayout({ children }: { children: Rea
   if (session.status === 'forbidden') {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
-        <div className="max-w-lg rounded-3xl border border-red-400/20 bg-red-500/5 p-8"><h1 className="text-3xl font-black">Accès non autorisé</h1><p className="mt-4 leading-7 text-slate-400">Le compte {session.email || ''} est authentifié mais ne possède pas de profil administrateur ou éditeur.</p></div>
+        <div className="max-w-lg rounded-3xl border border-red-400/20 bg-red-500/5 p-8">
+          <h1 className="text-3xl font-black">Accès non autorisé</h1>
+          <p className="mt-4 leading-7 text-slate-400">Le compte {session.email || ''} est authentifié mais ne possède pas le rôle administrateur.</p>
+          <div className="mt-6 max-w-52"><LogoutButton /></div>
+        </div>
       </main>
     );
   }
