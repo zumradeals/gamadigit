@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { BookOpen, Boxes, LayoutDashboard, Settings, Users } from 'lucide-react';
+import { BookOpen, Boxes, Home, LayoutDashboard, Settings, Users } from 'lucide-react';
 import { Logo } from '@/components/brand/logo';
 import { LogoutButton } from '@/components/admin/logout-button';
 
 const navigation = [
   { href: '/admin', label: 'Tableau de bord', icon: LayoutDashboard },
+  { href: '/admin/accueil', label: 'Page d’accueil', icon: Home },
   { href: '/admin/services', label: 'Services', icon: Boxes },
   { href: '/admin/articles', label: 'Articles', icon: BookOpen },
   { href: '/admin/prospects', label: 'Prospects', icon: Users },

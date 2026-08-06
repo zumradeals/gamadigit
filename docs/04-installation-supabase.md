@@ -9,9 +9,10 @@ Créer un projet Supabase dédié à GamaDigit. Ne pas réutiliser la base de l�
 Exécuter dans l’éditeur SQL, dans cet ordre :
 
 1. `supabase/migrations/20260806214500_initial_schema.sql`
-2. `supabase/seed.sql`
+2. `supabase/migrations/20260806220000_homepage_sections.sql`
+3. `supabase/seed.sql`
 
-Le premier fichier crée les tables, fonctions, déclencheurs et politiques RLS. Le second ajoute les six familles initiales et les catégories du blog.
+La première migration crée le socle, les fonctions, déclencheurs et politiques RLS. La deuxième ajoute les sections administrables de la page d’accueil. Le seed ajoute les six familles initiales et les catégories du blog.
 
 ## 3. Configurer l’application
 
@@ -40,6 +41,7 @@ values ('UUID_UTILISATEUR', 'Administrateur GamaDigit', 'admin');
 - `/admin/connexion` affiche le formulaire de connexion ;
 - le compte sans profil est refusé ;
 - le compte avec rôle `admin` accède au tableau de bord ;
+- `/admin/accueil` permet de modifier les sections publiées ;
 - le formulaire public enregistre une ligne dans `public.leads` ;
 - un visiteur non authentifié ne peut ni lire les prospects, ni modifier les contenus.
 
