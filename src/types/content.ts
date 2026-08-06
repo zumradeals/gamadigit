@@ -1,5 +1,21 @@
 export type PublicationStatus = 'draft' | 'published' | 'archived';
 
+export interface ServiceMedia {
+  url?: string;
+  publicUrl?: string;
+  alt?: string;
+}
+
+export interface SoftwareCategory {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  accent: string;
+  sortOrder: number;
+  status: PublicationStatus;
+}
+
 export interface ServiceItem {
   id: string;
   slug: string;
@@ -12,6 +28,13 @@ export interface ServiceItem {
   features: string[];
   featured?: boolean;
   status: PublicationStatus;
+  productCode?: string;
+  categorySlug?: string;
+  categoryName?: string;
+  categoryAccent?: string;
+  categorySortOrder?: number;
+  whatsappMessage?: string;
+  media?: ServiceMedia[];
 }
 
 export interface ServiceFamily {
