@@ -21,7 +21,7 @@ const digitalItems = [
   { label: 'Formations', href: '/formations' },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ logoUrl }: { logoUrl?: string }) {
   const pathname = usePathname();
   const digitalMenuRef = useRef<HTMLDetailsElement>(null);
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
@@ -39,7 +39,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" aria-label="Accueil DG AFRIQUE" onClick={closeMenus}><Logo /></Link>
+        <Link href="/" aria-label="Accueil DG AFRIQUE" onClick={closeMenus} className="min-w-0 shrink"><Logo src={logoUrl} /></Link>
         <nav className="hidden items-center gap-5 text-sm font-semibold text-slate-700 2xl:flex">
           {menuItems.slice(0, 2).map((item) => <Link key={item.label} href={item.href} onClick={closeMenus} className="transition hover:text-dgGreen">{item.label}</Link>)}
           <details ref={digitalMenuRef} className="group relative">
