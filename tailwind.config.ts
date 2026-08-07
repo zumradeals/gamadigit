@@ -15,6 +15,10 @@ export default {
         mint: '#21C87A',
         sand: '#F5B942',
         cloud: '#F4F8FB',
+        dgNavy: '#0B1F33',
+        dgGold: '#C89B3C',
+        dgGreen: '#2E6B4A',
+        dgIvory: '#F7F5EF',
       },
       boxShadow: {
         soft: '0 18px 50px rgba(6, 31, 53, 0.10)',
