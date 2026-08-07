@@ -16,6 +16,13 @@ function nullableText(formData: FormData, key: string) {
   return value || null;
 }
 
+function lines(formData: FormData, key: string) {
+  return text(formData, key)
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function slugify(value: string) {
   return value
     .normalize('NFD')
@@ -33,12 +40,13 @@ async function adminClient() {
   return supabase;
 }
 
-function revalidateCatalogue() {
+function revalidateCatalogue(slug?: string) {
   revalidatePath('/');
   revalidatePath('/logiciels');
   revalidatePath('/services/logiciels-abonnements');
   revalidatePath('/admin/logiciels');
   revalidatePath('/admin/services');
+  if (slug) revalidatePath(`/logiciels/${slug}`);
 }
 
 export async function saveSoftwareCategoryAction(formData: FormData) {
@@ -73,10 +81,6 @@ export async function saveSoftwareProductAction(formData: FormData) {
   const supabase = await adminClient();
   const id = nullableText(formData, 'id');
   const name = text(formData, 'name');
-  const features = text(formData, 'features')
-    .split('\n')
-    .map((item) => item.trim())
-    .filter(Boolean);
   const imageUrl = nullableText(formData, 'image_url');
   const imageAlt = nullableText(formData, 'image_alt') || name;
 
@@ -98,8 +102,13 @@ export async function saveSoftwareProductAction(formData: FormData) {
     price_label: z.string().nullable(),
     delivery_label: z.string().nullable(),
     features: z.array(z.string()),
+    target_audience: z.array(z.string()),
+    key_points: z.array(z.string()),
     media: z.array(z.object({ url: z.string().url(), alt: z.string() })),
     whatsapp_message: z.string().nullable(),
+    seo_title: z.string().nullable(),
+    seo_description: z.string().nullable(),
+    social_content: z.record(z.unknown()),
     status: statusSchema,
     is_featured: z.boolean(),
     sort_order: z.number().int(),
@@ -114,9 +123,16 @@ export async function saveSoftwareProductAction(formData: FormData) {
     description: text(formData, 'description'),
     price_label: nullableText(formData, 'price_label'),
     delivery_label: nullableText(formData, 'delivery_label'),
-    features,
+    features: lines(formData, 'features'),
+    target_audience: lines(formData, 'target_audience'),
+    key_points: lines(formData, 'key_points'),
     media: imageUrl ? [{ url: imageUrl, alt: imageAlt }] : [],
     whatsapp_message: nullableText(formData, 'whatsapp_message'),
+    seo_title: nullableText(formData, 'seo_title'),
+    seo_description: nullableText(formData, 'seo_description'),
+    social_content: nullableText(formData, 'facebook_post')
+      ? { facebook_post: text(formData, 'facebook_post') }
+      : {},
     status: text(formData, 'status') || 'draft',
     is_featured: formData.get('is_featured') === 'on',
     sort_order: Number(text(formData, 'sort_order') || 0),
@@ -128,5 +144,5 @@ export async function saveSoftwareProductAction(formData: FormData) {
     : supabase.from('services').insert(parsed);
   const { error } = await query;
   if (error) throw new Error(error.message);
-  revalidateCatalogue();
+  revalidateCatalogue(parsed.slug);
 }
