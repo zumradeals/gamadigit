@@ -3,9 +3,9 @@ export const siteConfig = {
   longName: 'Développement Global Afrique',
   tagline: 'Des solutions pour faire avancer l’Afrique.',
   description:
-    'DG AFRIQUE est une structure multisectorielle orientée commerce, courtage international, investissements, services et développement, avec GamaDigit comme pôle numérique.',
+    'DG AFRIQUE est une structure multisectorielle orientée commerce, courtage international, investissements, services et développement, avec un pôle numérique dédié aux logiciels, formations et solutions digitales.',
   location: 'Abidjan, Côte d’Ivoire',
-  email: 'contact@gamadigit.com',
+  email: 'contact@dgafrique.com',
   phone: '+225 07 18 71 37 81',
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '2250718713781',
   ecosystem: 'Développement Global Afrique',
@@ -18,12 +18,15 @@ export const dgAfricaColors = {
   ivory: '#F7F5EF',
 };
 
-export const gamadigitConfig = {
-  name: 'GamaDigit',
-  tagline: 'Le numérique qui fait avancer vos projets.',
+export const digitalPoleConfig = {
+  name: 'Pôle numérique',
+  tagline: 'Le numérique au service de vos projets.',
   description:
-    'Le pôle numérique de DG AFRIQUE : logiciels, abonnements, formations, web, applications, design, hébergement et solutions numériques.',
+    'Le pôle numérique de DG AFRIQUE rassemble logiciels, abonnements, formations, web, applications, design, hébergement et solutions numériques.',
 };
+
+// Alias temporaire pour préserver la compatibilité interne pendant la migration du code.
+export const gamadigitConfig = digitalPoleConfig;
 
 export function whatsappUrl(message: string) {
   return `https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(message)}`;
