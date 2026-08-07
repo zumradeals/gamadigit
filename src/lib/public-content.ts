@@ -2,6 +2,7 @@ import { blogPosts as fallbackPosts, families as fallbackFamilies, services as f
 import { siteConfig } from '@/lib/site';
 import { createSupabasePublicClient } from '@/lib/supabase/public';
 import type {
+  BlogContentItem,
   BlogPost,
   ServiceFamily,
   ServiceItem,
@@ -30,6 +31,40 @@ function normalizeMedia(value: unknown): ServiceMedia[] {
           ? item.alt_text
           : undefined,
     }));
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
+}
+
+function normalizeBlogContent(value: unknown): BlogContentItem[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((item): BlogContentItem[] => {
+    if (typeof item === 'string') return item.trim() ? [item] : [];
+    if (!item || typeof item !== 'object') return [];
+
+    const block = item as Record<string, unknown>;
+    const type = String(block.type || '');
+
+    if (type === 'paragraph' && typeof block.text === 'string') {
+      return [{ type: 'paragraph', text: block.text }];
+    }
+    if (type === 'heading' && typeof block.text === 'string') {
+      return [{ type: 'heading', text: block.text, level: block.level === 3 ? 3 : 2 }];
+    }
+    if (type === 'list' && Array.isArray(block.items)) {
+      return [{ type: 'list', items: block.items.map(String).filter(Boolean) }];
+    }
+    if (type === 'callout' && typeof block.text === 'string') {
+      return [{ type: 'callout', text: block.text }];
+    }
+    if (type === 'cta' && typeof block.label === 'string' && typeof block.href === 'string') {
+      return [{ type: 'cta', label: block.label, href: block.href }];
+    }
+
+    return [];
+  });
 }
 
 export async function getPublicSiteSettings(): Promise<PublicSiteSettings> {
@@ -141,7 +176,7 @@ export async function getPublicTrainingPrograms(): Promise<TrainingProgram[]> {
       showPrice: Boolean(row.show_price),
       formatLabel: row.format_label || undefined,
       durationLabel: row.duration_label || undefined,
-      highlights: Array.isArray(row.highlights) ? row.highlights.map(String) : [],
+      highlights: stringArray(row.highlights),
       media: normalizeMedia(row.media),
       whatsappMessage: row.whatsapp_message || undefined,
       partnerLabel: row.partner_label || undefined,
@@ -173,7 +208,12 @@ export async function getPublicServices(): Promise<ServiceItem[]> {
       description: row.description,
       priceLabel: row.price_label || 'Sur devis',
       deliveryLabel: row.delivery_label || 'Délai selon le projet',
-      features: Array.isArray(row.features) ? row.features.map(String) : [],
+      features: stringArray(row.features),
+      targetAudience: stringArray(row.target_audience),
+      keyPoints: stringArray(row.key_points),
+      seoTitle: row.seo_title || undefined,
+      seoDescription: row.seo_description || undefined,
+      socialContent: row.social_content && typeof row.social_content === 'object' ? row.social_content : {},
       featured: Boolean(row.is_featured),
       status: 'published',
       productCode: row.product_code || undefined,
@@ -190,6 +230,11 @@ export async function getPublicServices(): Promise<ServiceItem[]> {
 export async function getPublicSoftwareProducts(): Promise<ServiceItem[]> {
   const services = await getPublicServices();
   return services.filter((service) => service.familySlug === 'logiciels-abonnements');
+}
+
+export async function getPublicSoftwareProductBySlug(slug: string) {
+  const products = await getPublicSoftwareProducts();
+  return products.find((product) => product.slug === slug);
 }
 
 export async function getPublicBlogPosts(): Promise<BlogPost[]> {
@@ -212,7 +257,9 @@ export async function getPublicBlogPosts(): Promise<BlogPost[]> {
       ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(row.published_at))
       : '',
     readTime: row.read_time || '5 min',
-    content: Array.isArray(row.content) ? row.content.map(String) : [],
+    content: normalizeBlogContent(row.content),
+    seoTitle: row.seo_title || undefined,
+    seoDescription: row.seo_description || undefined,
     status: 'published',
   }));
 }
