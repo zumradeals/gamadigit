@@ -15,7 +15,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { getPublicSoftwareProducts, getPublicTrainingPrograms } from '@/lib/public-content';
-import { gamadigitConfig, siteConfig, whatsappUrl } from '@/lib/site';
+import { digitalPoleConfig, siteConfig, whatsappUrl } from '@/lib/site';
 
 const poles = [
   { title: 'Commerce international & courtage', text: 'Import-export, négoce, mise en relation B2B, recherche de fournisseurs et d’acheteurs, transit et logistique.', icon: Globe2 },
@@ -23,7 +23,7 @@ const poles = [
   { title: 'Mines, agriculture & matières premières', text: 'Opportunités liées aux ressources, produits agricoles, matières premières, achat, vente, stockage et transport.', icon: Mountain },
   { title: 'Construction, BTP & projets', text: 'Construction, fournitures, partenaires techniques, projets immobiliers et infrastructurels.', icon: Building2 },
   { title: 'Services aux entreprises & développement', text: 'Prestations, conseil, développement commercial, mise en relation et accompagnement opérationnel.', icon: Network },
-  { title: 'GamaDigit — pôle numérique', text: 'Logiciels, abonnements, formations, web, applications, design, hébergement et digitalisation.', icon: PackageCheck },
+  { title: 'Pôle numérique', text: 'Logiciels, abonnements, formations, web, applications, design, hébergement et digitalisation.', icon: PackageCheck },
 ];
 
 export default async function HomePage() {
@@ -59,7 +59,7 @@ export default async function HomePage() {
                 ['Je cherche un fournisseur / acheteur', '/opportunites'],
                 ['Je cherche un investisseur / partenaire', '/investisseurs-partenaires'],
                 ['J’ai un projet à développer', '/contact'],
-                ['Je cherche une solution numérique', '/gamadigit'],
+                ['Je cherche une solution numérique', '/pole-numerique'],
               ].map(([label, href]) => <Link key={label} href={href} className="rounded-2xl bg-white p-5 font-black text-dgNavy transition hover:-translate-y-1">{label}<ArrowRight className="mt-4 h-4 w-4 text-dgGreen" /></Link>)}
             </div>
           </div>
@@ -79,7 +79,7 @@ export default async function HomePage() {
                 <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-dgNavy text-dgGold"><Icon className="h-6 w-6" /></span>
                 <h3 className="mt-6 text-xl font-black text-dgNavy">{title}</h3>
                 <p className="mt-3 text-sm leading-7 text-slate-600">{text}</p>
-                {index === 5 && <Link href="/gamadigit" className="mt-6 inline-flex items-center gap-2 text-sm font-black text-dgGreen">Entrer dans GamaDigit <ArrowRight className="h-4 w-4" /></Link>}
+                {index === 5 && <Link href="/pole-numerique" className="mt-6 inline-flex items-center gap-2 text-sm font-black text-dgGreen">Découvrir le pôle numérique <ArrowRight className="h-4 w-4" /></Link>}
               </article>
             ))}
           </div>
@@ -112,11 +112,11 @@ export default async function HomePage() {
         <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#061F35] to-[#0B456C] p-8 text-white sm:p-12">
           <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan">Pôle numérique</p>
-              <h2 className="mt-4 text-4xl font-black sm:text-5xl">GamaDigit</h2>
-              <p className="mt-3 text-xl font-bold text-cyan">{gamadigitConfig.tagline}</p>
-              <p className="mt-5 max-w-2xl leading-8 text-slate-300">{gamadigitConfig.description}</p>
-              <Link href="/gamadigit" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-mint px-5 py-3.5 font-black text-white">Entrer dans GamaDigit <ArrowRight className="h-4 w-4" /></Link>
+              <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan">Voici le pôle numérique de DG AFRIQUE</p>
+              <h2 className="mt-4 text-4xl font-black sm:text-5xl">Pôle numérique</h2>
+              <p className="mt-3 text-xl font-bold text-cyan">{digitalPoleConfig.tagline}</p>
+              <p className="mt-5 max-w-2xl leading-8 text-slate-300">{digitalPoleConfig.description}</p>
+              <Link href="/pole-numerique" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-mint px-5 py-3.5 font-black text-white">Découvrir le pôle numérique <ArrowRight className="h-4 w-4" /></Link>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-white/10 bg-white/10 p-6"><PackageCheck className="h-6 w-6 text-cyan" /><p className="mt-4 text-3xl font-black">{softwareProducts.length || '40+'}</p><p className="mt-1 text-sm text-slate-300">logiciels & abonnements</p></div>
