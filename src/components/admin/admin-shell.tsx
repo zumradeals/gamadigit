@@ -12,6 +12,7 @@ import {
   Menu,
   Package,
   Settings,
+  Smartphone,
   Users,
 } from 'lucide-react';
 import { Logo } from '@/components/brand/logo';
@@ -22,6 +23,7 @@ const navigation = [
   { href: '/admin/accueil', label: 'Page d’accueil', icon: Home },
   { href: '/admin/opportunites', label: 'Opportunités', icon: BriefcaseBusiness },
   { href: '/admin/prospects', label: 'Prospects & relations', icon: Users },
+  { href: '/admin/pole-numerique', label: 'Pôle numérique', icon: Smartphone },
   { href: '/admin/navigation', label: 'Menus', icon: Menu },
   { href: '/admin/services', label: 'Services', icon: Boxes },
   { href: '/admin/logiciels', label: 'Logiciels', icon: Package },
@@ -29,7 +31,7 @@ const navigation = [
   { href: '/admin/articles', label: 'Articles', icon: BookOpen },
   { href: '/admin/categories', label: 'Catégories', icon: FolderTree },
   { href: '/admin/medias', label: 'Médias', icon: Images },
-  { href: '/admin/copilote', label: 'GamaDigit Copilote', icon: Bot },
+  { href: '/admin/copilote', label: 'Copilote', icon: Bot },
   { href: '/admin/parametres', label: 'Paramètres', icon: Settings },
 ];
 
