@@ -30,7 +30,7 @@ function whatsappUrl(number: string, message: string) {
 function TrainingCard({ program, whatsapp }: { program: TrainingProgram; whatsapp: string }) {
   const image = program.media[0]?.publicUrl || program.media[0]?.url;
   const message = program.whatsappMessage
-    || `Bonjour GamaDigit, je souhaite recevoir les informations et les modalités d’inscription pour ${program.name}.`;
+    || `Bonjour DG AFRIQUE, je souhaite recevoir les informations et les modalités d’inscription pour ${program.name}.`;
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
@@ -106,7 +106,7 @@ export default async function TrainingsPage() {
   const standardCategories = categories.filter((category) => category.slug !== 'packs-metiers-premium');
   const premiumCategory = categories.find((category) => category.slug === 'packs-metiers-premium');
   const premiumPrograms = programs.filter((program) => program.categorySlug === 'packs-metiers-premium');
-  const generalMessage = 'Bonjour GamaDigit, je souhaite être orienté vers une formation professionnelle adaptée à mon projet.';
+  const generalMessage = 'Bonjour DG AFRIQUE, je souhaite être orienté vers une formation professionnelle adaptée à mon projet.';
 
   return (
     <>
@@ -115,7 +115,7 @@ export default async function TrainingsPage() {
         <div className="absolute -bottom-48 left-1/3 h-[28rem] w-[28rem] rounded-full bg-mint/10 blur-3xl" />
         <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan">GamaDigit Formations</p>
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan">Pôle numérique · Formations</p>
             <h1 className="mt-4 max-w-4xl text-4xl font-black tracking-tight sm:text-6xl">
               Des compétences professionnelles pour passer de l’apprentissage à la pratique.
             </h1>
@@ -151,7 +151,7 @@ export default async function TrainingsPage() {
             <div className="mt-5 rounded-2xl border border-white/10 bg-ink/30 p-5">
               <p className="flex items-center gap-2 font-black text-white"><Handshake className="h-5 w-5 text-cyan" /> Une collaboration utile</p>
               <p className="mt-2 text-sm leading-6 text-slate-300">
-                GamaDigit facilite la découverte, l’orientation et l’inscription. Les programmes sont assurés avec notre partenaire formateur spécialisé.
+                Le pôle numérique de DG AFRIQUE facilite la découverte, l’orientation et l’inscription. Les programmes sont assurés avec notre partenaire formateur spécialisé.
               </p>
             </div>
           </div>
@@ -237,7 +237,7 @@ export default async function TrainingsPage() {
 
           <section className="rounded-[2rem] bg-cloud p-8 text-center sm:p-12">
             <h2 className="text-3xl font-black text-ink">Vous hésitez entre plusieurs formations ?</h2>
-            <p className="mx-auto mt-4 max-w-2xl leading-7 text-slate-600">Présentez votre métier, votre niveau et votre objectif. GamaDigit vous orientera vers le programme le plus pertinent avec le partenaire formateur.</p>
+            <p className="mx-auto mt-4 max-w-2xl leading-7 text-slate-600">Présentez votre métier, votre niveau et votre objectif. Le pôle numérique de DG AFRIQUE vous orientera vers le programme le plus pertinent avec le partenaire formateur.</p>
             <a href={whatsappUrl(settings.whatsapp, generalMessage)} target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-4 font-black text-white">
               Demander une orientation <ArrowRight className="h-5 w-5" />
             </a>

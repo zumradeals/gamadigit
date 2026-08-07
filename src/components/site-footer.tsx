@@ -25,7 +25,7 @@ export async function SiteFooter() {
         <div>
           <h2 className="font-bold text-white">Pôle numérique</h2>
           <div className="mt-4 space-y-3 text-sm">
-            <Link href="/gamadigit" className="block font-bold text-dgGold hover:text-white">GamaDigit</Link>
+            <Link href="/pole-numerique" className="block font-bold text-dgGold hover:text-white">Découvrir le pôle</Link>
             <Link href="/logiciels" className="block hover:text-white">Logiciels</Link>
             <Link href="/formations" className="block hover:text-white">Formations</Link>
             <Link href="/blog" className="block hover:text-white">Actualités & conseils</Link>

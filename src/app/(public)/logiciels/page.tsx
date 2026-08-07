@@ -17,7 +17,7 @@ import type { ServiceItem } from '@/types/content';
 
 export const metadata: Metadata = {
   title: 'Logiciels et abonnements',
-  description: 'Découvrez les logiciels professionnels, abonnements numériques et solutions de productivité proposés par GamaDigit.',
+  description: 'Découvrez les logiciels professionnels, abonnements numériques et solutions de productivité du pôle numérique de DG AFRIQUE.',
 };
 
 function whatsappUrl(number: string, message: string) {
@@ -27,7 +27,7 @@ function whatsappUrl(number: string, message: string) {
 function ProductCard({ product, whatsapp }: { product: ServiceItem; whatsapp: string }) {
   const image = product.media?.[0]?.publicUrl || product.media?.[0]?.url;
   const message = product.whatsappMessage
-    || `Bonjour GamaDigit, je souhaite connaître le tarif et la disponibilité de ${product.name}.`;
+    || `Bonjour DG AFRIQUE, je souhaite connaître le tarif et la disponibilité de ${product.name}.`;
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
@@ -102,7 +102,7 @@ export default async function SoftwarePage() {
       <section className="relative overflow-hidden bg-ink px-4 py-20 text-white sm:px-6 lg:px-8 lg:py-24">
         <div className="absolute -right-40 -top-48 h-[32rem] w-[32rem] rounded-full bg-cyan/10 blur-3xl" />
         <div className="relative mx-auto max-w-7xl">
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan">Catalogue GamaDigit</p>
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan">Pôle numérique · DG AFRIQUE</p>
           <h1 className="mt-4 max-w-4xl text-4xl font-black tracking-tight sm:text-6xl">Logiciels et abonnements pour apprendre, créer et travailler.</h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-300">Consultez chaque fiche, comparez les formules puis échangez avec un conseiller sur WhatsApp pour confirmer la commande et le mode d’activation.</p>
           <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-200">
@@ -137,7 +137,7 @@ export default async function SoftwarePage() {
                     <p className="mt-5 leading-8 text-slate-300">Architecture, ingénierie, construction, design et création 3D réunis dans une offre principale.</p>
                     <div className="mt-7 flex flex-wrap gap-3">
                       <Link href={`/logiciels/${flagship[0].slug}`} className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-black text-ink">Voir la fiche <ArrowRight className="h-4 w-4" /></Link>
-                      <a href={whatsappUrl(settings.whatsapp, flagship[0].whatsappMessage || `Bonjour GamaDigit, je souhaite des informations sur ${flagship[0].name}.`)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-mint px-5 py-3 font-black text-white"><MessageCircle className="h-5 w-5" /> Demander sur WhatsApp</a>
+                      <a href={whatsappUrl(settings.whatsapp, flagship[0].whatsappMessage || `Bonjour DG AFRIQUE, je souhaite des informations sur ${flagship[0].name}.`)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-mint px-5 py-3 font-black text-white"><MessageCircle className="h-5 w-5" /> Demander sur WhatsApp</a>
                     </div>
                   </div>
                   <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
@@ -181,7 +181,7 @@ export default async function SoftwarePage() {
           <section className="rounded-[2rem] bg-white p-8 text-center shadow-sm sm:p-12">
             <h2 className="text-3xl font-black text-ink">Vous cherchez un autre logiciel ?</h2>
             <p className="mx-auto mt-4 max-w-2xl leading-7 text-slate-600">Envoyez simplement le nom du produit, la durée et le nombre d’appareils ou d’utilisateurs. Notre équipe vérifie la disponibilité.</p>
-            <a href={whatsappUrl(settings.whatsapp, 'Bonjour GamaDigit, je cherche un logiciel qui ne figure pas encore dans le catalogue.')} target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-4 font-black text-white">Demander un autre produit <ArrowRight className="h-5 w-5" /></a>
+            <a href={whatsappUrl(settings.whatsapp, 'Bonjour DG AFRIQUE, je cherche un logiciel qui ne figure pas encore dans le catalogue.')} target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-4 font-black text-white">Demander un autre produit <ArrowRight className="h-5 w-5" /></a>
             <div className="mt-6"><Link href="/contact" className="text-sm font-black text-ocean">Ou envoyer une demande détaillée</Link></div>
           </section>
 
