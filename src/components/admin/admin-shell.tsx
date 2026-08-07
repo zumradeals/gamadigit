@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import {
   BookOpen,
+  Bot,
   Boxes,
   FolderTree,
   GraduationCap,
@@ -17,6 +18,7 @@ import { LogoutButton } from '@/components/admin/logout-button';
 
 const navigation = [
   { href: '/admin', label: 'Tableau de bord', icon: LayoutDashboard },
+  { href: '/admin/copilote', label: 'GamaDigit Copilote', icon: Bot },
   { href: '/admin/accueil', label: 'Page d’accueil', icon: Home },
   { href: '/admin/navigation', label: 'Menus', icon: Menu },
   { href: '/admin/services', label: 'Services', icon: Boxes },
