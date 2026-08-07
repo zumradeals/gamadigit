@@ -46,7 +46,7 @@ export default async function SoftwareProductPage({ params }: { params: Promise<
 
   const image = product.media?.[0]?.publicUrl || product.media?.[0]?.url;
   const message = product.whatsappMessage
-    || `Bonjour GamaDigit, je souhaite commander ou recevoir des informations sur ${product.name}.`;
+    || `Bonjour DG AFRIQUE, je souhaite commander ou recevoir des informations sur ${product.name}.`;
 
   return (
     <main className="bg-cloud">
@@ -160,7 +160,7 @@ export default async function SoftwareProductPage({ params }: { params: Promise<
             ) : null}
 
             <div className="rounded-[2rem] bg-gradient-to-br from-ocean to-[#075E9E] p-7 text-white shadow-lg">
-              <p className="text-sm font-black uppercase tracking-[0.14em] text-cyan">Conseil GamaDigit</p>
+              <p className="text-sm font-black uppercase tracking-[0.14em] text-cyan">Conseil du pôle numérique</p>
               <h2 className="mt-3 text-2xl font-black">Besoin d’une formule différente ?</h2>
               <p className="mt-4 leading-7 text-blue-100">Expliquez votre besoin, votre durée et le nombre d’utilisateurs. Nous vous orientons vers l’offre la plus adaptée.</p>
               <a
