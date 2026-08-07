@@ -23,6 +23,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: 'Catalogue de logiciels professionnels et abonnements numériques GamaDigit.',
     };
   }
+  if (slug === 'formation-accompagnement') {
+    return {
+      title: 'Formations professionnelles',
+      description: 'Catalogue de formations professionnelles et packs métiers GamaDigit.',
+    };
+  }
   const family = await getPublicFamilyBySlug(slug);
   if (!family) return {};
   return { title: family.name, description: family.description };
@@ -31,6 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function ServiceFamilyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   if (slug === 'logiciels-abonnements') redirect('/logiciels');
+  if (slug === 'formation-accompagnement') redirect('/formations');
 
   const [family, items] = await Promise.all([
     getPublicFamilyBySlug(slug),
