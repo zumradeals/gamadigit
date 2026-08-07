@@ -6,7 +6,7 @@ import {
 } from '@/lib/public-content';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gamadigit.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.dgafrique.com';
   const now = new Date();
   const [families, posts, products] = await Promise.all([
     getPublicFamilies(),
@@ -16,6 +16,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     { url: baseUrl, lastModified: now, changeFrequency: 'weekly', priority: 1 },
+    { url: `${baseUrl}/a-propos`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${baseUrl}/pole-numerique`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${baseUrl}/opportunites`, lastModified: now, changeFrequency: 'daily', priority: 0.95 },
+    { url: `${baseUrl}/investisseurs-partenaires`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${baseUrl}/logiciels`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/formations`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/blog`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
