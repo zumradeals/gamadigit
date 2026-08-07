@@ -1,12 +1,15 @@
 import { SiteFooter } from '@/components/site-footer';
 import { SiteHeader } from '@/components/site-header';
+import { getBrandAssets } from '@/lib/brand-assets';
 
-export default function PublicLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function PublicLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const brand = await getBrandAssets();
+
   return (
     <>
-      <SiteHeader />
+      <SiteHeader logoUrl={brand.logoUrl} />
       <main>{children}</main>
-      <SiteFooter />
+      <SiteFooter logoUrl={brand.logoUrl} />
     </>
   );
 }
