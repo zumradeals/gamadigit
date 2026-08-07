@@ -3,7 +3,7 @@ import { handshakeWithGamadCore } from '@/lib/gamad-core/server';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST() {
+async function runHandshake() {
   try {
     const result = await handshakeWithGamadCore();
 
@@ -24,6 +24,7 @@ export async function POST() {
         headers: {
           'Cache-Control': 'no-store, max-age=0',
           Pragma: 'no-cache',
+          'X-Robots-Tag': 'noindex, nofollow, noarchive',
         },
       },
     );
@@ -38,8 +39,19 @@ export async function POST() {
         headers: {
           'Cache-Control': 'no-store, max-age=0',
           Pragma: 'no-cache',
+          'X-Robots-Tag': 'noindex, nofollow, noarchive',
         },
       },
     );
   }
+}
+
+export async function POST() {
+  return runHandshake();
+}
+
+// Diagnostic temporaire sur la branche Genesis uniquement.
+// Il sera retiré dès que le premier raccordement réel sera validé.
+export async function GET() {
+  return runHandshake();
 }
