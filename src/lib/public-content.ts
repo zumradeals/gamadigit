@@ -1,7 +1,15 @@
 import { blogPosts as fallbackPosts, families as fallbackFamilies, services as fallbackServices } from '@/lib/content';
 import { siteConfig } from '@/lib/site';
 import { createSupabasePublicClient } from '@/lib/supabase/public';
-import type { BlogPost, ServiceFamily, ServiceItem, ServiceMedia, SoftwareCategory } from '@/types/content';
+import type {
+  BlogPost,
+  ServiceFamily,
+  ServiceItem,
+  ServiceMedia,
+  SoftwareCategory,
+  TrainingCategory,
+  TrainingProgram,
+} from '@/types/content';
 
 export type PublicSiteSettings = typeof siteConfig;
 
@@ -82,6 +90,66 @@ export async function getPublicSoftwareCategories(): Promise<SoftwareCategory[]>
     sortOrder: Number(row.sort_order || 0),
     status: 'published',
   }));
+}
+
+export async function getPublicTrainingCategories(): Promise<TrainingCategory[]> {
+  const supabase = createSupabasePublicClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('training_categories')
+    .select('*')
+    .eq('status', 'published')
+    .order('sort_order');
+  if (error || !data?.length) return [];
+  return data.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description || '',
+    accent: row.accent || '#0877C9',
+    sortOrder: Number(row.sort_order || 0),
+    status: 'published',
+  }));
+}
+
+export async function getPublicTrainingPrograms(): Promise<TrainingProgram[]> {
+  const supabase = createSupabasePublicClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('training_programs')
+    .select('*, training_categories!inner(id, slug, name, accent, sort_order)')
+    .eq('status', 'published')
+    .order('sort_order');
+  if (error || !data?.length) return [];
+
+  return data.map((row) => {
+    const category = Array.isArray(row.training_categories)
+      ? row.training_categories[0]
+      : row.training_categories;
+    return {
+      id: row.id,
+      categoryId: category?.id || row.category_id,
+      categorySlug: category?.slug || '',
+      categoryName: category?.name || 'Formation',
+      categoryAccent: category?.accent || '#0877C9',
+      slug: row.slug,
+      name: row.name,
+      kind: row.kind === 'career_pack' ? 'career_pack' : 'software',
+      excerpt: row.excerpt,
+      description: row.description,
+      priceLabel: row.show_price && row.price_label ? row.price_label : undefined,
+      showPrice: Boolean(row.show_price),
+      formatLabel: row.format_label || undefined,
+      durationLabel: row.duration_label || undefined,
+      highlights: Array.isArray(row.highlights) ? row.highlights.map(String) : [],
+      media: normalizeMedia(row.media),
+      whatsappMessage: row.whatsapp_message || undefined,
+      partnerLabel: row.partner_label || undefined,
+      featured: Boolean(row.is_featured),
+      sortOrder: Number(row.sort_order || 0),
+      status: 'published',
+    };
+  });
 }
 
 export async function getPublicServices(): Promise<ServiceItem[]> {
