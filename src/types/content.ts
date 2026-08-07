@@ -60,6 +60,11 @@ export interface ServiceItem {
   priceLabel: string;
   deliveryLabel: string;
   features: string[];
+  targetAudience?: string[];
+  keyPoints?: string[];
+  seoTitle?: string;
+  seoDescription?: string;
+  socialContent?: Record<string, unknown>;
   featured?: boolean;
   status: PublicationStatus;
   productCode?: string;
@@ -83,6 +88,15 @@ export interface ServiceFamily {
   status: PublicationStatus;
 }
 
+export type BlogContentBlock =
+  | { type: 'paragraph'; text: string }
+  | { type: 'heading'; text: string; level?: 2 | 3 }
+  | { type: 'list'; items: string[] }
+  | { type: 'callout'; text: string }
+  | { type: 'cta'; label: string; href: string };
+
+export type BlogContentItem = string | BlogContentBlock;
+
 export interface BlogPost {
   id: string;
   slug: string;
@@ -91,6 +105,8 @@ export interface BlogPost {
   category: string;
   publishedAt: string;
   readTime: string;
-  content: string[];
+  content: BlogContentItem[];
+  seoTitle?: string;
+  seoDescription?: string;
   status: PublicationStatus;
 }
