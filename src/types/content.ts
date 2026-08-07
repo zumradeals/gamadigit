@@ -16,6 +16,40 @@ export interface SoftwareCategory {
   status: PublicationStatus;
 }
 
+export interface TrainingCategory {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  accent: string;
+  sortOrder: number;
+  status: PublicationStatus;
+}
+
+export interface TrainingProgram {
+  id: string;
+  categoryId: string;
+  categorySlug: string;
+  categoryName: string;
+  categoryAccent: string;
+  slug: string;
+  name: string;
+  kind: 'software' | 'career_pack';
+  excerpt: string;
+  description: string;
+  priceLabel?: string;
+  showPrice: boolean;
+  formatLabel?: string;
+  durationLabel?: string;
+  highlights: string[];
+  media: ServiceMedia[];
+  whatsappMessage?: string;
+  partnerLabel?: string;
+  featured: boolean;
+  sortOrder: number;
+  status: PublicationStatus;
+}
+
 export interface ServiceItem {
   id: string;
   slug: string;
