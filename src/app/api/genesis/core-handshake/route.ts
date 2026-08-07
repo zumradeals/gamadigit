@@ -3,7 +3,7 @@ import { handshakeWithGamadCore } from '@/lib/gamad-core/server';
 
 export const dynamic = 'force-dynamic';
 
-async function runHandshake() {
+export async function POST() {
   try {
     const result = await handshakeWithGamadCore();
 
@@ -44,14 +44,4 @@ async function runHandshake() {
       },
     );
   }
-}
-
-export async function POST() {
-  return runHandshake();
-}
-
-// Diagnostic temporaire sur la branche Genesis uniquement.
-// Il sera retiré dès que le premier raccordement réel sera validé.
-export async function GET() {
-  return runHandshake();
 }
