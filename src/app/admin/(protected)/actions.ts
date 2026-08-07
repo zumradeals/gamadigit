@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getAdminSession } from '@/lib/admin-auth';
+import { parseBlogEditorText } from '@/lib/blog-content';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const statusSchema = z.enum(['draft', 'published', 'archived']);
@@ -122,17 +123,14 @@ export async function saveBlogPostAction(formData: FormData) {
   const supabase = await adminClient();
   const id = nullableText(formData, 'id');
   const title = text(formData, 'title');
-  const content = text(formData, 'content')
-    .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
+  const content = parseBlogEditorText(text(formData, 'content'));
 
   const parsed = z.object({
     category_id: z.string().uuid().nullable(),
     title: z.string().min(4),
     slug: z.string().min(2),
     excerpt: z.string().min(10),
-    content: z.array(z.string()).min(1),
+    content: z.array(z.unknown()).min(1),
     author_name: z.string().nullable(),
     read_time: z.string().nullable(),
     status: statusSchema,
@@ -161,6 +159,7 @@ export async function saveBlogPostAction(formData: FormData) {
 
   revalidatePath('/blog');
   revalidatePath('/admin/articles');
+  if (parsed.status === 'published') revalidatePath(`/blog/${parsed.slug}`);
 }
 
 export async function updateLeadStatusAction(formData: FormData) {
