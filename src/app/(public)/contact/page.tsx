@@ -4,8 +4,8 @@ import { LeadForm } from '@/components/contact/lead-form';
 import { siteConfig } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'Contact et devis',
-  description: 'Présentez votre projet numérique à GamaDigit.',
+  title: 'Contact et projets',
+  description: 'Présentez votre projet, votre besoin ou votre opportunité à DG AFRIQUE.',
 };
 
 export default function ContactPage() {
