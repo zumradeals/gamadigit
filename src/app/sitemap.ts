@@ -1,12 +1,17 @@
 import type { MetadataRoute } from 'next';
-import { getPublicBlogPosts, getPublicFamilies } from '@/lib/public-content';
+import {
+  getPublicBlogPosts,
+  getPublicFamilies,
+  getPublicSoftwareProducts,
+} from '@/lib/public-content';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gamadigit.com';
   const now = new Date();
-  const [families, posts] = await Promise.all([
+  const [families, posts, products] = await Promise.all([
     getPublicFamilies(),
     getPublicBlogPosts(),
+    getPublicSoftwareProducts(),
   ]);
 
   return [
@@ -23,6 +28,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'monthly' as const,
         priority: 0.8,
       })),
+    ...products.map((product) => ({
+      url: `${baseUrl}/logiciels/${product.slug}`,
+      lastModified: now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    })),
     ...posts.map((post) => ({
       url: `${baseUrl}/blog/${post.slug}`,
       lastModified: now,
