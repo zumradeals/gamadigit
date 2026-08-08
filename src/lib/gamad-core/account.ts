@@ -5,6 +5,16 @@ const COOKIE_NAME = 'dgafrique_gamad_session';
 
 export type HumanIdentifierType = 'EMAIL' | 'TELEPHONE';
 
+export class CoreAccountError extends Error {
+  constructor(
+    public readonly code: string,
+    public readonly status: number,
+  ) {
+    super(code);
+    this.name = 'CoreAccountError';
+  }
+}
+
 type CoreSession = {
   jeton?: string;
   entite?: string;
@@ -71,7 +81,7 @@ export async function openUserSession(identifier: string, type: HumanIdentifierT
   });
   const body = (await response.json().catch(() => ({}))) as CoreSession;
   if (!response.ok || !body.jeton || !body.entite || !body.expire_le) {
-    throw new Error(response.status === 401 ? 'AUTHENTIFICATION_REFUSEE' : body.erreur || 'CORE_INDISPONIBLE');
+    throw new CoreAccountError(response.status === 401 ? 'AUTHENTIFICATION_REFUSEE' : body.erreur || 'CORE_INDISPONIBLE', response.status || 503);
   }
 
   return { token: body.jeton, entity: body.entite, assurance: body.assurance ?? null, expiresAt: body.expire_le };
@@ -93,10 +103,11 @@ export async function createGamadAccount(input: { name: string; identifier: stri
     erreur?: string;
   };
 
-  if (!response.ok || !body.compte?.identite || !body.compte.identifiant_reference || !body.verification?.reference || !body.verification.expire_le) {
-    throw new Error(body.erreur || `CREATION_COMPTE_${response.status}`);
+  if (!response.ok) throw new CoreAccountError(body.erreur || `CREATION_COMPTE_${response.status}`, response.status);
+  if (!body.compte?.identite || !body.compte.identifiant_reference || !body.verification?.reference || !body.verification.expire_le) {
+    throw new CoreAccountError('REPONSE_COMPTE_INCOMPLETE', 502);
   }
-  if (body.verification.livraison?.livree !== true) throw new Error('LIVRAISON_VERIFICATION_ECHOUEE');
+  if (body.verification.livraison?.livree !== true) throw new CoreAccountError('LIVRAISON_VERIFICATION_ECHOUEE', 503);
 
   return {
     identity: body.compte.identite,
@@ -118,7 +129,8 @@ export async function verifyGamadAccount(input: { identity: string; identifierRe
     }),
   });
   const body = await response.json().catch(() => ({})) as { identifiant?: { etat?: string }; erreur?: string };
-  if (!response.ok || body.identifiant?.etat !== 'VERIFIE') throw new Error(body.erreur || `VERIFICATION_${response.status}`);
+  if (!response.ok) throw new CoreAccountError(body.erreur || `VERIFICATION_${response.status}`, response.status);
+  if (body.identifiant?.etat !== 'VERIFIE') throw new CoreAccountError('VERIFICATION_INCOMPLETE', 502);
   return true;
 }
 
@@ -132,7 +144,8 @@ export async function resendGamadVerification(input: { identifier: string; type:
     }),
   });
   const body = await response.json().catch(() => ({})) as { verification?: { reference?: string; expire_le?: string }; erreur?: string };
-  if (!response.ok || !body.verification?.reference || !body.verification.expire_le) throw new Error(body.erreur || `RENVOI_${response.status}`);
+  if (!response.ok) throw new CoreAccountError(body.erreur || `RENVOI_${response.status}`, response.status);
+  if (!body.verification?.reference || !body.verification.expire_le) throw new CoreAccountError('RENVOI_INCOMPLET', 502);
   return { verificationReference: body.verification.reference, expiresAt: body.verification.expire_le };
 }
 
@@ -141,7 +154,7 @@ export async function readCanonicalIdentity(session: PortalAccountSession) {
   const response = await coreFetch(`${config.baseUrl}/identites/${encodeURIComponent(session.entity)}`, {
     headers: { Authorization: `Bearer ${session.token}` },
   });
-  if (!response.ok) throw new Error(response.status === 401 ? 'SESSION_INVALIDE' : 'IDENTITE_INDISPONIBLE');
+  if (!response.ok) throw new CoreAccountError(response.status === 401 ? 'SESSION_INVALIDE' : 'IDENTITE_INDISPONIBLE', response.status);
   return response.json() as Promise<Record<string, unknown>>;
 }
 
