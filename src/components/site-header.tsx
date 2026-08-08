@@ -7,12 +7,13 @@ import { CircleUserRound, Menu } from 'lucide-react';
 import { Logo } from '@/components/brand/logo';
 
 const menuItems = [
+  { label: 'Accueil', href: '/' },
+  { label: 'À propos', href: '/a-propos' },
   { label: 'Pôle numérique', href: '/pole-numerique' },
   { label: 'Services', href: '/#services' },
   { label: 'Opportunités', href: '/opportunites' },
   { label: 'Partenaires', href: '/investisseurs-partenaires' },
   { label: 'Actualités', href: '/blog' },
-  { label: 'À propos', href: '/a-propos' },
 ];
 
 export function SiteHeader({ logoUrl }: { logoUrl?: string }) {
