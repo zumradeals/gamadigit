@@ -7,11 +7,11 @@ import { CircleUserRound, Menu } from 'lucide-react';
 import { Logo } from '@/components/brand/logo';
 
 const menuItems = [
-  { label: 'Explorer', href: '/#explorer' },
-  { label: 'Opportunités', href: '/opportunites' },
+  { label: 'Pôle numérique', href: '/pole-numerique' },
   { label: 'Services', href: '/#services' },
-  { label: 'Actualités', href: '/#actualite' },
-  { label: 'À propos', href: '/a-propos' },
+  { label: 'Opportunités', href: '/opportunites' },
+  { label: 'Partenaires', href: '/investisseurs-partenaires' },
+  { label: 'Actualités', href: '/blog' },
 ];
 
 export function SiteHeader({ logoUrl }: { logoUrl?: string }) {
