@@ -12,6 +12,7 @@ const menuItems = [
   { label: 'Opportunités', href: '/opportunites' },
   { label: 'Partenaires', href: '/investisseurs-partenaires' },
   { label: 'Actualités', href: '/blog' },
+  { label: 'À propos', href: '/a-propos' },
 ];
 
 export function SiteHeader({ logoUrl }: { logoUrl?: string }) {
@@ -31,7 +32,7 @@ export function SiteHeader({ logoUrl }: { logoUrl?: string }) {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" aria-label="Accueil DG AFRIQUE" onClick={closeMenu} className="min-w-0 shrink"><Logo src={logoUrl} /></Link>
 
-        <nav className="hidden items-center gap-7 text-sm font-bold text-slate-700 lg:flex">
+        <nav className="hidden items-center gap-6 text-sm font-bold text-slate-700 lg:flex">
           {menuItems.map((item) => <Link key={item.label} href={item.href} className="transition hover:text-dgGreen">{item.label}</Link>)}
         </nav>
 
