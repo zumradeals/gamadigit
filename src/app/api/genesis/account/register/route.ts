@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { CoreAccountError, createGamadAccount } from '@/lib/gamad-core/account';
 import { rejectCrossOrigin } from '@/lib/http/same-origin';
+import { verifySimpleCaptcha } from '@/lib/simple-captcha';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,8 @@ export async function POST(request: Request) {
     name?: string;
     identifier?: string;
     password?: string;
+    captchaToken?: string;
+    captchaAnswer?: string;
   } | null;
 
   const name = body?.name?.trim();
@@ -21,8 +24,11 @@ export async function POST(request: Request) {
   if (!name || !identifier || !password) {
     return NextResponse.json({ ok: false, error: 'DONNEES_REQUISES' }, { status: 422 });
   }
-  if (password.length < 12) {
+  if (password.length < 6) {
     return NextResponse.json({ ok: false, error: 'MOT_DE_PASSE_TROP_COURT' }, { status: 422 });
+  }
+  if (!verifySimpleCaptcha(body?.captchaToken, body?.captchaAnswer)) {
+    return NextResponse.json({ ok: false, error: 'CAPTCHA_INCORRECT' }, { status: 422 });
   }
 
   try {
