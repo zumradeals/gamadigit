@@ -45,7 +45,7 @@ export function UniversePage({ universe }: { universe: PortalUniverse }) {
           <div className="grid gap-5 md:grid-cols-3">
             <Feature icon={Newspaper} title="Information" text={`Les actualités, analyses et ressources liées à ${universe.label.toLowerCase()} apparaîtront ici progressivement.`} />
             <Feature icon={BriefcaseBusiness} title="Opportunités" text="Les offres, projets, partenariats et besoins pertinents seront reliés à cet univers." />
-            <Feature icon={Building2} title="Organisations" text="Les entreprises, institutions, associations et acteurs utiles pourront être découverts depuis cet univers." />
+            <Feature icon={Building2} title="Acteurs & organisations" text="Découvrez progressivement les entreprises, institutions, associations et autres acteurs utiles liés à cet univers." />
           </div>
 
           <div className="mt-10 rounded-[2rem] border border-slate-200 bg-white p-7 sm:p-9">
