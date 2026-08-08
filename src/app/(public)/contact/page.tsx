@@ -6,6 +6,7 @@ import { siteConfig } from '@/lib/site';
 export const metadata: Metadata = {
   title: 'Contact et projets',
   description: 'Présentez votre projet, votre besoin ou votre opportunité à DG AFRIQUE.',
+  alternates: { canonical: '/contact' },
 };
 
 export default function ContactPage() {
