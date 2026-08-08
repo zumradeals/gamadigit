@@ -1,9 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { CheckCircle2, Loader2, MessageCircle, Send } from 'lucide-react';
 import { families } from '@/lib/content';
-import { createSupabaseBrowserClient, isSupabaseConfigured } from '@/lib/supabase/client';
 import { whatsappUrl } from '@/lib/site';
 
 type FormState = {
@@ -32,7 +31,6 @@ export function LeadForm() {
   const [form, setForm] = useState<FormState>(initialState);
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [feedback, setFeedback] = useState('');
-  const configured = useMemo(() => isSupabaseConfigured(), []);
 
   function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -49,34 +47,25 @@ export function LeadForm() {
       return;
     }
 
-    const client = createSupabaseBrowserClient();
-    if (!client) {
-      setStatus('error');
-      setFeedback('Le formulaire sera activé dès la connexion du projet Supabase. WhatsApp reste disponible immédiatement.');
-      return;
-    }
-
     setStatus('sending');
-    const { error } = await client.from('leads').insert({
-      full_name: form.fullName.trim(),
-      phone: form.phone.trim(),
-      email: form.email.trim() || null,
-      customer_type: form.customerType || null,
-      family_slug: form.familySlug || null,
-      budget_label: form.budgetLabel || null,
-      message: form.message.trim(),
-      source: 'website',
-    });
 
-    if (error) {
+    try {
+      const response = await fetch('/api/contact/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
+      const body = await response.json().catch(() => ({ ok: false }));
+      if (!response.ok || !body.ok) throw new Error('ENREGISTREMENT_ECHOUE');
+
+      setStatus('success');
+      setFeedback('Votre demande a bien été enregistrée. Nous vous répondrons dès que possible.');
+      setForm(initialState);
+    } catch {
       setStatus('error');
       setFeedback('La demande n’a pas pu être enregistrée. Vous pouvez continuer directement sur WhatsApp.');
-      return;
     }
-
-    setStatus('success');
-    setFeedback('Votre demande a bien été enregistrée. Un conseiller vous répondra dès que possible.');
-    setForm(initialState);
   }
 
   const inputClass =
@@ -84,9 +73,9 @@ export function LeadForm() {
 
   return (
     <div className="rounded-3xl bg-white p-7 shadow-soft sm:p-10">
-      <h2 className="text-2xl font-black text-ink">Demande de devis</h2>
+      <h2 className="text-2xl font-black text-ink">Présenter mon besoin</h2>
       <p className="mt-3 leading-7 text-slate-600">
-        Donnez-nous les éléments essentiels. Vous pourrez compléter les détails avec un conseiller.
+        Donnez-nous les éléments essentiels. Vous pourrez compléter les détails lors du premier échange.
       </p>
 
       <form onSubmit={submit} className="mt-8 space-y-5">
@@ -162,10 +151,9 @@ export function LeadForm() {
       </form>
 
       <div className="mt-5 border-t border-slate-100 pt-5 text-center">
-        <a href={whatsappUrl('Bonjour GamaDigit, je souhaite demander un devis. Mon projet concerne : ')} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm font-black text-mint">
+        <a href={whatsappUrl('Bonjour DG AFRIQUE, je souhaite présenter un projet ou demander un devis. Mon besoin concerne : ')} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm font-black text-mint">
           <MessageCircle className="h-4 w-4" /> Continuer directement sur WhatsApp
         </a>
-        {!configured && <p className="mt-3 text-xs text-slate-400">Mode initial : connexion Supabase en attente de configuration.</p>}
       </div>
     </div>
   );
