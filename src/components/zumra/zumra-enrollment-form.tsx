@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { ArrowLeft, CheckCircle2, Loader2, Network, Sparkles } from 'lucide-react';
 import type { ZumraMePayload } from '@/lib/zumra/types';
+import { ZumraMembershipPayment } from '@/components/zumra/zumra-membership-payment';
 
 const sectors = [
   'Agriculture', 'Elevage', 'Commerce', 'Artisanat', 'Batiment', 'Numerique',
@@ -138,7 +139,7 @@ export function ZumraEnrollmentForm() {
         {existing?.coreIdentityReference && <div className="mt-5 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm"><span className="font-bold text-slate-500">Votre identite :</span> <span className="break-all font-black text-dgNavy">{existing.coreIdentityReference}</span></div>}
 
         {existing?.membership?.status === 'active' && <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-bold text-emerald-800">Votre adhesion ZUMRA est active. Vous pouvez utiliser ce formulaire pour mettre votre profil a jour.</div>}
-        {existing?.membership?.status === 'pending_payment' && <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm font-bold text-amber-900">Votre demande est enregistree. Le paiement d’adhesion sera branche avant l’ouverture publique du programme.</div>}
+        {existing?.membership?.status === 'pending_payment' && <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm font-bold text-amber-900">Votre dossier est enregistre. Finalisez maintenant l’adhesion dans le sandbox GeniusPay pour activer votre Carte ZUMRA.</div>}
         {success && <div className="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-bold text-emerald-800"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /> Votre profil ZUMRA a bien ete enregistre.</div>}
         {error && <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm font-bold text-red-800">{error}</div>}
 
@@ -169,8 +170,10 @@ export function ZumraEnrollmentForm() {
             <label className="mt-4 flex items-start gap-3 text-sm font-bold text-slate-700"><input required type="checkbox" checked={charterAccepted} onChange={(e) => setCharterAccepted(e.target.checked)} className="mt-1" /> <span>J’ai lu et j’accepte la <Link href="/programme-zumra/charte" target="_blank" className="text-dgGreen underline">Charte des Zumra</Link>.</span></label>
           </Section>
 
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 sm:p-8"><p className="font-black text-dgNavy">Adhesion au Programme ZUMRA</p><p className="mt-2 text-sm leading-6 text-slate-600">L’adhesion sera payante avec un montant volontairement faible, comme signe d’interet et d’engagement. Le moyen de paiement n’est pas encore active dans cette V1 technique.</p><button disabled={saving} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-dgGreen px-5 py-4 text-sm font-black text-white disabled:opacity-60 sm:w-auto">{saving && <Loader2 className="h-4 w-4 animate-spin" />}{existing?.enrolled ? 'Enregistrer mes modifications' : 'Enregistrer ma demande d’adhesion'}</button></div>
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 sm:p-8"><p className="font-black text-dgNavy">Adhesion au Programme ZUMRA</p><p className="mt-2 text-sm leading-6 text-slate-600">Enregistrez votre dossier. Tant que l’adhesion n’est pas active, le paiement d’adhesion GeniusPay reste une etape separee et verifiee cote serveur.</p><button disabled={saving} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-dgGreen px-5 py-4 text-sm font-black text-white disabled:opacity-60 sm:w-auto">{saving && <Loader2 className="h-4 w-4 animate-spin" />}{existing?.enrolled ? 'Enregistrer mes modifications' : 'Enregistrer ma demande d’adhesion'}</button></div>
         </form>
+
+        {existing?.membership?.status === 'pending_payment' && <div className="mt-6"><ZumraMembershipPayment /></div>}
       </div>
     </main>
   );
