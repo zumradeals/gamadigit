@@ -18,11 +18,6 @@ function text(value: unknown) {
   return typeof value === 'string' && value.trim() ? value : null;
 }
 
-function publicUserId(entity: string) {
-  const suffix = entity.match(/(\d+)$/)?.[1];
-  return suffix ? `DG-${suffix}` : `DG-${entity.slice(-8).toUpperCase()}`;
-}
-
 export function AccountSpace() {
   const [data, setData] = useState<AccountPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,7 +57,7 @@ export function AccountSpace() {
     return <main className="min-h-screen bg-slate-50 px-4 py-16 text-center"><p className="font-black text-dgNavy">Votre session n’est plus disponible.</p><Link href="/connexion" className="mt-4 inline-block text-sm font-bold underline">Se reconnecter</Link></main>;
   }
 
-  const userId = publicUserId(data.account.entity);
+  const userId = data.account.entity;
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
@@ -82,7 +77,7 @@ export function AccountSpace() {
                 <h1 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-5xl">Bonjour, {displayName}</h1>
                 <p className="mt-4 max-w-2xl text-slate-300">Votre point d’accès personnel à DG AFRIQUE et aux services qui pourront progressivement être disponibles pour vous.</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 md:min-w-52"><p className="text-xs font-black uppercase tracking-[0.15em] text-dgGold">ID utilisateur</p><p className="mt-2 text-2xl font-black">{userId}</p><p className="mt-1 text-xs text-slate-400">Votre identifiant public sur le portail.</p></div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 md:min-w-52"><p className="text-xs font-black uppercase tracking-[0.15em] text-dgGold">Mon ID</p><p className="mt-2 break-all text-xl font-black sm:text-2xl">{userId}</p></div>
             </div>
           </div>
         </section>
@@ -91,7 +86,7 @@ export function AccountSpace() {
           <div className="rounded-[2rem] border border-slate-200 bg-white p-7 sm:p-8">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-dgGold">Votre compte</p>
             <h2 className="mt-3 text-2xl font-black text-dgNavy">Informations essentielles</h2>
-            <div className="mt-7 divide-y divide-slate-100"><Row label="Nom" value={displayName} /><Row label="ID utilisateur" value={userId} /><Row label="Statut" value="Actif" /></div>
+            <div className="mt-7 divide-y divide-slate-100"><Row label="Nom" value={displayName} /><Row label="Mon ID" value={userId} /><Row label="Statut" value="Actif" /></div>
             <p className="mt-5 text-xs leading-5 text-slate-400">Nous gardons cet écran volontairement simple. Les fonctions seront ajoutées lorsqu’elles auront une utilité réelle.</p>
           </div>
 
