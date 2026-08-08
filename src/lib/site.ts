@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: 'DG AFRIQUE',
   longName: 'Développement Global Afrique',
-  url: 'https://dgafrique.com',
+  url: 'https://www.dgafrique.com',
   tagline: 'Des solutions pour faire avancer l’Afrique.',
   description:
     'DG AFRIQUE développe des solutions numériques, accompagne des projets, met en relation des acteurs et construit progressivement un réseau de partenaires pour le développement en Afrique.',
