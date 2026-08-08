@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { handshakeWithGamadCore } from '@/lib/gamad-core/server';
+import { rejectCrossOrigin } from '@/lib/http/same-origin';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST() {
+export async function POST(request: Request) {
+  const crossOrigin = rejectCrossOrigin(request);
+  if (crossOrigin) return crossOrigin;
+
   try {
     const result = await handshakeWithGamadCore();
 
@@ -30,10 +34,7 @@ export async function POST() {
     );
   } catch {
     return NextResponse.json(
-      {
-        service: 'DG AFRIQUE Portal Genesis',
-        core: 'configuration_error',
-      },
+      { service: 'DG AFRIQUE Portal Genesis', core: 'configuration_error' },
       {
         status: 503,
         headers: {
