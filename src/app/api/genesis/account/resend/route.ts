@@ -1,29 +1,33 @@
 import { NextResponse } from 'next/server';
-import { resendGamadVerification, type HumanIdentifierType } from '@/lib/gamad-core/account';
+import { CoreAccountError, resendGamadVerification } from '@/lib/gamad-core/account';
+import { rejectCrossOrigin } from '@/lib/http/same-origin';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  const crossOrigin = rejectCrossOrigin(request);
+  if (crossOrigin) return crossOrigin;
+
   const body = (await request.json().catch(() => null)) as {
     identifier?: string;
-    type?: HumanIdentifierType;
     identifierReference?: string;
   } | null;
 
   const identifier = body?.identifier?.trim();
-  const type = body?.type;
   const identifierReference = body?.identifierReference;
 
-  if (!identifier || !identifierReference || !type || !['EMAIL', 'TELEPHONE'].includes(type)) {
+  if (!identifier || !identifierReference) {
     return NextResponse.json({ ok: false, error: 'DONNEES_REQUISES' }, { status: 422 });
   }
 
   try {
-    const result = await resendGamadVerification({ identifier, type, identifierReference });
-    return NextResponse.json({ ok: true, verification: result });
+    const result = await resendGamadVerification({ identifier, type: 'EMAIL', identifierReference });
+    return NextResponse.json({ ok: true, verification: result }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    const code = error instanceof Error ? error.message : 'RENVOI_INDISPONIBLE';
-    const status = code === 'RENVOI_TROP_RAPIDE' || code === 'TROP_DE_RENVOIS' ? 429 : 422;
-    return NextResponse.json({ ok: false, error: code }, { status });
+    if (error instanceof CoreAccountError) {
+      const status = error.status === 429 ? 429 : error.status >= 500 ? 503 : 422;
+      return NextResponse.json({ ok: false, error: error.code }, { status, headers: { 'Cache-Control': 'no-store' } });
+    }
+    return NextResponse.json({ ok: false, error: 'RENVOI_INDISPONIBLE' }, { status: 503 });
   }
 }
