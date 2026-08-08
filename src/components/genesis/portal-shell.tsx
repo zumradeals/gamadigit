@@ -21,14 +21,14 @@ import {
 } from 'lucide-react';
 
 const universes = [
-  { label: 'Économie', icon: BriefcaseBusiness, description: 'Entreprises, commerce, marchés et initiatives.' },
-  { label: 'Technologie', icon: Layers3, description: 'Numérique, logiciels, innovation et compétences.' },
-  { label: 'Éducation', icon: GraduationCap, description: 'Formation, apprentissage et transmission.' },
-  { label: 'Santé', icon: HeartPulse, description: 'Prévention, systèmes de santé et innovation.' },
-  { label: 'Agriculture', icon: Sprout, description: 'Production, transformation et chaînes de valeur.' },
-  { label: 'Politique', icon: Landmark, description: 'Institutions, gouvernance et politiques publiques.' },
-  { label: 'Religion', icon: BookOpen, description: 'Spiritualité, connaissance et société.' },
-  { label: 'Société', icon: Compass, description: 'Culture, jeunesse, diaspora et initiatives.' },
+  { label: 'Économie', href: '/economie', icon: BriefcaseBusiness, description: 'Entreprises, commerce, marchés et initiatives.' },
+  { label: 'Technologie', href: '/technologie', icon: Layers3, description: 'Numérique, logiciels, innovation et compétences.' },
+  { label: 'Éducation', href: '/education', icon: GraduationCap, description: 'Formation, apprentissage et transmission.' },
+  { label: 'Santé', href: '/sante', icon: HeartPulse, description: 'Prévention, systèmes de santé et innovation.' },
+  { label: 'Agriculture', href: '/agriculture', icon: Sprout, description: 'Production, transformation et chaînes de valeur.' },
+  { label: 'Politique', href: '/politique', icon: Landmark, description: 'Institutions, gouvernance et politiques publiques.' },
+  { label: 'Religion', href: '/religion', icon: BookOpen, description: 'Spiritualité, connaissance et société.' },
+  { label: 'Société', href: '/societe', icon: Compass, description: 'Culture, jeunesse, diaspora et initiatives.' },
 ];
 
 const services = [
@@ -116,11 +116,11 @@ export function PortalShell() {
           </div>
 
           <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-            {universes.map(({ label, icon: Icon }) => (
-              <button key={label} onClick={() => setQuery(label)} className="group rounded-2xl border border-slate-200 bg-white px-3 py-5 text-center transition hover:-translate-y-1 hover:border-dgGold/40 hover:shadow-sm">
+            {universes.map(({ label, href, icon: Icon }) => (
+              <Link key={label} href={href} className="group rounded-2xl border border-slate-200 bg-white px-3 py-5 text-center transition hover:-translate-y-1 hover:border-dgGold/40 hover:shadow-sm">
                 <Icon className="mx-auto h-5 w-5 text-dgNavy transition group-hover:text-dgGold" />
                 <span className="mt-2 block text-sm font-black text-slate-700">{label}</span>
-              </button>
+              </Link>
             ))}
           </div>
         </div>
@@ -149,11 +149,11 @@ export function PortalShell() {
                   </Link>
                 ))}
                 {filteredUniverses.map((item) => (
-                  <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <Link key={item.label} href={item.href} className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-dgGold/40">
                     <p className="text-xs font-black uppercase tracking-wider text-dgGold">Univers</p>
                     <h3 className="mt-3 text-xl font-black text-dgNavy">{item.label}</h3>
                     <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
