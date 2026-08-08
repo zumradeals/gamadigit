@@ -1,9 +1,10 @@
 export const siteConfig = {
   name: 'DG AFRIQUE',
   longName: 'Développement Global Afrique',
+  url: 'https://dgafrique.com',
   tagline: 'Des solutions pour faire avancer l’Afrique.',
   description:
-    'DG AFRIQUE est une structure multisectorielle orientée commerce, courtage international, investissements, services et développement, avec un pôle numérique dédié aux logiciels, formations et solutions digitales.',
+    'DG AFRIQUE développe des solutions numériques, accompagne des projets, met en relation des acteurs et construit progressivement un réseau de partenaires pour le développement en Afrique.',
   location: 'Abidjan, Côte d’Ivoire',
   email: 'contact@dgafrique.com',
   phone: '+225 07 18 71 37 81',
