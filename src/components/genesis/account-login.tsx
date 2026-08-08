@@ -32,7 +32,7 @@ export function AccountLogin() {
       IDENTIFIANT_OU_SECRET_REFUSE: 'Adresse email ou mot de passe incorrect.',
       MOT_DE_PASSE_TROP_COURT: 'Choisissez un mot de passe d’au moins 12 caractères.',
       MOTS_DE_PASSE_DIFFERENTS: 'Les deux mots de passe ne correspondent pas.',
-      COMPTE_NON_CREATABLE: 'Cette adresse email est déjà associée à un Compte GAMAD. Connectez-vous ou reprenez la vérification si elle n’est pas terminée.',
+      COMPTE_NON_CREATABLE: 'Cette adresse email est déjà associée à un compte. Connectez-vous ou reprenez la vérification si elle n’est pas terminée.',
       VERIFICATION_NON_LIVREE: 'Le compte a été créé, mais le code n’a pas pu être livré. Utilisez « Renvoyer le code » pour reprendre sur le même compte.',
       LIVRAISON_VERIFICATION_ECHOUEE: 'Le code n’a pas pu être envoyé. Réessayez dans quelques instants.',
       RENVOI_TROP_RAPIDE: 'Un code vient déjà d’être envoyé. Attendez environ une minute avant un nouvel envoi.',
@@ -50,7 +50,7 @@ export function AccountLogin() {
     });
     const body = await response.json();
     if (!response.ok || !body.ok) throw new Error(body.error || 'CONNEXION_INDISPONIBLE');
-    router.push('/genesis/espace');
+    router.push('/espace');
     router.refresh();
   }
 
@@ -143,7 +143,7 @@ export function AccountLogin() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-md">
-        <Link href="/genesis" className="inline-flex items-center gap-2 text-sm font-black text-dgNavy">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-black text-dgNavy">
           <ArrowLeft className="h-4 w-4" /> Retour au portail
         </Link>
 
