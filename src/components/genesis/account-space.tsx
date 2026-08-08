@@ -33,7 +33,7 @@ export function AccountSpace() {
       .then(async (response) => {
         const body = (await response.json()) as AccountPayload;
         if (!response.ok || !body.authenticated) {
-          window.location.href = '/genesis/connexion';
+          window.location.href = '/connexion';
           return;
         }
         setData(body);
@@ -51,7 +51,7 @@ export function AccountSpace() {
   async function logout() {
     setLoggingOut(true);
     await fetch('/api/genesis/account/logout', { method: 'POST' }).catch(() => undefined);
-    window.location.href = '/genesis';
+    window.location.href = '/';
   }
 
   if (loading) {
@@ -66,7 +66,7 @@ export function AccountSpace() {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-16 text-center">
         <p className="font-black text-dgNavy">Votre session n’est plus disponible.</p>
-        <Link href="/genesis/connexion" className="mt-4 inline-block text-sm font-bold underline">Se reconnecter</Link>
+        <Link href="/connexion" className="mt-4 inline-block text-sm font-bold underline">Se reconnecter</Link>
       </main>
     );
   }
@@ -77,7 +77,7 @@ export function AccountSpace() {
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <Link href="/genesis" className="inline-flex items-center gap-2 text-sm font-black text-dgNavy"><ArrowLeft className="h-4 w-4" /> Retour au portail</Link>
+          <Link href="/" className="inline-flex items-center gap-2 text-sm font-black text-dgNavy"><ArrowLeft className="h-4 w-4" /> Retour au portail</Link>
           <button onClick={logout} disabled={loggingOut} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 hover:bg-slate-100 disabled:opacity-60">
             {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />} Déconnexion
           </button>
