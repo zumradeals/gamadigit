@@ -3,22 +3,20 @@
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, KeyRound, Loader2, Mail, Phone, ShieldCheck, UserRound } from 'lucide-react';
+import { ArrowLeft, KeyRound, Loader2, Mail, ShieldCheck, UserRound } from 'lucide-react';
 
 type Mode = 'login' | 'register';
-type IdentifierType = 'EMAIL' | 'TELEPHONE';
 type Pending = {
   identity: string;
   identifierReference: string;
   verificationReference: string;
   expiresAt: string;
-  channel: IdentifierType;
+  channel: 'EMAIL';
 };
 
 export function AccountLogin() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('login');
-  const [type, setType] = useState<IdentifierType>('EMAIL');
   const [name, setName] = useState('');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -29,11 +27,26 @@ export function AccountLogin() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
 
+  function messageFor(code: string) {
+    const messages: Record<string, string> = {
+      IDENTIFIANT_OU_SECRET_REFUSE: 'Adresse email ou mot de passe incorrect.',
+      MOT_DE_PASSE_TROP_COURT: 'Choisissez un mot de passe d’au moins 12 caractères.',
+      MOTS_DE_PASSE_DIFFERENTS: 'Les deux mots de passe ne correspondent pas.',
+      COMPTE_NON_CREATABLE: 'Cette adresse email est déjà associée à un Compte GAMAD. Connectez-vous ou reprenez la vérification si elle n’est pas terminée.',
+      VERIFICATION_NON_LIVREE: 'Le compte a été créé, mais le code n’a pas pu être livré. Utilisez « Renvoyer le code » pour reprendre sur le même compte.',
+      LIVRAISON_VERIFICATION_ECHOUEE: 'Le code n’a pas pu être envoyé. Réessayez dans quelques instants.',
+      RENVOI_TROP_RAPIDE: 'Un code vient déjà d’être envoyé. Attendez environ une minute avant un nouvel envoi.',
+      TROP_DE_RENVOIS: 'Trop de codes ont été demandés. Réessayez plus tard.',
+      ORIGINE_REFUSEE: 'Cette demande a été refusée pour des raisons de sécurité. Rechargez la page.',
+    };
+    return messages[code] || 'Le service est temporairement indisponible. Réessayez dans quelques instants.';
+  }
+
   async function login() {
     const response = await fetch('/api/genesis/account/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, type, password }),
+      body: JSON.stringify({ identifier, password }),
     });
     const body = await response.json();
     if (!response.ok || !body.ok) throw new Error(body.error || 'CONNEXION_INDISPONIBLE');
@@ -59,22 +72,16 @@ export function AccountLogin() {
       const response = await fetch('/api/genesis/account/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, identifier, type, password }),
+        body: JSON.stringify({ name, identifier, password }),
       });
       const body = await response.json();
       if (!response.ok || !body.ok) throw new Error(body.error || 'INSCRIPTION_INDISPONIBLE');
       setPending(body.pending);
-      setInfo(type === 'EMAIL' ? 'Un code de vérification vient de vous être envoyé par email.' : 'Un code de vérification vient de vous être envoyé par SMS.');
+      setInfo('Un code de vérification vient de vous être envoyé par email.');
     } catch (err) {
-      const code = err instanceof Error ? err.message : 'ERREUR';
-      const messages: Record<string, string> = {
-        IDENTIFIANT_OU_SECRET_REFUSE: 'Adresse, numéro ou mot de passe incorrect.',
-        MOT_DE_PASSE_TROP_COURT: 'Choisissez un mot de passe d’au moins 12 caractères.',
-        MOTS_DE_PASSE_DIFFERENTS: 'Les deux mots de passe ne correspondent pas.',
-        COMPTE_NON_CREATABLE: 'Ce moyen de connexion est déjà utilisé ou ne peut pas servir à créer un compte.',
-        LIVRAISON_VERIFICATION_ECHOUEE: 'Le code n’a pas pu être envoyé. Réessayez dans quelques instants.',
-      };
-      setError(messages[code] || 'Le service est temporairement indisponible. Réessayez dans quelques instants.');
+      const errorCode = err instanceof Error ? err.message : 'ERREUR';
+      setError(messageFor(errorCode));
+      if (errorCode === 'COMPTE_NON_CREATABLE') setMode('login');
     } finally {
       setLoading(false);
     }
@@ -99,8 +106,11 @@ export function AccountLogin() {
       const body = await response.json();
       if (!response.ok || !body.ok) throw new Error(body.error || 'CODE_REFUSE');
       await login();
-    } catch {
-      setError('Code incorrect ou expiré. Vérifiez le code reçu puis réessayez.');
+    } catch (err) {
+      const errorCode = err instanceof Error ? err.message : 'CODE_REFUSE';
+      setError(errorCode === 'CODE_REFUSE' || errorCode.startsWith('VERIFICATION_')
+        ? 'Code incorrect ou expiré. Vérifiez le code reçu puis réessayez.'
+        : messageFor(errorCode));
     } finally {
       setLoading(false);
     }
@@ -115,14 +125,16 @@ export function AccountLogin() {
       const response = await fetch('/api/genesis/account/resend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, type, identifierReference: pending.identifierReference }),
+        body: JSON.stringify({ identifier, identifierReference: pending.identifierReference }),
       });
       const body = await response.json();
       if (!response.ok || !body.ok) throw new Error(body.error || 'RENVOI_REFUSE');
       setPending((current) => current ? { ...current, verificationReference: body.verification.verificationReference, expiresAt: body.verification.expiresAt } : current);
+      setCode('');
       setInfo('Un nouveau code vient de vous être envoyé. L’ancien code n’est plus valable.');
-    } catch {
-      setError('Le code ne peut pas encore être renvoyé. Attendez un instant puis réessayez.');
+    } catch (err) {
+      const errorCode = err instanceof Error ? err.message : 'RENVOI_REFUSE';
+      setError(messageFor(errorCode));
     } finally {
       setLoading(false);
     }
@@ -148,8 +160,8 @@ export function AccountLogin() {
           {pending ? (
             <form onSubmit={verify} className="space-y-5 p-7">
               <div>
-                <p className="text-sm font-black text-slate-900">Vérifiez votre {type === 'EMAIL' ? 'adresse email' : 'numéro de téléphone'}</p>
-                <p className="mt-1 text-sm text-slate-500">Saisissez le code à 6 chiffres que vous venez de recevoir.</p>
+                <p className="text-sm font-black text-slate-900">Vérifiez votre adresse email</p>
+                <p className="mt-1 text-sm text-slate-500">Saisissez le code à 6 chiffres envoyé à <strong>{identifier}</strong>.</p>
               </div>
               <input
                 value={code}
@@ -186,22 +198,21 @@ export function AccountLogin() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
-                  <button type="button" onClick={() => setType('EMAIL')} className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-black ${type === 'EMAIL' ? 'bg-white text-dgNavy shadow-sm' : 'text-slate-500'}`}><Mail className="h-4 w-4" /> Email</button>
-                  <button type="button" onClick={() => setType('TELEPHONE')} className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-black ${type === 'TELEPHONE' ? 'bg-white text-dgNavy shadow-sm' : 'text-slate-500'}`}><Phone className="h-4 w-4" /> Téléphone</button>
-                </div>
-
                 <div>
-                  <label className="text-sm font-black text-slate-800">{type === 'EMAIL' ? 'Adresse email' : 'Numéro de téléphone'}</label>
-                  <input
-                    value={identifier}
-                    onChange={(event) => setIdentifier(event.target.value)}
-                    type={type === 'EMAIL' ? 'email' : 'tel'}
-                    autoComplete={type === 'EMAIL' ? 'email' : 'tel'}
-                    placeholder={type === 'EMAIL' ? 'vous@exemple.com' : '+225 07 00 00 00 00'}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-4 text-sm outline-none focus:border-dgNavy"
-                    required
-                  />
+                  <label className="text-sm font-black text-slate-800">Adresse email</label>
+                  <div className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 px-4 focus-within:border-dgNavy">
+                    <Mail className="h-5 w-5 text-slate-400" />
+                    <input
+                      value={identifier}
+                      onChange={(event) => setIdentifier(event.target.value)}
+                      type="email"
+                      autoComplete="email"
+                      placeholder="vous@exemple.com"
+                      className="min-w-0 flex-1 bg-transparent py-4 text-sm outline-none"
+                      required
+                    />
+                  </div>
+                  {mode === 'register' && <p className="mt-2 text-xs text-slate-400">Un code de vérification sera envoyé à cette adresse.</p>}
                 </div>
 
                 <div>
