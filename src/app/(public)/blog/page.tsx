@@ -6,6 +6,7 @@ import { getPublicBlogPosts } from '@/lib/public-content';
 export const metadata: Metadata = {
   title: 'Actualités & conseils numériques',
   description: 'Opportunités numériques, astuces, conseils pratiques, logiciels, formations et transformation numérique avec DG AFRIQUE.',
+  alternates: { canonical: '/blog' },
 };
 
 export default async function BlogPage() {
