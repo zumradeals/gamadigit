@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { parsePortalSession, portalAccountCookie } from '@/lib/gamad-core/account';
+import { parsePortalSession, portalAccountCookie, readCanonicalIdentity } from '@/lib/gamad-core/account';
 import { rejectCrossOrigin } from '@/lib/http/same-origin';
 import { createSupabaseServiceClient } from '@/lib/supabase/service';
 import { ZUMRA_CHARTER_VERSION } from '@/lib/zumra/types';
@@ -34,6 +34,14 @@ const enrollmentSchema = z.object({
     });
   }
 });
+
+function identityDisplayName(identity: Record<string, unknown>) {
+  for (const key of ['denomination', 'nom', 'libelle']) {
+    const value = identity[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return null;
+}
 
 export async function POST(request: Request) {
   const crossOrigin = rejectCrossOrigin(request);
@@ -91,8 +99,15 @@ export async function POST(request: Request) {
     }
   }
 
+  let displayName: string | null = null;
+  try {
+    displayName = identityDisplayName(await readCanonicalIdentity(session));
+  } catch {
+    // Le profil ZUMRA reste enregistrable si le libelle Core est temporairement indisponible.
+  }
+
   const value = parsed.data;
-  const { error: profileError } = await supabase.from('zumra_member_profiles').upsert({
+  const profilePayload: Record<string, unknown> = {
     core_identity_reference: session.entity,
     country: value.country,
     city: value.city,
@@ -106,7 +121,12 @@ export async function POST(request: Request) {
     intentions: value.intentions,
     participation_mode: value.participationMode,
     open_to_recommendations: value.openToRecommendations,
-  }, { onConflict: 'core_identity_reference' });
+  };
+  if (displayName) profilePayload.display_name = displayName;
+
+  const { error: profileError } = await supabase
+    .from('zumra_member_profiles')
+    .upsert(profilePayload, { onConflict: 'core_identity_reference' });
 
   if (profileError) {
     return NextResponse.json({ ok: false, error: 'PROFIL_NON_ENREGISTRE' }, { status: 503 });
