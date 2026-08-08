@@ -7,16 +7,19 @@ export async function generateMetadata(): Promise<Metadata> {
   const brand = await getBrandAssets();
 
   return {
+    metadataBase: new URL(siteConfig.url),
     title: {
       default: `${siteConfig.name} — ${siteConfig.tagline}`,
       template: `%s — ${siteConfig.name}`,
     },
     description: siteConfig.description,
+    applicationName: siteConfig.name,
     icons: { icon: brand.faviconUrl },
     openGraph: {
       type: 'website',
       locale: 'fr_CI',
       siteName: siteConfig.name,
+      url: siteConfig.url,
       title: `${siteConfig.name} — ${siteConfig.tagline}`,
       description: siteConfig.description,
       images: brand.socialImageUrl ? [{ url: brand.socialImageUrl }] : undefined,
@@ -31,9 +34,28 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: siteConfig.name,
+    alternateName: siteConfig.longName,
+    url: siteConfig.url,
+    email: siteConfig.email,
+    telephone: siteConfig.phone,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Abidjan',
+      addressCountry: 'CI',
+    },
+    description: siteConfig.description,
+  };
+
   return (
     <html lang="fr">
-      <body>{children}</body>
+      <body>
+        {children}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+      </body>
     </html>
   );
 }
