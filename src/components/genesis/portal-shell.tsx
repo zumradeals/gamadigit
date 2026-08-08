@@ -1,176 +1,84 @@
-'use client';
-
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
 import {
   ArrowRight,
-  BookOpen,
   BriefcaseBusiness,
-  Building2,
   CircleUserRound,
-  Compass,
-  GraduationCap,
-  HeartPulse,
-  Landmark,
+  Handshake,
   Layers3,
   Newspaper,
-  Search,
   Sparkles,
-  Sprout,
-  Tv,
 } from 'lucide-react';
 
-const universes = [
-  { label: 'Économie', href: '/economie', icon: BriefcaseBusiness, description: 'Entreprises, commerce, marchés et initiatives.' },
-  { label: 'Technologie', href: '/technologie', icon: Layers3, description: 'Numérique, logiciels, innovation et compétences.' },
-  { label: 'Éducation', href: '/education', icon: GraduationCap, description: 'Formation, apprentissage et transmission.' },
-  { label: 'Santé', href: '/sante', icon: HeartPulse, description: 'Prévention, systèmes de santé et innovation.' },
-  { label: 'Agriculture', href: '/agriculture', icon: Sprout, description: 'Production, transformation et chaînes de valeur.' },
-  { label: 'Politique', href: '/politique', icon: Landmark, description: 'Institutions, gouvernance et politiques publiques.' },
-  { label: 'Religion', href: '/religion', icon: BookOpen, description: 'Spiritualité, connaissance et société.' },
-  { label: 'Société', href: '/societe', icon: Compass, description: 'Culture, jeunesse, diaspora et initiatives.' },
-];
-
-const services = [
+const activities = [
   {
-    title: 'Opportunités',
-    description: 'Découvrez des offres, projets, besoins, partenariats et possibilités de collaboration.',
-    href: '/opportunites',
-    icon: BriefcaseBusiness,
-    action: 'Explorer les opportunités',
-  },
-  {
-    title: 'Solutions numériques',
-    description: 'Logiciels, abonnements, formations et accompagnement à la digitalisation.',
+    title: 'Pôle numérique',
+    description: 'Solutions numériques, logiciels, formations et accompagnement pour les particuliers, professionnels et organisations.',
     href: '/pole-numerique',
     icon: Layers3,
-    action: 'Découvrir les solutions',
+    action: 'Découvrir le pôle numérique',
   },
   {
-    title: 'Mon espace',
-    description: 'Un accès personnel simple pour retrouver progressivement vos informations et vos services.',
-    href: '/connexion',
-    icon: CircleUserRound,
-    action: 'Accéder à mon espace',
+    title: 'Opportunités',
+    description: 'Des offres, projets, besoins et possibilités de collaboration publiés après validation.',
+    href: '/opportunites',
+    icon: BriefcaseBusiness,
+    action: 'Voir les opportunités',
+  },
+  {
+    title: 'Partenariats',
+    description: 'Une porte ouverte aux entreprises, experts, institutions et réseaux qui souhaitent construire des collaborations utiles.',
+    href: '/investisseurs-partenaires',
+    icon: Handshake,
+    action: 'Devenir partenaire',
+  },
+  {
+    title: 'Services',
+    description: 'Accédez aux services déjà disponibles aujourd’hui et, progressivement, aux nouvelles applications reliées à DG AFRIQUE.',
+    href: '/#services',
+    icon: Sparkles,
+    action: 'Voir les services',
   },
 ];
 
 export function PortalShell() {
-  const [query, setQuery] = useState('');
-
-  const normalized = query.trim().toLowerCase();
-  const filteredUniverses = useMemo(
-    () => universes.filter((item) => !normalized || `${item.label} ${item.description}`.toLowerCase().includes(normalized)),
-    [normalized],
-  );
-  const filteredServices = useMemo(
-    () => services.filter((item) => !normalized || `${item.title} ${item.description}`.toLowerCase().includes(normalized)),
-    [normalized],
-  );
-
   return (
     <>
-      <section className="relative overflow-hidden bg-dgNavy px-4 py-20 text-center text-white sm:px-6 lg:px-8 lg:py-28">
+      <section className="relative overflow-hidden bg-dgNavy px-4 py-20 text-white sm:px-6 lg:px-8 lg:py-28">
         <div className="absolute -right-24 top-20 h-80 w-80 rounded-full bg-dgGold/10 blur-3xl" />
         <div className="absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-dgGreen/15 blur-3xl" />
         <div className="relative mx-auto max-w-7xl">
-          <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-dgGold/30 bg-dgGold/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-dgGold">
-            <Sparkles className="h-4 w-4" /> Une porte d’entrée pour l’Afrique
-          </div>
-          <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-black tracking-[-0.055em] sm:text-7xl lg:text-[5.5rem] lg:leading-[0.98]">
-            L’Afrique, reliée à ses possibilités.
-          </h1>
-          <p className="mx-auto mt-7 max-w-3xl text-lg leading-8 text-slate-300 sm:text-xl">
-            Trouvez des informations, des opportunités, des solutions et des services à partir d’un même point d’entrée.
-          </p>
-
-          <div className="mx-auto mt-10 max-w-3xl">
-            <div className="flex items-center gap-3 rounded-2xl bg-white p-2 text-left shadow-2xl shadow-black/20">
-              <Search className="ml-3 h-6 w-6 shrink-0 text-slate-400 sm:ml-4" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Que recherchez-vous en Afrique ?"
-                className="min-w-0 flex-1 bg-transparent py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 sm:text-base"
-              />
-              <a href="#resultats" className="hidden rounded-xl bg-dgNavy px-5 py-3 text-sm font-black text-white sm:block">Rechercher</a>
+          <div className="max-w-5xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-dgGold/30 bg-dgGold/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-dgGold">
+              <Sparkles className="h-4 w-4" /> Développement Global Afrique
             </div>
-            <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs font-bold text-slate-400">
-              <span>Exemples :</span>
-              {['formation', 'opportunité', 'technologie', 'agriculture'].map((term) => (
-                <button key={term} onClick={() => setQuery(term)} className="text-slate-300 underline-offset-4 hover:text-white hover:underline">{term}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="explorer" className="border-b border-slate-200 bg-white px-4 py-14 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-dgGold">Explorer</p>
-              <h2 className="mt-2 text-3xl font-black tracking-[-0.03em] text-dgNavy">Les grands univers</h2>
-            </div>
-            <p className="max-w-xl text-sm leading-6 text-slate-500">Une navigation simple pour accéder progressivement aux contenus et services qui comptent.</p>
-          </div>
-
-          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-            {universes.map(({ label, href, icon: Icon }) => (
-              <Link key={label} href={href} className="group rounded-2xl border border-slate-200 bg-white px-3 py-5 text-center transition hover:-translate-y-1 hover:border-dgGold/40 hover:shadow-sm">
-                <Icon className="mx-auto h-5 w-5 text-dgNavy transition group-hover:text-dgGold" />
-                <span className="mt-2 block text-sm font-black text-slate-700">{label}</span>
+            <h1 className="mt-7 max-w-5xl text-5xl font-black tracking-[-0.055em] sm:text-7xl lg:text-[5.2rem] lg:leading-[0.99]">
+              Des solutions pour faire avancer l’Afrique.
+            </h1>
+            <p className="mt-7 max-w-4xl text-lg leading-9 text-slate-300 sm:text-xl">
+              Nous développons des solutions numériques, nous accompagnons des projets, nous mettons en relation des acteurs et nous construisons progressivement un réseau de partenaires pour le développement en Afrique.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Link href="/pole-numerique" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3.5 font-black text-dgNavy">
+                Découvrir le pôle numérique <ArrowRight className="h-4 w-4" />
               </Link>
-            ))}
+              <Link href="/opportunites" className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-5 py-3.5 font-black text-white">
+                Voir les opportunités
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {normalized && (
-        <section id="resultats" className="bg-dgIvory px-4 py-12 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-dgGold">Résultats</p>
-                <h2 className="mt-2 text-3xl font-black text-dgNavy">Pour « {query} »</h2>
-              </div>
-              <button onClick={() => setQuery('')} className="text-sm font-black text-dgNavy">Effacer</button>
-            </div>
-
-            {filteredUniverses.length === 0 && filteredServices.length === 0 ? (
-              <p className="mt-8 rounded-2xl bg-white p-6 text-slate-600">Aucun résultat disponible pour le moment. Le moteur de recherche s’enrichira progressivement.</p>
-            ) : (
-              <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredServices.map((service) => (
-                  <Link key={service.title} href={service.href} className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-dgGold/40">
-                    <p className="text-xs font-black uppercase tracking-wider text-dgGold">Service</p>
-                    <h3 className="mt-3 text-xl font-black text-dgNavy">{service.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{service.description}</p>
-                  </Link>
-                ))}
-                {filteredUniverses.map((item) => (
-                  <Link key={item.label} href={item.href} className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-dgGold/40">
-                    <p className="text-xs font-black uppercase tracking-wider text-dgGold">Univers</p>
-                    <h3 className="mt-3 text-xl font-black text-dgNavy">{item.label}</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      <section id="services" className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8">
+      <section id="activites" className="bg-white px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-dgGold">À portée de main</p>
-            <h2 className="mt-4 text-4xl font-black tracking-[-0.04em] text-dgNavy sm:text-5xl">Commencez par ce qui est déjà utile aujourd’hui.</h2>
-            <p className="mt-5 text-lg leading-8 text-slate-600">Le portail grandira progressivement, mais chaque entrée visible doit conduire à une capacité réelle.</p>
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-dgGold">DG AFRIQUE aujourd’hui</p>
+            <h2 className="mt-4 text-4xl font-black tracking-[-0.04em] text-dgNavy sm:text-5xl">Construire à partir de capacités réelles.</h2>
+            <p className="mt-5 text-lg leading-8 text-slate-600">Nous avançons progressivement, avec des activités concrètes et des collaborations qui peuvent produire de la valeur dès maintenant.</p>
           </div>
 
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {services.map(({ title, description, href, icon: Icon, action }) => (
+          <div className="mt-12 grid gap-5 md:grid-cols-2">
+            {activities.map(({ title, description, href, icon: Icon, action }) => (
               <Link key={title} href={href} className="group rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-dgNavy text-dgGold"><Icon className="h-6 w-6" /></div>
                 <h3 className="mt-6 text-2xl font-black text-dgNavy">{title}</h3>
@@ -182,24 +90,36 @@ export function PortalShell() {
         </div>
       </section>
 
-      <section id="actualite" className="bg-white px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1.1fr_.9fr]">
+      <section id="services" className="bg-slate-50 px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.1fr_.9fr]">
           <div className="rounded-[2rem] bg-dgNavy p-8 text-white sm:p-10 lg:p-12">
-            <div className="flex items-center justify-between gap-5">
-              <p className="text-sm font-black uppercase tracking-[0.18em] text-dgGold">Information</p>
-              <Newspaper className="h-6 w-6 text-dgGold" />
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-dgGold">Services & applications</p>
+            <h2 className="mt-5 text-4xl font-black tracking-[-0.04em] sm:text-5xl">Un point d’entrée qui peut grandir avec nos solutions.</h2>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">Les services disponibles aujourd’hui restent accessibles, et de nouvelles applications pourront rejoindre progressivement DG AFRIQUE lorsqu’elles seront réellement prêtes.</p>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link href="/logiciels" className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3.5 font-black text-dgNavy">Logiciels <ArrowRight className="h-4 w-4" /></Link>
+              <Link href="/formations" className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-5 py-3.5 font-black text-white">Formations</Link>
             </div>
-            <h2 className="mt-5 text-4xl font-black tracking-[-0.04em] sm:text-5xl">Comprendre ce qui bouge en Afrique.</h2>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">Actualités, analyses, initiatives et contenus thématiques pourront être réunis ici dans une lecture claire et structurée.</p>
-            <div className="mt-9 inline-flex items-center gap-2 text-sm font-black text-white">Actualités bientôt disponibles <ArrowRight className="h-4 w-4" /></div>
           </div>
 
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-8 sm:p-10 lg:p-12">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-dgIvory text-dgNavy"><CircleUserRound className="h-6 w-6" /></div>
+            <p className="mt-8 text-sm font-black uppercase tracking-[0.18em] text-dgGold">Mon espace</p>
+            <h2 className="mt-4 text-3xl font-black tracking-[-0.03em] text-dgNavy">Votre accès personnel à DG AFRIQUE.</h2>
+            <p className="mt-5 text-base leading-8 text-slate-600">Créez votre compte ou connectez-vous. Votre espace pourra accueillir progressivement les services auxquels vous aurez accès.</p>
+            <Link href="/connexion" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-dgNavy px-5 py-3.5 text-sm font-black text-white">Créer un compte ou se connecter <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+        </div>
+      </section>
+
+      <section id="actualite" className="bg-white px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
           <div className="rounded-[2rem] border border-slate-200 bg-dgIvory p-8 sm:p-10 lg:p-12">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-dgNavy shadow-sm"><Building2 className="h-6 w-6" /></div>
-            <p className="mt-8 text-sm font-black uppercase tracking-[0.18em] text-dgGold">DG AFRIQUE</p>
-            <h2 className="mt-4 text-3xl font-black tracking-[-0.03em] text-dgNavy">Un portail qui grandit par capacités réelles.</h2>
-            <p className="mt-5 text-base leading-8 text-slate-600">Chaque nouvelle rubrique, service ou fonctionnalité sera ajoutée lorsqu’elle peut réellement servir les utilisateurs.</p>
-            <div className="mt-8 flex items-center gap-2 text-sm font-black text-dgNavy"><Tv className="h-4 w-4" /> Information, services et opportunités réunis progressivement.</div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-dgNavy shadow-sm"><Newspaper className="h-6 w-6" /></div>
+            <p className="mt-8 text-sm font-black uppercase tracking-[0.18em] text-dgGold">Actualités & conseils</p>
+            <h2 className="mt-4 max-w-3xl text-4xl font-black tracking-[-0.04em] text-dgNavy sm:text-5xl">Partager ce que nous pouvons réellement suivre et expliquer.</h2>
+            <p className="mt-5 max-w-4xl text-lg leading-8 text-slate-600">Opportunités numériques, astuces, conseils, outils et contenus pratiques : une rubrique éditoriale volontairement ciblée, alimentée au rythme de nos capacités.</p>
+            <Link href="/blog" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-dgNavy px-5 py-3.5 text-sm font-black text-white">Lire les publications <ArrowRight className="h-4 w-4" /></Link>
           </div>
         </div>
       </section>
