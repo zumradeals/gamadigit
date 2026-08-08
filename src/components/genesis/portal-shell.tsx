@@ -13,13 +13,11 @@ import {
   HeartPulse,
   Landmark,
   Layers3,
-  Menu,
   Newspaper,
   Search,
   Sparkles,
   Sprout,
   Tv,
-  X,
 } from 'lucide-react';
 
 const universes = [
@@ -58,7 +56,6 @@ const services = [
 ];
 
 export function PortalShell() {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState('');
 
   const normalized = query.trim().toLowerCase();
@@ -73,84 +70,40 @@ export function PortalShell() {
 
   return (
     <>
-      <header className="relative overflow-hidden bg-dgNavy text-white">
+      <section className="relative overflow-hidden bg-dgNavy px-4 py-20 text-center text-white sm:px-6 lg:px-8 lg:py-28">
         <div className="absolute -right-24 top-20 h-80 w-80 rounded-full bg-dgGold/10 blur-3xl" />
         <div className="absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-dgGreen/15 blur-3xl" />
+        <div className="relative mx-auto max-w-7xl">
+          <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-dgGold/30 bg-dgGold/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-dgGold">
+            <Sparkles className="h-4 w-4" /> Une porte d’entrée pour l’Afrique
+          </div>
+          <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-black tracking-[-0.055em] sm:text-7xl lg:text-[5.5rem] lg:leading-[0.98]">
+            L’Afrique, reliée à ses possibilités.
+          </h1>
+          <p className="mx-auto mt-7 max-w-3xl text-lg leading-8 text-slate-300 sm:text-xl">
+            Trouvez des informations, des opportunités, des solutions et des services à partir d’un même point d’entrée.
+          </p>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex min-h-20 items-center justify-between gap-5 border-b border-white/10">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-dgGold/35 bg-dgGold/10 text-dgGold">
-                <Compass className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-dgGold">DG AFRIQUE</p>
-                <p className="text-xs text-slate-400">Développement Global Afrique</p>
-              </div>
-            </Link>
-
-            <nav className="hidden items-center gap-7 text-sm font-bold text-slate-300 lg:flex">
-              <a href="#explorer" className="transition hover:text-white">Explorer</a>
-              <Link href="/opportunites" className="transition hover:text-white">Opportunités</Link>
-              <a href="#services" className="transition hover:text-white">Services</a>
-              <a href="#actualite" className="transition hover:text-white">Actualités</a>
-            </nav>
-
-            <div className="flex items-center gap-2">
-              <Link href="/connexion" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-black text-dgNavy transition hover:bg-slate-100">
-                <CircleUserRound className="h-4 w-4" /> <span className="hidden sm:inline">Mon espace</span>
-              </Link>
-              <button
-                onClick={() => setMobileOpen((value) => !value)}
-                className="inline-flex rounded-xl border border-white/15 p-3 lg:hidden"
-                aria-label="Ouvrir la navigation"
-              >
-                {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-              </button>
+          <div className="mx-auto mt-10 max-w-3xl">
+            <div className="flex items-center gap-3 rounded-2xl bg-white p-2 text-left shadow-2xl shadow-black/20">
+              <Search className="ml-3 h-6 w-6 shrink-0 text-slate-400 sm:ml-4" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Que recherchez-vous en Afrique ?"
+                className="min-w-0 flex-1 bg-transparent py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 sm:text-base"
+              />
+              <a href="#resultats" className="hidden rounded-xl bg-dgNavy px-5 py-3 text-sm font-black text-white sm:block">Rechercher</a>
+            </div>
+            <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs font-bold text-slate-400">
+              <span>Exemples :</span>
+              {['formation', 'opportunité', 'technologie', 'agriculture'].map((term) => (
+                <button key={term} onClick={() => setQuery(term)} className="text-slate-300 underline-offset-4 hover:text-white hover:underline">{term}</button>
+              ))}
             </div>
           </div>
-
-          {mobileOpen && (
-            <div className="grid gap-2 border-b border-white/10 py-4 text-sm font-bold text-slate-200 lg:hidden">
-              <a href="#explorer" onClick={() => setMobileOpen(false)} className="rounded-xl px-4 py-3 hover:bg-white/10">Explorer</a>
-              <Link href="/opportunites" onClick={() => setMobileOpen(false)} className="rounded-xl px-4 py-3 hover:bg-white/10">Opportunités</Link>
-              <a href="#services" onClick={() => setMobileOpen(false)} className="rounded-xl px-4 py-3 hover:bg-white/10">Services</a>
-              <a href="#actualite" onClick={() => setMobileOpen(false)} className="rounded-xl px-4 py-3 hover:bg-white/10">Actualités</a>
-            </div>
-          )}
-
-          <section className="pb-20 pt-16 text-center sm:pb-24 sm:pt-20 lg:pb-28 lg:pt-24">
-            <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-dgGold/30 bg-dgGold/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-dgGold">
-              <Sparkles className="h-4 w-4" /> Une porte d’entrée pour l’Afrique
-            </div>
-            <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-black tracking-[-0.055em] sm:text-7xl lg:text-[5.5rem] lg:leading-[0.98]">
-              L’Afrique, reliée à ses possibilités.
-            </h1>
-            <p className="mx-auto mt-7 max-w-3xl text-lg leading-8 text-slate-300 sm:text-xl">
-              Trouvez des informations, des opportunités, des solutions et des services à partir d’un même point d’entrée.
-            </p>
-
-            <div className="mx-auto mt-10 max-w-3xl">
-              <div className="flex items-center gap-3 rounded-2xl bg-white p-2 text-left shadow-2xl shadow-black/20">
-                <Search className="ml-3 h-6 w-6 shrink-0 text-slate-400 sm:ml-4" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Que recherchez-vous en Afrique ?"
-                  className="min-w-0 flex-1 bg-transparent py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 sm:text-base"
-                />
-                <a href="#resultats" className="hidden rounded-xl bg-dgNavy px-5 py-3 text-sm font-black text-white sm:block">Rechercher</a>
-              </div>
-              <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs font-bold text-slate-400">
-                <span>Exemples :</span>
-                {['formation', 'opportunité', 'technologie', 'agriculture'].map((term) => (
-                  <button key={term} onClick={() => setQuery(term)} className="text-slate-300 underline-offset-4 hover:text-white hover:underline">{term}</button>
-                ))}
-              </div>
-            </div>
-          </section>
         </div>
-      </header>
+      </section>
 
       <section id="explorer" className="border-b border-slate-200 bg-white px-4 py-14 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
