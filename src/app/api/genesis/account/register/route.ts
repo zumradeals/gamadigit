@@ -1,27 +1,32 @@
 import { NextResponse } from 'next/server';
-import { createGamadAccount, type HumanIdentifierType } from '@/lib/gamad-core/account';
+import { CoreAccountError, createGamadAccount } from '@/lib/gamad-core/account';
+import { rejectCrossOrigin } from '@/lib/http/same-origin';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  const crossOrigin = rejectCrossOrigin(request);
+  if (crossOrigin) return crossOrigin;
+
   const body = (await request.json().catch(() => null)) as {
     name?: string;
     identifier?: string;
-    type?: HumanIdentifierType;
     password?: string;
   } | null;
 
   const name = body?.name?.trim();
   const identifier = body?.identifier?.trim();
-  const type = body?.type;
   const password = body?.password;
 
-  if (!name || !identifier || !password || !type || !['EMAIL', 'TELEPHONE'].includes(type)) {
+  if (!name || !identifier || !password) {
     return NextResponse.json({ ok: false, error: 'DONNEES_REQUISES' }, { status: 422 });
+  }
+  if (password.length < 12) {
+    return NextResponse.json({ ok: false, error: 'MOT_DE_PASSE_TROP_COURT' }, { status: 422 });
   }
 
   try {
-    const result = await createGamadAccount({ name, identifier, type, password });
+    const result = await createGamadAccount({ name, identifier, type: 'EMAIL', password });
     return NextResponse.json({
       ok: true,
       pending: {
@@ -31,10 +36,12 @@ export async function POST(request: Request) {
         expiresAt: result.expiresAt,
         channel: result.channel,
       },
-    }, { status: 201 });
+    }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    const code = error instanceof Error ? error.message : 'CORE_INDISPONIBLE';
-    const status = code === 'COMPTE_NON_CREATABLE' ? 409 : 503;
-    return NextResponse.json({ ok: false, error: code }, { status });
+    if (error instanceof CoreAccountError) {
+      const status = error.status === 409 ? 409 : error.status === 429 ? 429 : error.status >= 500 ? 503 : 422;
+      return NextResponse.json({ ok: false, error: error.code }, { status, headers: { 'Cache-Control': 'no-store' } });
+    }
+    return NextResponse.json({ ok: false, error: 'CORE_TEMPORAIREMENT_INDISPONIBLE' }, { status: 503 });
   }
 }
