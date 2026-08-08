@@ -19,6 +19,23 @@ type Captcha = {
   expiresAt: string;
 };
 
+function messageFor(code: string) {
+  const messages: Record<string, string> = {
+    IDENTIFIANT_OU_SECRET_REFUSE: 'Adresse email ou mot de passe incorrect.',
+    MOT_DE_PASSE_TROP_COURT: 'Choisissez un mot de passe d’au moins 6 caractères.',
+    MOTS_DE_PASSE_DIFFERENTS: 'Les deux mots de passe ne correspondent pas.',
+    CAPTCHA_INCORRECT: 'Le calcul de sécurité est incorrect. Réessayez.',
+    CAPTCHA_INDISPONIBLE: 'La vérification de sécurité est momentanément indisponible. Réessayez.',
+    COMPTE_NON_CREATABLE: 'Cette adresse email est déjà associée à un compte. Connectez-vous ou reprenez la vérification si elle n’est pas terminée.',
+    VERIFICATION_NON_LIVREE: 'Le compte a été créé, mais le code n’a pas pu être livré. Utilisez « Renvoyer le code » pour reprendre sur le même compte.',
+    LIVRAISON_VERIFICATION_ECHOUEE: 'Le code n’a pas pu être envoyé. Réessayez dans quelques instants.',
+    RENVOI_TROP_RAPIDE: 'Un code vient déjà d’être envoyé. Attendez environ une minute avant un nouvel envoi.',
+    TROP_DE_RENVOIS: 'Trop de codes ont été demandés. Réessayez plus tard.',
+    ORIGINE_REFUSEE: 'Cette demande a été refusée pour des raisons de sécurité. Rechargez la page.',
+  };
+  return messages[code] || 'Le service est temporairement indisponible. Réessayez dans quelques instants.';
+}
+
 export function AccountLogin() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('login');
@@ -34,23 +51,6 @@ export function AccountLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
-
-  function messageFor(code: string) {
-    const messages: Record<string, string> = {
-      IDENTIFIANT_OU_SECRET_REFUSE: 'Adresse email ou mot de passe incorrect.',
-      MOT_DE_PASSE_TROP_COURT: 'Choisissez un mot de passe d’au moins 6 caractères.',
-      MOTS_DE_PASSE_DIFFERENTS: 'Les deux mots de passe ne correspondent pas.',
-      CAPTCHA_INCORRECT: 'Le calcul de sécurité est incorrect. Réessayez.',
-      CAPTCHA_INDISPONIBLE: 'La vérification de sécurité est momentanément indisponible. Réessayez.',
-      COMPTE_NON_CREATABLE: 'Cette adresse email est déjà associée à un compte. Connectez-vous ou reprenez la vérification si elle n’est pas terminée.',
-      VERIFICATION_NON_LIVREE: 'Le compte a été créé, mais le code n’a pas pu être livré. Utilisez « Renvoyer le code » pour reprendre sur le même compte.',
-      LIVRAISON_VERIFICATION_ECHOUEE: 'Le code n’a pas pu être envoyé. Réessayez dans quelques instants.',
-      RENVOI_TROP_RAPIDE: 'Un code vient déjà d’être envoyé. Attendez environ une minute avant un nouvel envoi.',
-      TROP_DE_RENVOIS: 'Trop de codes ont été demandés. Réessayez plus tard.',
-      ORIGINE_REFUSEE: 'Cette demande a été refusée pour des raisons de sécurité. Rechargez la page.',
-    };
-    return messages[code] || 'Le service est temporairement indisponible. Réessayez dans quelques instants.';
-  }
 
   const loadCaptcha = useCallback(async () => {
     setCaptchaLoading(true);
