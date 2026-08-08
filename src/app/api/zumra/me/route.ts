@@ -38,7 +38,7 @@ export async function GET() {
 
   const { data: profile, error: profileError } = await supabase
     .from('zumra_member_profiles')
-    .select('country,city,phone,skills,no_skills_yet,learning_goals,current_activity,education,sectors,intentions,participation_mode,open_to_recommendations')
+    .select('display_name,country,city,phone,skills,no_skills_yet,learning_goals,current_activity,education,sectors,intentions,participation_mode,open_to_recommendations')
     .eq('core_identity_reference', session.entity)
     .maybeSingle();
 
@@ -58,6 +58,7 @@ export async function GET() {
       contributionStatus: membership.contribution_status,
     },
     profile: profile ? {
+      displayName: profile.display_name,
       country: profile.country,
       city: profile.city,
       phone: profile.phone,
