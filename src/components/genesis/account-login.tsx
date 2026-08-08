@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, CheckCircle2, KeyRound, Loader2, Mail, ShieldCheck, UserRound } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, KeyRound, Loader2, Mail, RefreshCw, ShieldCheck, UserRound } from 'lucide-react';
 
 type Mode = 'login' | 'register';
 type Pending = {
@@ -13,6 +13,11 @@ type Pending = {
   expiresAt: string;
   channel: 'EMAIL';
 };
+type Captcha = {
+  question: string;
+  token: string;
+  expiresAt: string;
+};
 
 export function AccountLogin() {
   const router = useRouter();
@@ -21,6 +26,9 @@ export function AccountLogin() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [captcha, setCaptcha] = useState<Captcha | null>(null);
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const [captchaLoading, setCaptchaLoading] = useState(false);
   const [code, setCode] = useState('');
   const [pending, setPending] = useState<Pending | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,8 +38,10 @@ export function AccountLogin() {
   function messageFor(code: string) {
     const messages: Record<string, string> = {
       IDENTIFIANT_OU_SECRET_REFUSE: 'Adresse email ou mot de passe incorrect.',
-      MOT_DE_PASSE_TROP_COURT: 'Choisissez un mot de passe d’au moins 12 caractères.',
+      MOT_DE_PASSE_TROP_COURT: 'Choisissez un mot de passe d’au moins 6 caractères.',
       MOTS_DE_PASSE_DIFFERENTS: 'Les deux mots de passe ne correspondent pas.',
+      CAPTCHA_INCORRECT: 'Le calcul de sécurité est incorrect. Réessayez.',
+      CAPTCHA_INDISPONIBLE: 'La vérification de sécurité est momentanément indisponible. Réessayez.',
       COMPTE_NON_CREATABLE: 'Cette adresse email est déjà associée à un compte. Connectez-vous ou reprenez la vérification si elle n’est pas terminée.',
       VERIFICATION_NON_LIVREE: 'Le compte a été créé, mais le code n’a pas pu être livré. Utilisez « Renvoyer le code » pour reprendre sur le même compte.',
       LIVRAISON_VERIFICATION_ECHOUEE: 'Le code n’a pas pu être envoyé. Réessayez dans quelques instants.',
@@ -41,6 +51,26 @@ export function AccountLogin() {
     };
     return messages[code] || 'Le service est temporairement indisponible. Réessayez dans quelques instants.';
   }
+
+  const loadCaptcha = useCallback(async () => {
+    setCaptchaLoading(true);
+    setCaptchaAnswer('');
+    try {
+      const response = await fetch('/api/genesis/account/captcha', { cache: 'no-store' });
+      const body = (await response.json()) as { ok?: boolean; captcha?: Captcha; error?: string };
+      if (!response.ok || !body.ok || !body.captcha) throw new Error(body.error || 'CAPTCHA_INDISPONIBLE');
+      setCaptcha(body.captcha);
+    } catch {
+      setCaptcha(null);
+      setError(messageFor('CAPTCHA_INDISPONIBLE'));
+    } finally {
+      setCaptchaLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mode === 'register' && !pending) void loadCaptcha();
+  }, [loadCaptcha, mode, pending]);
 
   async function login() {
     const response = await fetch('/api/genesis/account/login', {
@@ -66,13 +96,20 @@ export function AccountLogin() {
         return;
       }
 
-      if (password.length < 12) throw new Error('MOT_DE_PASSE_TROP_COURT');
+      if (password.length < 6) throw new Error('MOT_DE_PASSE_TROP_COURT');
       if (password !== confirmPassword) throw new Error('MOTS_DE_PASSE_DIFFERENTS');
+      if (!captcha || !captchaAnswer.trim()) throw new Error('CAPTCHA_INCORRECT');
 
       const response = await fetch('/api/genesis/account/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, identifier, password }),
+        body: JSON.stringify({
+          name,
+          identifier,
+          password,
+          captchaToken: captcha.token,
+          captchaAnswer,
+        }),
       });
       const body = await response.json();
       if (!response.ok || !body.ok) throw new Error(body.error || 'INSCRIPTION_INDISPONIBLE');
@@ -82,6 +119,7 @@ export function AccountLogin() {
       const errorCode = err instanceof Error ? err.message : 'ERREUR';
       setError(messageFor(errorCode));
       if (errorCode === 'COMPTE_NON_CREATABLE') setMode('login');
+      if (mode === 'register' && errorCode === 'CAPTCHA_INCORRECT') void loadCaptcha();
     } finally {
       setLoading(false);
     }
@@ -182,11 +220,24 @@ export function AccountLogin() {
                   <div><p className="text-xs font-black uppercase tracking-[0.15em] text-dgGold">{mode === 'login' ? 'Bienvenue' : 'Inscription'}</p><h2 className="mt-2 text-3xl font-black text-dgNavy">{mode === 'login' ? 'Accéder à mon espace' : 'Créer mon accès personnel'}</h2></div>
                   {mode === 'register' && <div><label className="text-sm font-black text-slate-800">Nom complet</label><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" placeholder="Votre nom" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-4 text-sm outline-none focus:border-dgNavy" required /></div>}
                   <div><label className="text-sm font-black text-slate-800">Adresse email</label><div className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 px-4 focus-within:border-dgNavy"><Mail className="h-5 w-5 text-slate-400" /><input value={identifier} onChange={(event) => setIdentifier(event.target.value)} type="email" autoComplete="email" placeholder="vous@exemple.com" className="min-w-0 flex-1 bg-transparent py-4 text-sm outline-none" required /></div>{mode === 'register' && <p className="mt-2 text-xs text-slate-400">Un code de vérification sera envoyé à cette adresse.</p>}</div>
-                  <div><label className="text-sm font-black text-slate-800">Mot de passe</label><div className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 px-4 focus-within:border-dgNavy"><KeyRound className="h-5 w-5 text-slate-400" /><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder="Votre mot de passe" className="min-w-0 flex-1 bg-transparent py-4 text-sm outline-none" required /></div>{mode === 'register' && <p className="mt-2 text-xs text-slate-400">12 caractères minimum.</p>}</div>
-                  {mode === 'register' && <div><label className="text-sm font-black text-slate-800">Confirmer le mot de passe</label><input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" placeholder="Retapez votre mot de passe" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-4 text-sm outline-none focus:border-dgNavy" required /></div>}
+                  <div><label className="text-sm font-black text-slate-800">Mot de passe</label><div className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 px-4 focus-within:border-dgNavy"><KeyRound className="h-5 w-5 text-slate-400" /><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={mode === 'register' ? 6 : undefined} placeholder="Votre mot de passe" className="min-w-0 flex-1 bg-transparent py-4 text-sm outline-none" required /></div>{mode === 'register' && <p className="mt-2 text-xs text-slate-400">6 caractères minimum.</p>}</div>
+                  {mode === 'register' && <div><label className="text-sm font-black text-slate-800">Confirmer le mot de passe</label><input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" minLength={6} placeholder="Retapez votre mot de passe" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-4 text-sm outline-none focus:border-dgNavy" required /></div>}
+                  {mode === 'register' && (
+                    <div>
+                      <label className="text-sm font-black text-slate-800">Vérification rapide</label>
+                      <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+                        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 focus-within:border-dgNavy">
+                          <span className="shrink-0 text-sm font-black text-dgNavy">{captchaLoading ? 'Calcul…' : captcha?.question ?? 'Indisponible'}</span>
+                          <input value={captchaAnswer} onChange={(event) => setCaptchaAnswer(event.target.value.replace(/\D/g, '').slice(0, 3))} inputMode="numeric" autoComplete="off" aria-label="Réponse au calcul de sécurité" placeholder="Réponse" className="min-w-0 flex-1 bg-transparent py-4 text-sm outline-none" required />
+                        </div>
+                        <button type="button" onClick={() => void loadCaptcha()} disabled={captchaLoading} aria-label="Nouveau calcul" title="Nouveau calcul" className="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-4 text-dgNavy transition hover:bg-slate-50 disabled:opacity-50"><RefreshCw className={`h-5 w-5 ${captchaLoading ? 'animate-spin' : ''}`} /></button>
+                      </div>
+                      <p className="mt-2 text-xs text-slate-400">Résolvez ce petit calcul pour confirmer que l’inscription est bien faite par une personne.</p>
+                    </div>
+                  )}
                   {error && <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p>}
                   {info && <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">{info}</p>}
-                  <button disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-dgNavy px-5 py-4 text-sm font-black text-white transition hover:opacity-95 disabled:opacity-60">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}{loading ? 'Veuillez patienter…' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}</button>
+                  <button disabled={loading || (mode === 'register' && (!captcha || !captchaAnswer.trim()))} className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-dgNavy px-5 py-4 text-sm font-black text-white transition hover:opacity-95 disabled:opacity-60">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}{loading ? 'Veuillez patienter…' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}</button>
                 </form>
               </>
             )}
