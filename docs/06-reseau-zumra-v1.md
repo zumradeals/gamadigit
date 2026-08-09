@@ -1,64 +1,50 @@
-# Reseau ZUMRA — fondation V1
+# Réseau ZUMRA — fondation et direction produit
 
-## Positionnement public
+## Positionnement
 
-ZUMRA est presente sur DG AFRIQUE comme un programme de developpement humain. GAMAD n'a pas besoin d'etre expose comme mouvement, ideologie ou architecture interne pour que le programme fonctionne.
+ZUMRA est un programme et un réseau social d'action intégré à DG Afrique. Il relie apprentissage, transmission, capacités, groupes humains, projets et capacité financière communautaire.
 
-Le Programme ZUMRA n'est pas ajoute a la navigation principale. Il est accessible depuis le footer et depuis Mon espace.
+## Invariants
 
-## Principes figes pour la V1
+- Compte DG Afrique gratuit et distinct de l'adhésion ZUMRA.
+- L'identité canonique reste GAMAD Core (`IDN-PER-...`).
+- L'adhésion ZUMRA est payante et son paiement initial est distinct de la contribution mensuelle.
+- Aucun diplôme n'est requis ; une personne peut commencer sans compétence déclarée et avec des objectifs d'apprentissage.
+- Une Zumra peut être physique, numérique ou hybride.
+- Une Zumra devient active à partir de 5 membres actifs et lorsque les cinq responsabilités fondatrices sont attribuées à cinq personnes distinctes.
+- ZUMRA peut avoir fil d'activité, messagerie, commentaires, partage et relations entre membres ; ces fonctions servent l'action et ne créent pas un classement de valeur humaine.
 
-- Compte DG AFRIQUE gratuit et distinct de l'adhesion ZUMRA.
-- Adhesion ZUMRA payante avec un montant volontairement faible, branchee dans un lot ulterieur.
-- Aucun diplome requis.
-- Le profil distingue ce que le membre sait faire de ce qu'il souhaite apprendre.
-- Une personne peut commencer sans competence particuliere.
-- Une Zumra peut etre physique, 100 % numerique ou hybride.
-- Une Zumra devient active a partir de 5 membres.
-- Le partage de connaissances est un principe prioritaire.
-- La Carte ZUMRA existe en version numerique et pourra etre emise physiquement pour certaines operations partenaires.
-- L'identite canonique reste celle du GAMAD Core (`IDN-PER-...`). Aucune seconde identite souveraine n'est creee dans le satellite.
+## Adhésion initiale — état réel
+
+Le parcours `dossier → charte → pending_payment → GeniusPay → completed → active` est implémenté en sandbox et a été éprouvé. Le paiement a pour finalité `membership`. La Carte ZUMRA et l'accès réseau sont liés à l'adhésion active.
+
+## Contribution mensuelle — objectif stratégique
+
+La contribution mensuelle individuelle est un flux différent du paiement initial d'adhésion. Les états métier déjà prévus sont : `not_started`, `up_to_date`, `grace`, `late`.
+
+Son objectif premier est de **construire une capacité financière communautaire permettant d'amorcer et de financer des projets de la communauté avant que des partenaires externes s'y intéressent**. Le membre doit progressivement pouvoir voir ce que sa participation rend possible : collecte, fonds disponibles ou engagés, projets soutenus, décaissements, preuves et résultats.
+
+Contribution ≠ investissement. Un montant supérieur ne doit pas acheter de rang, de visibilité ou de pouvoir social ; aucune promesse de rendement individuel n'est implicite. Les conséquences exactes d'un état `late` ne sont pas décidées et ne doivent pas être inventées.
 
 ## Moteur de la Zumra
 
-Le moteur V1 traduit les regles fondatrices en regles metier executables :
+1. Seul un membre ZUMRA actif peut créer ou rejoindre une Zumra.
+2. Le créateur devient `Responsable principal`.
+3. Les membres sont recrutés par invitations à usage unique.
+4. Responsabilités fondatrices : principal, adjoint 1, adjoint 2, finance, affaires sociales.
+5. Une Zumra passe de `forming` à `active` avec au moins 5 membres actifs et les 5 responsabilités attribuées.
+6. Les événements structurants sont tracés.
 
-1. Seul un membre ZUMRA actif peut creer ou rejoindre une Zumra.
-2. La personne qui cree la Zumra devient automatiquement `Responsable principal`.
-3. Les membres sont recrutes par des liens d'invitation a usage unique, valables sept jours.
-4. Les cinq responsabilites fondatrices sont occupees par cinq personnes distinctes :
-   - Responsable principal ;
-   - Responsable adjoint 1 ;
-   - Responsable adjoint 2 ;
-   - Responsable financier ;
-   - Responsable des affaires sociales.
-5. Les membres au-dela des cinq fondateurs peuvent participer sans occuper une fonction fondatrice.
-6. Une Zumra passe automatiquement de `forming` a `active` lorsqu'elle compte au moins 5 membres actifs et les 5 responsabilites attribuees.
-7. Le responsable principal peut transferer sa responsabilite a un membre actif qui n'occupe pas deja une autre fonction fondatrice.
-8. Les evenements structurants sont traces : creation, invitation, arrivee d'un membre, attribution d'une fonction, transfert de responsabilite et activation.
+## Frontière Core / DG / satellites
 
-Une Zumra en formation reste une donnee metier du satellite. Le champ `core_organisation_reference` est reserve pour une future inscription gouvernee dans le Registre des organisations du GAMAD Core lorsque le statut et les contrats de cette integration seront definis.
+GAMAD Core conserve identité, sessions, fédération et primitives transversales. DG Afrique/ZUMRA conserve les données métier du programme : capacités, apprentissages, adhésion, contribution, vie des Zumra, besoins, projets et expérience utilisateur, sous réserve d'affinements par capacité. Les satellites conservent leur propre métier.
 
-## Frontiere Core / satellite
+## Prochain travail de spécification
 
-Le GAMAD Core conserve l'identite, la continuite et le futur moteur transversal de Matching. DG AFRIQUE/ZUMRA conserve les donnees metier du programme : capacites declarees, apprentissages, preferences, adhesion, vie des Zumra et experience utilisateur.
-
-Cette separation suit la note fondatrice du Moteur de Matching GAMAD : ZUMRA est un consommateur possible du Matching et les satellites restent proprietaires de leurs donnees metier.
-
-## Contribution future
-
-La contribution mensuelle sera individuelle, faible et configurable. Le montant superieur au minimum ne devra pas acheter davantage de visibilite. Le statut contributif pourra etre un signal d'engagement parmi plusieurs facteurs, jamais un score de valeur humaine.
-
-Le Fonds de Contribution ZUMRA, les projets finances, les preuves, la gouvernance et les partenaires de paiement constituent un lot separe. Aucun mecanisme financier n'est simule dans cette V1.
-
-## Hors perimetre de ce moteur V1
-
-- paiement d'adhesion ;
-- contribution mensuelle ;
-- Fonds ZUMRA ;
-- matching automatique et recommandations de profils ;
-- depart, exclusion et suspension gouvernee des membres ;
-- bases et succursales a partir de 50 membres ;
-- inscription automatique d'une Zumra active comme organisation canonique du Core ;
-- impression/commande de carte physique ;
-- ZAHAB et GAMAD Finance.
+- `monthly_contribution` comme purpose distinct ;
+- capacité/fonds communautaire et règles d'affectation ;
+- traçabilité collecte → engagement → décaissement → projet → preuve ;
+- écrans de transparence et d'impact ;
+- gouvernance des décisions de financement ;
+- règles de grâce/retard ;
+- social ZUMRA lié aux besoins, apprentissages et projets.
