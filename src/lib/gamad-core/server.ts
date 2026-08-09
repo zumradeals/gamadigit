@@ -20,6 +20,12 @@ export type CoreHandshakeResult = {
   error?: string;
 };
 
+type CoreProductEnvironment = {
+  environnement?: string;
+  actif?: boolean;
+  logout_url?: string | null;
+};
+
 function required(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`Configuration Core manquante: ${name}`);
@@ -96,6 +102,45 @@ export async function coreProductRequest(path: string, init: RequestInit): Promi
     });
   } finally {
     await closeProductSession(session.config.baseUrl, session.token, session.correlationId);
+  }
+}
+
+function frontChannelLogoutUrl(value: unknown): string | null {
+  if (typeof value !== 'string' || !value.trim()) return null;
+
+  try {
+    const url = new URL(value.trim());
+    if (url.protocol !== 'https:' || url.username || url.password) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Lit le canal de déconnexion front-channel depuis le registre gouverné des
+ * produits Core (CAP-CORE-011). Une absence de valeur ou une indisponibilité
+ * du registre ne doit jamais empêcher la fermeture de la session centrale.
+ */
+export async function readProductionLogoutUrl(productRef: string): Promise<string | null> {
+  try {
+    const response = await coreProductRequest(
+      `/produits/${encodeURIComponent(productRef)}/environnements`,
+      { method: 'GET' },
+    );
+    if (!response.ok) return null;
+
+    const body = (await response.json().catch(() => ({}))) as {
+      environnements?: CoreProductEnvironment[];
+    };
+    const environments = Array.isArray(body.environnements) ? body.environnements : [];
+    const production = environments.find(
+      (environment) => environment.environnement === 'PRODUCTION' && environment.actif === true,
+    );
+
+    return frontChannelLogoutUrl(production?.logout_url);
+  } catch {
+    return null;
   }
 }
 
