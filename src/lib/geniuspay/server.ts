@@ -1,7 +1,12 @@
 import 'server-only';
 import crypto from 'node:crypto';
 
-const GENIUS_TIMEOUT_MS = 10_000;
+const GENIUS_TIMEOUT_MS = 15_000;
+const CURRENT_GENIUSPAY_BASE_URL = 'https://geniuspay.ci/api/v1/merchant';
+const LEGACY_GENIUSPAY_BASE_URLS = new Set([
+  'http://pay.genius.ci/api/v1/merchant',
+  'https://pay.genius.ci/api/v1/merchant',
+]);
 
 export type GeniusPayStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'refunded';
 
@@ -35,6 +40,11 @@ function required(name: string) {
   return value;
 }
 
+function resolveGeniusBaseUrl() {
+  const configured = (process.env.GENIUSPAY_BASE_URL || CURRENT_GENIUSPAY_BASE_URL).trim().replace(/\/$/, '');
+  return LEGACY_GENIUSPAY_BASE_URLS.has(configured) ? CURRENT_GENIUSPAY_BASE_URL : configured;
+}
+
 export function getGeniusPayConfig(): GeniusConfig {
   const environment = (process.env.GENIUSPAY_ENVIRONMENT || 'sandbox').trim();
   if (environment !== 'sandbox') throw new Error('GENIUSPAY_SANDBOX_REQUIS');
@@ -51,7 +61,7 @@ export function getGeniusPayConfig(): GeniusConfig {
   }
 
   return {
-    baseUrl: (process.env.GENIUSPAY_BASE_URL || 'http://pay.genius.ci/api/v1/merchant').replace(/\/$/, ''),
+    baseUrl: resolveGeniusBaseUrl(),
     apiKey,
     apiSecret,
     webhookSecret: process.env.GENIUSPAY_WEBHOOK_SECRET?.trim() || null,
