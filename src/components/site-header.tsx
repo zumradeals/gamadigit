@@ -38,14 +38,14 @@ export function SiteHeader({ logoUrl }: { logoUrl?: string }) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link href="/connexion" className="inline-flex items-center gap-2 rounded-xl bg-dgNavy px-4 py-3 text-sm font-black text-white transition hover:opacity-95">
+          <Link href="/espace" className="inline-flex items-center gap-2 rounded-xl bg-dgNavy px-4 py-3 text-sm font-black text-white transition hover:opacity-95">
             <CircleUserRound className="h-4 w-4" /> <span className="hidden sm:inline">Mon espace</span>
           </Link>
           <details ref={mobileMenuRef} className="group relative lg:hidden">
             <summary className="flex cursor-pointer list-none items-center rounded-xl border border-slate-200 p-3 text-dgNavy marker:content-none" aria-label="Ouvrir le menu"><Menu className="h-5 w-5" /></summary>
             <div className="absolute right-0 top-14 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-slate-200 bg-white p-3 shadow-soft">
               {menuItems.map((item) => <Link key={item.label} href={item.href} onClick={closeMenu} className="block rounded-xl px-4 py-3 font-bold text-dgNavy hover:bg-dgIvory">{item.label}</Link>)}
-              <Link href="/connexion" onClick={closeMenu} className="mt-2 flex items-center gap-2 rounded-xl bg-dgNavy px-4 py-3 font-black text-white"><CircleUserRound className="h-4 w-4" /> Mon espace</Link>
+              <Link href="/espace" onClick={closeMenu} className="mt-2 flex items-center gap-2 rounded-xl bg-dgNavy px-4 py-3 font-black text-white"><CircleUserRound className="h-4 w-4" /> Mon espace</Link>
             </div>
           </details>
         </div>
