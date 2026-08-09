@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { ZumraNetworkDashboard } from '@/components/zumra/zumra-network-dashboard';
 
 export const metadata: Metadata = {
-  title: 'Reseau ZUMRA — Mon espace',
-  description: 'Creez, rejoignez et developpez vos groupes de travail ZUMRA.',
+  title: 'Réseau ZUMRA — Mon espace',
+  description: 'Créez, rejoignez et faites progresser vos Zumra depuis votre espace DG Afrique.',
   robots: { index: false, follow: false },
 };
 
