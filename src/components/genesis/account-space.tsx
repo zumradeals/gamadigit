@@ -101,29 +101,18 @@ export function AccountSpace() {
 
   return (
     <main className="min-h-screen bg-paper text-ink">
-      <div className="border-b border-line bg-paper/95">
-        <div className="mx-auto flex max-w-[73.75rem] items-center justify-between gap-4 px-4 py-3 sm:px-8 lg:px-12">
-          <Link href="/" className="flex items-baseline gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400">
-            <span className="font-display text-[1.3rem] tracking-[-0.02em]">DG Afrique</span>
-            <span className="hidden font-mono text-[0.62rem] uppercase tracking-[0.12em] text-slate-muted sm:inline">Mon espace</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Link href="/opportunites" className="hidden rounded-full px-3 py-2 text-meta font-medium text-slate-ink hover:bg-paper-warm sm:inline-flex">Opportunités</Link>
-            <Link href="/espace/zumra" className="hidden rounded-full px-3 py-2 text-meta font-medium text-slate-ink hover:bg-paper-warm sm:inline-flex">ZUMRA</Link>
-            <button
-              type="button"
-              onClick={logout}
-              disabled={loggingOut}
-              className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-paper-card px-3.5 py-2 text-meta font-medium transition-colors hover:border-ink disabled:opacity-50"
-            >
-              {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
-              <span className="hidden sm:inline">Déconnexion</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       <MemberHome displayName={displayName} zumra={zumra} groups={groups} />
+      <div className="mx-auto flex max-w-[73.75rem] justify-end px-4 pb-8 sm:px-8 lg:px-12">
+        <button
+          type="button"
+          onClick={logout}
+          disabled={loggingOut}
+          className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-paper-card px-4 py-2.5 text-meta font-medium text-slate-ink transition-colors hover:border-ink disabled:opacity-50"
+        >
+          {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+          Se déconnecter
+        </button>
+      </div>
     </main>
   );
 }
