@@ -3,7 +3,7 @@ import { ZumraGroupDashboard } from '@/components/zumra/zumra-group-dashboard';
 
 export const metadata: Metadata = {
   title: 'Ma Zumra — Mon espace',
-  description: 'Gestion de votre groupe de travail ZUMRA.',
+  description: 'Suivez les membres, responsabilités et la progression de votre Zumra.',
   robots: { index: false, follow: false },
 };
 
