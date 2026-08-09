@@ -60,7 +60,13 @@ export async function POST(request: Request) {
       net_amount: payment.netAmount ?? null,
       provider_payload: payment.raw,
     });
-    if (error) return NextResponse.json({ ok: false, error: 'PAIEMENT_NON_ENREGISTRE' }, { status: 503 });
+    if (error) {
+      console.error('[zumra-payment] local insert failed', {
+        code: error.code ?? null,
+        message: error.message ?? null,
+      });
+      return NextResponse.json({ ok: false, error: 'PAIEMENT_NON_ENREGISTRE' }, { status: 503 });
+    }
 
     return NextResponse.json({
       ok: true,
@@ -72,6 +78,7 @@ export async function POST(request: Request) {
     }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     const code = error instanceof Error ? error.message : 'GENIUSPAY_INDISPONIBLE';
+    console.error('[zumra-payment] GeniusPay create failed', { code });
     const configurationError = code.includes('MANQUANT') || code.includes('REQUIS') || code.includes('CLES_SANDBOX');
     return NextResponse.json({ ok: false, error: configurationError ? 'GENIUSPAY_NON_CONFIGURE' : 'GENIUSPAY_INDISPONIBLE' }, { status: 503 });
   }
