@@ -51,6 +51,10 @@ export function getFederationSatellite(value: string): FederationSatellite | nul
     : null;
 }
 
+export function listFederationSatellites(): FederationSatellite[] {
+  return Object.values(satellites);
+}
+
 export function isFederationSatelliteKey(value?: string | null): value is FederationSatelliteKey {
   return Boolean(value && Object.prototype.hasOwnProperty.call(satellites, value));
 }
