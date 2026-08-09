@@ -192,7 +192,7 @@ function ServicesPanel() {
     <section className="mt-3.5 rounded-card border border-line bg-paper-card p-[1.375rem]">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Eyebrow tone="muted">Mes services GAMAD</Eyebrow>
+          <Eyebrow tone="muted">Mes services</Eyebrow>
           <h2 className="mt-2 font-display text-[1.45rem]">Vos outils, accessibles avec la même identité</h2>
           <p className="mt-1 max-w-2xl text-body text-slate-ink">DG Afrique vous conduit vers les produits disponibles sans vous demander de créer un nouveau mot de passe.</p>
         </div>
@@ -215,7 +215,7 @@ function ServicesPanel() {
                   <span className="rounded-full bg-[#EAF6F0] px-2 py-0.5 text-[0.68rem] font-medium text-[#2F7D5A]">Disponible</span>
                 </div>
                 <p className="mt-1 text-body text-slate-ink">Accédez à votre espace de données GamaDrive avec votre identité DG Afrique.</p>
-                <p className="mt-3 text-meta text-slate-muted">Connexion fédérée · Produit GAMAD</p>
+                <p className="mt-3 text-meta text-slate-muted">Connexion fédérée · Service rattaché au portail</p>
               </div>
             </div>
             <ArrowUpRight aria-hidden="true" className="mt-1 h-4 w-4 shrink-0 text-slate-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-ink" />
