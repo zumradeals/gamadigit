@@ -1,5 +1,12 @@
-import crypto from 'node:crypto';
 import { coreFetch, coreProductRequest, getGamadCoreConfig } from '@/lib/gamad-core/server';
+import {
+  parsePortalSession,
+  serializePortalSession,
+  type PortalAccountSession,
+} from '@/lib/gamad-core/portal-session';
+
+export { parsePortalSession, serializePortalSession };
+export type { PortalAccountSession };
 
 const COOKIE_NAME = 'dgafrique_gamad_session';
 
@@ -24,13 +31,6 @@ type CoreSession = {
   message?: string;
 };
 
-export type PortalAccountSession = {
-  token: string;
-  entity: string;
-  assurance: string | null;
-  expiresAt: string;
-};
-
 export type AccountCreationResult = {
   identity: string;
   identifierReference: string;
@@ -38,40 +38,6 @@ export type AccountCreationResult = {
   expiresAt: string;
   channel: HumanIdentifierType;
 };
-
-function signingKey() {
-  const secret = process.env.GAMAD_CORE_CONNECT_SECRET;
-  if (!secret) throw new Error('GAMAD_CORE_CONNECT_SECRET manquant');
-  return crypto.createHmac('sha256', secret).update('dgafrique-portal-account-cookie-v1').digest();
-}
-
-function signature(payload: string) {
-  return crypto.createHmac('sha256', signingKey()).update(payload).digest('base64url');
-}
-
-export function serializePortalSession(session: PortalAccountSession) {
-  const payload = Buffer.from(JSON.stringify(session), 'utf8').toString('base64url');
-  return `${payload}.${signature(payload)}`;
-}
-
-export function parsePortalSession(value?: string | null): PortalAccountSession | null {
-  if (!value) return null;
-  const [payload, suppliedSignature] = value.split('.');
-  if (!payload || !suppliedSignature) return null;
-  const expected = signature(payload);
-  const left = Buffer.from(suppliedSignature);
-  const right = Buffer.from(expected);
-  if (left.length !== right.length || !crypto.timingSafeEqual(left, right)) return null;
-
-  try {
-    const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as PortalAccountSession;
-    if (!parsed.token || !parsed.entity || !parsed.expiresAt) return null;
-    if (Date.parse(parsed.expiresAt) <= Date.now()) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
 
 export async function openUserSession(identifier: string, type: HumanIdentifierType, secret: string): Promise<PortalAccountSession> {
   const config = getGamadCoreConfig();
