@@ -96,7 +96,21 @@ function normalizePayment(raw: Record<string, unknown>): GeniusPayment {
   const reference = typeof raw.reference === 'string' ? raw.reference : '';
   const status = typeof raw.status === 'string' ? raw.status : '';
   const amount = typeof raw.amount === 'number' ? raw.amount : Number(raw.amount);
-  if (!reference || !['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded'].includes(status) || !Number.isFinite(amount)) {
+  const validStatus = ['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded'].includes(status);
+
+  if (!reference || !validStatus || !Number.isFinite(amount)) {
+    console.error('[geniuspay] Invalid payment response shape', {
+      dataKeys: Object.keys(raw).sort(),
+      referenceType: typeof raw.reference,
+      referencePresent: typeof raw.reference === 'string' && raw.reference.length > 0,
+      statusType: typeof raw.status,
+      status: typeof raw.status === 'string' ? raw.status : null,
+      amountType: typeof raw.amount,
+      amountFinite: Number.isFinite(amount),
+      checkoutUrlPresent: typeof raw.checkout_url === 'string',
+      paymentUrlPresent: typeof raw.payment_url === 'string',
+      environment: typeof raw.environment === 'string' ? raw.environment : null,
+    });
     throw new Error('GENIUSPAY_REPONSE_INVALIDE');
   }
 
