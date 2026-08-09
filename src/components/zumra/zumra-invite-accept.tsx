@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, Network, UsersRound } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Loader2, MapPin, Network, ShieldCheck, UsersRound } from 'lucide-react';
+import { Eyebrow, SuperButton, SuperButtonLink, SuperCard } from '@/components/superapp/ui';
 
 type InvitePayload = {
   ok?: boolean;
@@ -32,7 +33,7 @@ export function ZumraInviteAccept({ token }: { token: string }) {
   const load = useCallback(async () => {
     const response = await fetch(`/api/zumra/invites/${encodeURIComponent(token)}`, { cache: 'no-store' }).catch(() => null);
     if (!response) {
-      setError('Impossible de verifier cette invitation.');
+      setError('Impossible de vérifier cette invitation.');
       setLoading(false);
       return;
     }
@@ -40,12 +41,14 @@ export function ZumraInviteAccept({ token }: { token: string }) {
       window.location.href = `/connexion?next=${encodeURIComponent(`/espace/zumra/rejoindre/${token}`)}`;
       return;
     }
+
     const body = await response.json().catch(() => ({})) as InvitePayload;
     if (!response.ok || !body.ok || !body.group) {
       setError(messageFor(body.error));
       setLoading(false);
       return;
     }
+
     setData(body);
     setLoading(false);
   }, [token]);
@@ -57,57 +60,128 @@ export function ZumraInviteAccept({ token }: { token: string }) {
     setError('');
     const response = await fetch(`/api/zumra/invites/${encodeURIComponent(token)}`, { method: 'POST' }).catch(() => null);
     const body = response ? await response.json().catch(() => ({})) as { ok?: boolean; groupId?: string; error?: string } : {};
+
     if (!response || !response.ok || !body.ok || !body.groupId) {
       setError(messageFor(body.error));
       setJoining(false);
       return;
     }
+
     router.push(`/espace/zumra/reseau/${body.groupId}`);
   }
 
   if (loading) {
-    return <main className="flex min-h-screen items-center justify-center bg-slate-50"><div className="flex items-center gap-3 font-black text-dgNavy"><Loader2 className="h-5 w-5 animate-spin" /> Verification de l’invitation…</div></main>;
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-paper px-4 text-ink">
+        <div className="flex items-center gap-3 text-body font-semibold">
+          <Loader2 className="h-5 w-5 animate-spin text-gold" /> Vérification de l’invitation…
+        </div>
+      </main>
+    );
   }
 
   if (!data?.group) {
-    return <main className="min-h-screen bg-slate-50 px-4 py-12"><div className="mx-auto max-w-3xl"><Link href="/espace" className="inline-flex items-center gap-2 text-sm font-black text-dgNavy"><ArrowLeft className="h-4 w-4" /> Mon espace</Link><div className="mt-7 rounded-[2rem] border border-red-200 bg-red-50 p-8"><h1 className="text-2xl font-black text-dgNavy">Invitation indisponible</h1><p className="mt-3 leading-7 text-red-800">{error || 'Ce lien n’est plus utilisable.'}</p></div></div></main>;
+    return (
+      <main className="min-h-screen bg-paper px-4 py-12 text-ink sm:px-8">
+        <div className="mx-auto max-w-3xl">
+          <SuperButtonLink as={Link} href="/espace" variant="ghost" size="sm" className="-ml-4 text-slate-ink">
+            <ArrowLeft className="h-4 w-4" /> Mon espace
+          </SuperButtonLink>
+          <SuperCard className="mt-7 border-red-200 bg-red-50">
+            <Eyebrow tone="muted">Invitation ZUMRA</Eyebrow>
+            <h1 className="mt-3 font-display text-[2rem] font-normal">Invitation indisponible</h1>
+            <p className="mt-3 text-body leading-7 text-red-800">{error || 'Ce lien n’est plus utilisable.'}</p>
+          </SuperCard>
+        </div>
+      </main>
+    );
   }
 
   const group = data.group;
+  const location = [group.city, group.country].filter(Boolean).join(', ');
+
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        <Link href="/espace" className="inline-flex items-center gap-2 text-sm font-black text-dgNavy"><ArrowLeft className="h-4 w-4" /> Mon espace</Link>
-        <section className="mt-7 overflow-hidden rounded-[2rem] bg-dgNavy p-8 text-white sm:p-10">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-dgGold"><Network className="h-6 w-6" /></div>
-          <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-dgGold">Invitation ZUMRA</p>
-          <h1 className="mt-3 text-4xl font-black tracking-[-0.04em]">{group.name}</h1>
-          <p className="mt-3 font-bold text-slate-300">{group.sector} · {modeLabel(group.participationMode)}</p>
-          <p className="mt-6 text-lg leading-8 text-slate-300">{group.objective}</p>
+    <main className="min-h-screen bg-paper px-4 pb-20 pt-6 text-ink sm:px-8 lg:px-12 lg:pt-10">
+      <div className="mx-auto max-w-4xl">
+        <SuperButtonLink as={Link} href="/espace" variant="ghost" size="sm" className="-ml-4 text-slate-ink">
+          <ArrowLeft className="h-4 w-4" /> Mon espace
+        </SuperButtonLink>
+
+        <section className="mt-6 overflow-hidden rounded-card border border-ink-500/40 bg-ink text-paper">
+          <div className="p-6 sm:p-8 lg:p-10">
+            <span className="flex h-11 w-11 items-center justify-center rounded-tile border border-ink-500 bg-ink-700 text-gold-400">
+              <Network className="h-5 w-5" />
+            </span>
+            <Eyebrow className="mt-6">Invitation ZUMRA</Eyebrow>
+            <h1 className="mt-3 font-display text-[2.35rem] font-normal leading-[1.05] tracking-[-0.025em] sm:text-[3rem]">{group.name}</h1>
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-body text-ink-200">
+              <span>{group.sector}</span>
+              <span aria-hidden="true">·</span>
+              <span>{modeLabel(group.participationMode)}</span>
+              {location && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {location}</span>
+                </>
+              )}
+            </div>
+            <p className="mt-6 max-w-3xl text-[1.05rem] leading-8 text-ink-200">{group.objective}</p>
+          </div>
         </section>
 
-        {error && <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm font-bold text-red-800">{error}</div>}
+        {error && <div className="mt-5 rounded-tile border border-red-200 bg-red-50 p-4 text-body font-medium text-red-800">{error}</div>}
 
-        <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-7 sm:p-8">
-          <div className="flex items-start gap-4"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-dgIvory text-dgNavy"><UsersRound className="h-5 w-5" /></div><div><h2 className="text-2xl font-black text-dgNavy">Rejoindre cette Zumra</h2><p className="mt-2 leading-7 text-slate-600">En acceptant, vous devenez membre actif de ce groupe de travail. Une fonction fondatrice pourra ensuite vous etre attribuee par le responsable principal.</p></div></div>
-          {data.canAccept ? <button onClick={accept} disabled={joining} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-dgGreen px-5 py-4 text-sm font-black text-white disabled:opacity-60">{joining && <Loader2 className="h-4 w-4 animate-spin" />} Accepter et rejoindre la Zumra</button> : <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm font-bold leading-6 text-amber-900">Votre adhesion au Programme ZUMRA doit etre active avant de rejoindre un groupe. <Link href="/espace/zumra" className="underline">Voir mon dossier d’adhesion</Link>.</div>}
-        </section>
+        <SuperCard className="mt-5 p-0 sm:p-0">
+          <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[auto_1fr]">
+            <span className="flex h-11 w-11 items-center justify-center rounded-tile bg-[#EAF6F0] text-[#2F7D5A]">
+              <UsersRound className="h-5 w-5" />
+            </span>
+            <div>
+              <Eyebrow tone="muted">Rejoindre ce groupe</Eyebrow>
+              <h2 className="mt-2 font-display text-[1.55rem] font-normal">Vous voyez le groupe avant de confirmer.</h2>
+              <p className="mt-2 text-body leading-7 text-slate-ink">
+                En acceptant, vous devenez membre actif de cette Zumra. Une responsabilité fondatrice pourra ensuite vous être attribuée par le responsable principal.
+              </p>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <MiniFact icon={<CheckCircle2 className="h-4 w-4" />} text="Votre identité DG Afrique reste la même" />
+                <MiniFact icon={<ShieldCheck className="h-4 w-4" />} text="Aucun mot de passe supplémentaire n’est créé" />
+              </div>
+
+              {data.canAccept ? (
+                <SuperButton type="button" onClick={accept} disabled={joining} size="lg" className="mt-6 w-full sm:w-auto">
+                  {joining && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Accepter et rejoindre la Zumra
+                </SuperButton>
+              ) : (
+                <div className="mt-6 rounded-tile border border-gold-line bg-[#FBF7EE] p-4 text-body leading-6 text-[#6E5224]">
+                  Votre adhésion ZUMRA doit être active avant de rejoindre ce groupe.{' '}
+                  <Link href="/espace/zumra" className="font-semibold underline underline-offset-2">Voir mon parcours d’adhésion</Link>.
+                </div>
+              )}
+            </div>
+          </div>
+        </SuperCard>
       </div>
     </main>
   );
 }
 
+function MiniFact({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return <div className="flex items-start gap-2.5 rounded-tile border border-line bg-paper p-3 text-meta leading-5 text-slate-ink"><span className="mt-0.5 text-[#2F7D5A]">{icon}</span><span>{text}</span></div>;
+}
+
 function modeLabel(mode: string) {
-  if (mode === 'digital') return '100 % numerique';
-  if (mode === 'physical') return 'Physique';
+  if (mode === 'digital') return '100 % numérique';
+  if (mode === 'physical') return 'Présentiel';
   return 'Hybride';
 }
 
 function messageFor(code?: string) {
   const messages: Record<string, string> = {
-    INVITATION_INVALIDE: 'Cette invitation a deja ete utilisee, revoquee ou n’existe pas.',
-    INVITATION_EXPIREE: 'Cette invitation a expire. Demandez un nouveau lien au responsable principal.',
-    ADHESION_NON_ACTIVE: 'Votre adhesion ZUMRA doit etre active avant de rejoindre une Zumra.',
+    INVITATION_INVALIDE: 'Cette invitation a déjà été utilisée, révoquée ou n’existe pas.',
+    INVITATION_EXPIREE: 'Cette invitation a expiré. Demandez un nouveau lien au responsable principal.',
+    ADHESION_NON_ACTIVE: 'Votre adhésion ZUMRA doit être active avant de rejoindre une Zumra.',
   };
-  return messages[code || ''] || 'Cette invitation ne peut pas etre utilisee pour le moment.';
+  return messages[code || ''] || 'Cette invitation ne peut pas être utilisée pour le moment.';
 }
