@@ -1,22 +1,48 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { FormEvent, useEffect, useState } from 'react';
-import { ArrowLeft, CheckCircle2, Loader2, Network, Sparkles } from 'lucide-react';
+import {
+  ArrowLeft,
+  Check,
+  CheckCircle2,
+  Compass,
+  GraduationCap,
+  Loader2,
+  MapPin,
+  Network,
+  Phone,
+  Sparkles,
+  UserRound,
+  Wrench,
+} from 'lucide-react';
 import type { ZumraMePayload } from '@/lib/zumra/types';
 import { ZumraMembershipPayment } from '@/components/zumra/zumra-membership-payment';
+import { Eyebrow, SuperButton, SuperButtonLink, SuperCard } from '@/components/superapp/ui';
 
 const sectors = [
-  'Agriculture', 'Elevage', 'Commerce', 'Artisanat', 'Batiment', 'Numerique',
-  'Education / Formation', 'Transport / Logistique', 'Environnement',
-  'Sante et bien-etre', 'Culture', 'Industrie / Production', 'Services', 'Entrepreneuriat',
-];
+  ['Agriculture', 'Agriculture'],
+  ['Elevage', 'Élevage'],
+  ['Commerce', 'Commerce'],
+  ['Artisanat', 'Artisanat'],
+  ['Batiment', 'Bâtiment'],
+  ['Numerique', 'Numérique'],
+  ['Education / Formation', 'Éducation / Formation'],
+  ['Transport / Logistique', 'Transport / Logistique'],
+  ['Environnement', 'Environnement'],
+  ['Sante et bien-etre', 'Santé et bien-être'],
+  ['Culture', 'Culture'],
+  ['Industrie / Production', 'Industrie / Production'],
+  ['Services', 'Services'],
+  ['Entrepreneuriat', 'Entrepreneuriat'],
+] as const;
 
 const intentionOptions = [
-  ['join', 'Rejoindre une Zumra'],
-  ['create', 'Creer une Zumra'],
-  ['recommended', 'Etre recommande a une Zumra'],
-  ['learn', 'Commencer par apprendre / me former'],
+  ['join', 'Rejoindre une Zumra', 'Participer à un groupe existant qui correspond à vos intérêts.'],
+  ['create', 'Créer une Zumra', 'Rassembler des personnes autour d’un objectif ou d’une activité.'],
+  ['recommended', 'Être recommandé à une Zumra', 'Laisser DG Afrique vous orienter lorsque des correspondances réelles existent.'],
+  ['learn', 'Commencer par apprendre', 'Développer d’abord des compétences avant de rejoindre une action collective.'],
 ] as const;
 
 function splitList(value: string) {
@@ -70,7 +96,7 @@ export function ZumraEnrollmentForm() {
         }
         return body;
       })
-      .catch(() => setError('Le Programme ZUMRA est momentanement indisponible.'))
+      .catch(() => setError('Le Programme ZUMRA est momentanément indisponible.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -88,7 +114,9 @@ export function ZumraEnrollmentForm() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        country, city, phone,
+        country,
+        city,
+        phone,
         skills: splitList(skills),
         noSkillsYet,
         learningGoals: splitList(learningGoals),
@@ -103,7 +131,7 @@ export function ZumraEnrollmentForm() {
     }).catch(() => null);
 
     if (!response) {
-      setError('Impossible de joindre le service. Reessayez.');
+      setError('Impossible de joindre le service. Réessayez.');
       setSaving(false);
       return;
     }
@@ -111,82 +139,371 @@ export function ZumraEnrollmentForm() {
     const body = await response.json().catch(() => ({})) as { ok?: boolean; error?: string; paymentRequired?: boolean };
     if (!response.ok || !body.ok) {
       setError(body.error === 'FORMULAIRE_INVALIDE'
-        ? 'Verifiez les champs obligatoires, les secteurs, vos intentions et la Charte.'
-        : 'Votre adhesion n’a pas pu etre enregistree. Reessayez.');
+        ? 'Vérifiez les champs obligatoires, les secteurs, vos intentions et la Charte.'
+        : 'Votre adhésion n’a pas pu être enregistrée. Réessayez.');
       setSaving(false);
       return;
     }
 
     setSuccess(true);
     setSaving(false);
-    const refreshed = await fetch('/api/zumra/me', { cache: 'no-store' }).then((r) => r.json()).catch(() => null) as ZumraMePayload | null;
+    const refreshed = await fetch('/api/zumra/me', { cache: 'no-store' })
+      .then((r) => r.json())
+      .catch(() => null) as ZumraMePayload | null;
     if (refreshed) setExisting(refreshed);
   }
 
   if (loading) {
-    return <main className="flex min-h-screen items-center justify-center bg-slate-50"><div className="flex items-center gap-3 font-black text-dgNavy"><Loader2 className="h-5 w-5 animate-spin" /> Chargement du Programme ZUMRA…</div></main>;
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-paper px-4 text-ink">
+        <div className="flex items-center gap-3 text-body font-semibold">
+          <Loader2 className="h-5 w-5 animate-spin text-gold" /> Chargement de votre parcours ZUMRA…
+        </div>
+      </main>
+    );
   }
 
-  return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
-        <Link href="/espace" className="inline-flex items-center gap-2 text-sm font-black text-dgNavy"><ArrowLeft className="h-4 w-4" /> Retour a Mon espace</Link>
+  const status = existing?.membership?.status;
+  const active = status === 'active';
+  const pendingPayment = status === 'pending_payment';
 
-        <section className="mt-7 overflow-hidden rounded-[2rem] bg-dgNavy p-7 text-white shadow-xl sm:p-10">
-          <div className="flex items-start gap-4"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-dgGold"><Network className="h-6 w-6" /></div><div><p className="text-xs font-black uppercase tracking-[0.18em] text-dgGold">Programme ZUMRA</p><h1 className="mt-2 text-3xl font-black sm:text-4xl">Apprendre · Transmettre · Agir</h1><p className="mt-3 max-w-2xl leading-7 text-slate-300">Aucun diplome n’est exige. Dites-nous ce que vous savez faire, ce que vous souhaitez apprendre et la facon dont vous aimeriez participer.</p></div></div>
+  return (
+    <main className="min-h-screen bg-paper px-4 pb-20 pt-6 text-ink sm:px-8 lg:px-12 lg:pt-10">
+      <div className="mx-auto max-w-[73.75rem]">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <SuperButtonLink as={Link} href="/espace" variant="ghost" size="sm" className="-ml-4 text-slate-ink">
+            <ArrowLeft className="h-4 w-4" /> Mon espace
+          </SuperButtonLink>
+          <span className="text-meta text-slate-muted">Programme ZUMRA</span>
+        </div>
+
+        <section className="overflow-hidden rounded-card border border-ink-500/40 bg-ink text-paper">
+          <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.3fr_0.7fr] lg:p-10">
+            <div>
+              <Eyebrow>Votre parcours collectif</Eyebrow>
+              <h1 className="mt-4 max-w-3xl font-display text-[2.25rem] font-normal leading-[1.05] tracking-[-0.025em] sm:text-[3rem]">
+                Apprendre. Transmettre. Agir ensemble.
+              </h1>
+              <p className="mt-4 max-w-2xl text-body leading-7 text-ink-200">
+                ZUMRA part de ce que vous savez déjà, de ce que vous voulez apprendre et de la manière dont vous souhaitez contribuer. Aucun diplôme n’est nécessaire pour commencer.
+              </p>
+            </div>
+
+            <div className="self-end rounded-tile border border-ink-500 bg-ink-700 p-5">
+              <p className="font-mono text-label uppercase tracking-[0.1em] text-gold-400">Votre situation</p>
+              <div className="mt-3 flex items-center gap-2">
+                <span className={`h-2 w-2 rounded-full ${active ? 'bg-[#4FBF93]' : pendingPayment ? 'bg-gold-400' : 'bg-ink-300'}`} />
+                <p className="font-semibold">
+                  {active ? 'Adhésion active' : pendingPayment ? 'Dossier enregistré' : existing?.enrolled ? 'Parcours en cours' : 'À démarrer'}
+                </p>
+              </div>
+              <p className="mt-2 text-meta leading-5 text-ink-200">
+                {active
+                  ? 'Votre profil reste modifiable à tout moment.'
+                  : pendingPayment
+                    ? 'Le paiement d’adhésion doit encore être confirmé.'
+                    : 'Complétez votre profil pour préparer la suite.'}
+              </p>
+            </div>
+          </div>
         </section>
 
-        {existing?.coreIdentityReference && <div className="mt-5 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm"><span className="font-bold text-slate-500">Votre identite :</span> <span className="break-all font-black text-dgNavy">{existing.coreIdentityReference}</span></div>}
+        <JourneySteps active={active} pendingPayment={pendingPayment} enrolled={Boolean(existing?.enrolled)} />
 
-        {existing?.membership?.status === 'active' && <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-bold text-emerald-800">Votre adhesion ZUMRA est active. Vous pouvez utiliser ce formulaire pour mettre votre profil a jour.</div>}
-        {existing?.membership?.status === 'pending_payment' && <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm font-bold text-amber-900">Votre dossier est enregistre. Finalisez maintenant l’adhesion dans le sandbox GeniusPay pour activer votre Carte ZUMRA.</div>}
-        {success && <div className="mt-5 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm font-bold text-emerald-800"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /> Votre profil ZUMRA a bien ete enregistre.</div>}
-        {error && <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm font-bold text-red-800">{error}</div>}
+        {success && (
+          <div className="mt-5 flex items-start gap-3 rounded-tile border border-[#B9DFC9] bg-[#EAF6F0] p-4 text-body font-medium text-[#245E45]">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /> Votre profil ZUMRA a bien été enregistré.
+          </div>
+        )}
+        {error && (
+          <div className="mt-5 rounded-tile border border-red-200 bg-red-50 p-4 text-body font-medium text-red-800">{error}</div>
+        )}
 
-        <form onSubmit={submit} className="mt-6 space-y-6">
-          <Section title="1. Votre situation" subtitle="Votre nom et votre ID viennent deja de votre compte DG AFRIQUE.">
-            <div className="grid gap-4 sm:grid-cols-2"><Field label="Pays *" value={country} onChange={setCountry} /><Field label="Ville / Localite *" value={city} onChange={setCity} /><Field label="Telephone *" value={phone} onChange={setPhone} /></div>
-          </Section>
+        {pendingPayment && (
+          <div className="mt-6">
+            <ZumraMembershipPayment />
+          </div>
+        )}
 
-          <Section title="2. Ce que vous savez et voulez apprendre" subtitle="L’experience compte autant que les diplomes.">
-            <TextArea label="Que savez-vous faire ?" value={skills} onChange={setSkills} placeholder="Plomberie, couture, agriculture, vente, informatique…" disabled={noSkillsYet} />
-            <label className="mt-3 flex items-start gap-3 text-sm font-bold text-slate-700"><input type="checkbox" checked={noSkillsYet} onChange={(e) => setNoSkillsYet(e.target.checked)} className="mt-1" /> Je n’ai pas encore de competence particuliere, je souhaite apprendre a partir de zero.</label>
-            <div className="mt-4"><TextArea label="Que souhaitez-vous apprendre ?" value={learningGoals} onChange={setLearningGoals} placeholder="Mecanique, gestion, developpement web…" /></div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2"><Field label="Activite actuelle (facultatif)" value={currentActivity} onChange={setCurrentActivity} /><Field label="Formation / diplome (facultatif)" value={education} onChange={setEducation} /></div>
-          </Section>
+        <form onSubmit={submit} className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+          <div className="space-y-4">
+            <FormSection
+              icon={<MapPin className="h-5 w-5" />}
+              eyebrow="01 · Votre situation"
+              title="Où êtes-vous et comment vous joindre ?"
+              description="Votre nom provient déjà de votre compte DG Afrique. Nous ne vous demandons ici que les informations utiles au parcours ZUMRA."
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Pays" value={country} onChange={setCountry} required />
+                <Field label="Ville / Localité" value={city} onChange={setCity} required />
+                <div className="sm:col-span-2">
+                  <Field label="Téléphone" value={phone} onChange={setPhone} required icon={<Phone className="h-4 w-4" />} />
+                </div>
+              </div>
+            </FormSection>
 
-          <Section title="3. Vos domaines d’interet" subtitle="Choisissez un ou plusieurs secteurs.">
-            <div className="flex flex-wrap gap-2">{sectors.map((sector) => <button key={sector} type="button" onClick={() => toggle(selectedSectors, sector, setSelectedSectors)} className={`rounded-full border px-4 py-2 text-sm font-bold ${selectedSectors.includes(sector) ? 'border-dgGreen bg-dgGreen text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'}`}>{sector}</button>)}</div>
-          </Section>
+            <FormSection
+              icon={<Wrench className="h-5 w-5" />}
+              eyebrow="02 · Capacités"
+              title="Ce que vous savez faire"
+              description="Une compétence peut venir du travail, de la famille, de la pratique ou d’une formation. L’expérience compte."
+            >
+              <TextArea
+                label="Mes compétences"
+                value={skills}
+                onChange={setSkills}
+                placeholder="Ex. plomberie, couture, agriculture, vente, informatique…"
+                disabled={noSkillsYet}
+              />
+              <CheckLine
+                checked={noSkillsYet}
+                onChange={setNoSkillsYet}
+                label="Je commence sans compétence particulière et je souhaite apprendre à partir de zéro."
+              />
+            </FormSection>
 
-          <Section title="4. Comment souhaitez-vous participer ?" subtitle="Une Zumra peut etre locale, numerique ou hybride.">
-            <div className="grid gap-3 sm:grid-cols-2">{intentionOptions.map(([value, label]) => <label key={value} className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-bold text-slate-700"><input type="checkbox" checked={intentions.includes(value)} onChange={() => toggle(intentions, value, setIntentions)} className="mt-1" /> {label}</label>)}</div>
-            <label className="mt-5 block text-sm font-black text-slate-700">Mode prefere<select value={participationMode} onChange={(e) => setParticipationMode(e.target.value as 'physical' | 'digital' | 'both')} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold outline-none focus:border-dgGreen"><option value="physical">Physique</option><option value="digital">100 % numerique</option><option value="both">Les deux</option></select></label>
-            <label className="mt-4 flex items-start gap-3 text-sm font-bold text-slate-700"><input type="checkbox" checked={openToRecommendations} onChange={(e) => setOpenToRecommendations(e.target.checked)} className="mt-1" /> J’accepte d’etre recommande a une Zumra correspondant a mon profil.</label>
-          </Section>
+            <FormSection
+              icon={<GraduationCap className="h-5 w-5" />}
+              eyebrow="03 · Apprentissage"
+              title="Ce que vous voulez apprendre"
+              description="Ces objectifs permettront progressivement de vous orienter vers des formations, des personnes et des actions pertinentes."
+            >
+              <TextArea
+                label="Mes objectifs d’apprentissage"
+                value={learningGoals}
+                onChange={setLearningGoals}
+                placeholder="Ex. mécanique, gestion, développement web…"
+              />
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <Field label="Activité actuelle" value={currentActivity} onChange={setCurrentActivity} optional />
+                <Field label="Formation / diplôme" value={education} onChange={setEducation} optional />
+              </div>
+            </FormSection>
 
-          <Section title="5. Votre engagement" subtitle="Le partage de connaissance est un principe central de ZUMRA.">
-            <div className="rounded-2xl bg-dgIvory p-5 text-sm leading-7 text-slate-700"><Sparkles className="mb-3 h-5 w-5 text-dgGold" /> Une Zumra apprend, transmet et travaille ensemble. Elle peut commencer sans competence particuliere et progresser par la formation, l’entraide et l’action.</div>
-            <label className="mt-4 flex items-start gap-3 text-sm font-bold text-slate-700"><input required type="checkbox" checked={charterAccepted} onChange={(e) => setCharterAccepted(e.target.checked)} className="mt-1" /> <span>J’ai lu et j’accepte la <Link href="/programme-zumra/charte" target="_blank" className="text-dgGreen underline">Charte des Zumra</Link>.</span></label>
-          </Section>
+            <FormSection
+              icon={<Compass className="h-5 w-5" />}
+              eyebrow="04 · Domaines"
+              title="Les secteurs qui vous intéressent"
+              description="Choisissez un ou plusieurs domaines. Vous pourrez les modifier plus tard."
+            >
+              <div className="flex flex-wrap gap-2">
+                {sectors.map(([value, label]) => {
+                  const selected = selectedSectors.includes(value);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => toggle(selectedSectors, value, setSelectedSectors)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${selected
+                        ? 'border-ink bg-ink text-paper'
+                        : 'border-line-strong bg-paper text-slate-ink hover:border-ink'}`}
+                    >
+                      {selected && <Check className="h-3.5 w-3.5" />} {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </FormSection>
 
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 sm:p-8"><p className="font-black text-dgNavy">Adhesion au Programme ZUMRA</p><p className="mt-2 text-sm leading-6 text-slate-600">Enregistrez votre dossier. Tant que l’adhesion n’est pas active, le paiement d’adhesion GeniusPay reste une etape separee et verifiee cote serveur.</p><button disabled={saving} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-dgGreen px-5 py-4 text-sm font-black text-white disabled:opacity-60 sm:w-auto">{saving && <Loader2 className="h-4 w-4 animate-spin" />}{existing?.enrolled ? 'Enregistrer mes modifications' : 'Enregistrer ma demande d’adhesion'}</button></div>
+            <FormSection
+              icon={<Network className="h-5 w-5" />}
+              eyebrow="05 · Intention"
+              title="Comment souhaitez-vous participer ?"
+              description="ZUMRA peut être un chemin d’apprentissage, un groupe à rejoindre ou une initiative à construire."
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                {intentionOptions.map(([value, label, description]) => {
+                  const selected = intentions.includes(value);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => toggle(intentions, value, setIntentions)}
+                      className={`rounded-tile border p-4 text-left transition-colors ${selected
+                        ? 'border-gold bg-[#FBF5E8]'
+                        : 'border-line bg-paper hover:border-line-strong'}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${selected ? 'border-gold bg-gold text-white' : 'border-line-strong'}`}>
+                          {selected && <Check className="h-3 w-3" />}
+                        </span>
+                        <span>
+                          <span className="block text-body font-semibold text-ink">{label}</span>
+                          <span className="mt-1 block text-meta leading-5 text-slate-muted">{description}</span>
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <label className="mt-5 block text-body font-semibold text-ink">
+                Mode de participation préféré
+                <select
+                  value={participationMode}
+                  onChange={(e) => setParticipationMode(e.target.value as 'physical' | 'digital' | 'both')}
+                  className="mt-2 w-full rounded-tile border border-line-strong bg-paper px-4 py-3 text-body font-medium outline-none transition focus:border-ink"
+                >
+                  <option value="physical">En présentiel</option>
+                  <option value="digital">100 % numérique</option>
+                  <option value="both">Les deux</option>
+                </select>
+              </label>
+
+              <CheckLine
+                checked={openToRecommendations}
+                onChange={setOpenToRecommendations}
+                label="J’accepte d’être recommandé à une Zumra lorsque mon profil correspond réellement à un besoin ou à un groupe."
+              />
+            </FormSection>
+
+            <FormSection
+              icon={<Sparkles className="h-5 w-5" />}
+              eyebrow="06 · Engagement"
+              title="Un cadre commun pour agir ensemble"
+              description="Le partage de connaissance, l’entraide et l’action collective sont au centre du programme."
+            >
+              <div className="rounded-tile border border-gold-line bg-[#FBF7EE] p-5 text-body leading-7 text-slate-ink">
+                Une Zumra peut commencer avec peu de moyens et progresser par la formation, la transmission, l’organisation et l’action. Votre profil sert à mieux comprendre ce que vous pouvez apporter et ce dont vous avez besoin.
+              </div>
+              <label className="mt-5 flex cursor-pointer items-start gap-3 text-body text-slate-ink">
+                <input
+                  required
+                  type="checkbox"
+                  checked={charterAccepted}
+                  onChange={(e) => setCharterAccepted(e.target.checked)}
+                  className="mt-1 h-4 w-4"
+                />
+                <span>
+                  J’ai lu et j’accepte la{' '}
+                  <Link href="/programme-zumra/charte" target="_blank" className="font-semibold text-gold underline underline-offset-2">
+                    Charte des Zumra
+                  </Link>.
+                </span>
+              </label>
+            </FormSection>
+          </div>
+
+          <aside className="space-y-4 lg:sticky lg:top-28">
+            <SuperCard>
+              <Eyebrow tone="muted">Votre dossier</Eyebrow>
+              <h2 className="mt-3 font-display text-[1.45rem] font-normal">Un seul profil, évolutif</h2>
+              <p className="mt-2 text-body leading-6 text-slate-ink">
+                Vous pourrez revenir modifier vos compétences, vos objectifs et vos secteurs. L’enregistrement du profil ne vaut pas encore activation de l’adhésion.
+              </p>
+
+              <div className="mt-5 space-y-3 text-meta text-slate-muted">
+                <MiniFact icon={<UserRound className="h-4 w-4" />} text="Identité déjà reliée à votre compte DG Afrique" />
+                <MiniFact icon={<Network className="h-4 w-4" />} text="Réseau accessible après activation de l’adhésion" />
+                <MiniFact icon={<Sparkles className="h-4 w-4" />} text="Recommandations uniquement à partir de données réelles" />
+              </div>
+
+              <SuperButton type="submit" size="lg" disabled={saving} className="mt-6 w-full">
+                {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                {existing?.enrolled ? 'Enregistrer mes modifications' : 'Enregistrer mon profil'}
+              </SuperButton>
+            </SuperCard>
+
+            {active && (
+              <SuperCard tone="dark">
+                <Eyebrow>Adhésion active</Eyebrow>
+                <p className="mt-3 text-body leading-6 text-ink-200">Votre prochaine étape se trouve désormais dans le réseau ZUMRA.</p>
+                <SuperButtonLink as={Link} href="/espace/zumra/reseau" variant="onDark" className="mt-5 w-full">
+                  Ouvrir le réseau
+                </SuperButtonLink>
+              </SuperCard>
+            )}
+          </aside>
         </form>
-
-        {existing?.membership?.status === 'pending_payment' && <div className="mt-6"><ZumraMembershipPayment /></div>}
       </div>
     </main>
   );
 }
 
-function Section({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
-  return <section className="rounded-[2rem] border border-slate-200 bg-white p-6 sm:p-8"><h2 className="text-xl font-black text-dgNavy">{title}</h2><p className="mt-1 text-sm text-slate-500">{subtitle}</p><div className="mt-6">{children}</div></section>;
+function JourneySteps({ active, pendingPayment, enrolled }: { active: boolean; pendingPayment: boolean; enrolled: boolean }) {
+  const steps = [
+    { label: 'Profil', detail: enrolled ? 'Enregistré' : 'À compléter', done: enrolled, current: !enrolled },
+    { label: 'Adhésion', detail: active ? 'Active' : pendingPayment ? 'Paiement à finaliser' : 'Après le profil', done: active, current: pendingPayment },
+    { label: 'Réseau', detail: active ? 'Accessible' : 'Après activation', done: false, current: active },
+  ];
+
+  return (
+    <section className="mt-4 grid gap-2 sm:grid-cols-3">
+      {steps.map((step, index) => (
+        <div key={step.label} className={`rounded-tile border px-4 py-3 ${step.current ? 'border-gold bg-[#FBF7EE]' : 'border-line bg-paper-card'}`}>
+          <div className="flex items-center gap-3">
+            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${step.done ? 'bg-[#2F7D5A] text-white' : step.current ? 'bg-gold text-white' : 'bg-paper text-slate-muted'}`}>
+              {step.done ? <Check className="h-3.5 w-3.5" /> : index + 1}
+            </span>
+            <div>
+              <p className="text-body font-semibold text-ink">{step.label}</p>
+              <p className="text-meta text-slate-muted">{step.detail}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </section>
+  );
 }
 
-function Field({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return <label className="block text-sm font-black text-slate-700">{label}<input required={label.includes('*')} value={value} onChange={(e) => onChange(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 font-medium outline-none focus:border-dgGreen" /></label>;
+function FormSection({ icon, eyebrow, title, description, children }: { icon: ReactNode; eyebrow: string; title: string; description: string; children: ReactNode }) {
+  return (
+    <SuperCard className="p-0 sm:p-0">
+      <div className="border-b border-line p-5 sm:p-6">
+        <div className="flex items-start gap-4">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-tile bg-paper text-gold">{icon}</span>
+          <div>
+            <Eyebrow tone="muted">{eyebrow}</Eyebrow>
+            <h2 className="mt-2 font-display text-[1.55rem] font-normal leading-tight">{title}</h2>
+            <p className="mt-2 max-w-2xl text-body leading-6 text-slate-ink">{description}</p>
+          </div>
+        </div>
+      </div>
+      <div className="p-5 sm:p-6">{children}</div>
+    </SuperCard>
+  );
+}
+
+function Field({ label, value, onChange, required = false, optional = false, icon }: { label: string; value: string; onChange: (value: string) => void; required?: boolean; optional?: boolean; icon?: ReactNode }) {
+  return (
+    <label className="block text-body font-semibold text-ink">
+      <span className="flex items-center gap-2">{icon}{label}{optional && <span className="text-meta font-normal text-slate-muted">facultatif</span>}</span>
+      <input
+        required={required}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-2 w-full rounded-tile border border-line-strong bg-paper px-4 py-3 text-body font-medium outline-none transition placeholder:text-slate-muted focus:border-ink"
+      />
+    </label>
+  );
 }
 
 function TextArea({ label, value, onChange, placeholder, disabled = false }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string; disabled?: boolean }) {
-  return <label className="block text-sm font-black text-slate-700">{label}<textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} disabled={disabled} rows={3} className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 font-medium outline-none focus:border-dgGreen disabled:bg-slate-100 disabled:text-slate-400" /></label>;
+  return (
+    <label className="block text-body font-semibold text-ink">
+      {label}
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        rows={4}
+        className="mt-2 w-full resize-y rounded-tile border border-line-strong bg-paper px-4 py-3 text-body font-medium outline-none transition placeholder:text-slate-muted focus:border-ink disabled:cursor-not-allowed disabled:bg-paper-card disabled:text-slate-muted"
+      />
+      <span className="mt-1.5 block text-meta font-normal text-slate-muted">Séparez plusieurs éléments par une virgule.</span>
+    </label>
+  );
+}
+
+function CheckLine({ checked, onChange, label }: { checked: boolean; onChange: (value: boolean) => void; label: string }) {
+  return (
+    <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-tile border border-line bg-paper p-4 text-body text-slate-ink">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-1 h-4 w-4" />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+function MiniFact({ icon, text }: { icon: ReactNode; text: string }) {
+  return <div className="flex items-start gap-2.5"><span className="mt-0.5 text-gold">{icon}</span><span>{text}</span></div>;
 }
