@@ -2,9 +2,13 @@
   "name": "gamadigit",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "test": "node --experimental-strip-types --test tests/*.test.mts",
+    "build": "npm test && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
