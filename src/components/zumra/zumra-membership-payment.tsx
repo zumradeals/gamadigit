@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { CreditCard, Loader2, ShieldCheck } from 'lucide-react';
+import { Eyebrow, SuperButton, SuperCard } from '@/components/superapp/ui';
 
 export function ZumraMembershipPayment() {
   const [loading, setLoading] = useState(false);
@@ -16,25 +17,59 @@ export function ZumraMembershipPayment() {
       setLoading(false);
       return;
     }
-    const body = await response.json().catch(() => ({})) as { ok?: boolean; checkoutUrl?: string; alreadyActive?: boolean; error?: string };
+
+    const body = await response.json().catch(() => ({})) as {
+      ok?: boolean;
+      checkoutUrl?: string;
+      alreadyActive?: boolean;
+      error?: string;
+    };
+
     if (body.alreadyActive) {
       window.location.href = '/espace';
       return;
     }
+
     if (!response.ok || !body.ok || !body.checkoutUrl) {
       setError(body.error === 'GENIUSPAY_NON_CONFIGURE'
-        ? 'Le sandbox GeniusPay n’est pas encore configure avec ses cles API.'
-        : 'Le paiement GeniusPay est momentanement indisponible. Reessayez.');
+        ? 'Le sandbox GeniusPay n’est pas encore configuré avec ses clés API.'
+        : 'Le paiement GeniusPay est momentanément indisponible. Réessayez.');
       setLoading(false);
       return;
     }
+
     window.location.assign(body.checkoutUrl);
   }
 
-  return <div className="rounded-[2rem] border border-dgGold/30 bg-dgIvory p-6 sm:p-8">
-    <div className="flex items-start gap-4"><div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-dgNavy"><CreditCard className="h-6 w-6" /></div><div><p className="text-xs font-black uppercase tracking-[0.18em] text-dgGold">Adhesion ZUMRA</p><h2 className="mt-2 text-xl font-black text-dgNavy">Finaliser mon adhesion</h2><p className="mt-2 text-sm leading-6 text-slate-600">Le test se fait exclusivement dans le sandbox GeniusPay. Vous serez redirige vers leur checkout pour choisir un moyen de paiement simule.</p></div></div>
-    <div className="mt-5 flex items-start gap-3 rounded-2xl bg-white/70 p-4 text-sm text-slate-600"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-dgGreen" /> La Carte ZUMRA et les fonctions du reseau ne sont activees qu’apres confirmation serveur d’un paiement marque completed.</div>
-    {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p>}
-    <button type="button" onClick={pay} disabled={loading} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-dgNavy px-5 py-4 text-sm font-black text-white disabled:opacity-60 sm:w-auto">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />} Tester le paiement d’adhesion</button>
-  </div>;
+  return (
+    <SuperCard className="overflow-hidden border-gold-line bg-[#FBF7EE] p-0 sm:p-0">
+      <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div className="flex items-start gap-4">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-tile bg-paper text-gold">
+            <CreditCard className="h-5 w-5" />
+          </span>
+          <div>
+            <Eyebrow>Étape 2 · Adhésion</Eyebrow>
+            <h2 className="mt-2 font-display text-[1.5rem] font-normal">Finaliser votre adhésion ZUMRA</h2>
+            <p className="mt-2 max-w-2xl text-body leading-6 text-slate-ink">
+              Votre dossier est enregistré. L’adhésion devient active seulement après confirmation serveur du paiement initial.
+            </p>
+          </div>
+        </div>
+
+        <SuperButton type="button" onClick={pay} disabled={loading} size="lg" className="w-full lg:w-auto">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+          Finaliser l’adhésion
+        </SuperButton>
+      </div>
+
+      <div className="border-t border-gold-line bg-paper/60 px-5 py-4 sm:px-6">
+        <div className="flex items-start gap-3 text-meta leading-5 text-slate-ink">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#2F7D5A]" />
+          <span>La Carte ZUMRA et l’accès au réseau ne sont activés qu’après confirmation serveur d’un paiement marqué completed. Le paiement d’adhésion reste distinct de la contribution mensuelle.</span>
+        </div>
+        {error && <p className="mt-3 rounded-tile border border-red-200 bg-red-50 px-4 py-3 text-body font-medium text-red-800">{error}</p>}
+      </div>
+    </SuperCard>
+  );
 }
