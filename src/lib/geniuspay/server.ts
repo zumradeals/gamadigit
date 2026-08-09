@@ -92,9 +92,23 @@ async function geniusFetch(path: string, init: RequestInit = {}) {
   }
 }
 
-function normalizePayment(raw: Record<string, unknown>): GeniusPayment {
+function normalizePayment(
+  raw: Record<string, unknown>,
+  options: { assumePendingOnSandboxCreation?: boolean } = {},
+): GeniusPayment {
   const reference = typeof raw.reference === 'string' ? raw.reference : '';
-  const status = typeof raw.status === 'string' ? raw.status : '';
+  const checkoutUrl = typeof raw.checkout_url === 'string' ? raw.checkout_url : undefined;
+  const paymentUrl = typeof raw.payment_url === 'string' ? raw.payment_url : undefined;
+  const sandboxCreationWithoutStatus =
+    options.assumePendingOnSandboxCreation === true
+    && raw.status == null
+    && raw.environment === 'sandbox'
+    && Boolean(checkoutUrl || paymentUrl);
+  const status = typeof raw.status === 'string'
+    ? raw.status
+    : sandboxCreationWithoutStatus
+      ? 'pending'
+      : '';
   const amount = typeof raw.amount === 'number' ? raw.amount : Number(raw.amount);
   const validStatus = ['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded'].includes(status);
 
@@ -107,15 +121,13 @@ function normalizePayment(raw: Record<string, unknown>): GeniusPayment {
       status: typeof raw.status === 'string' ? raw.status : null,
       amountType: typeof raw.amount,
       amountFinite: Number.isFinite(amount),
-      checkoutUrlPresent: typeof raw.checkout_url === 'string',
-      paymentUrlPresent: typeof raw.payment_url === 'string',
+      checkoutUrlPresent: Boolean(checkoutUrl),
+      paymentUrlPresent: Boolean(paymentUrl),
       environment: typeof raw.environment === 'string' ? raw.environment : null,
     });
     throw new Error('GENIUSPAY_REPONSE_INVALIDE');
   }
 
-  const checkoutUrl = typeof raw.checkout_url === 'string' ? raw.checkout_url : undefined;
-  const paymentUrl = typeof raw.payment_url === 'string' ? raw.payment_url : undefined;
   return {
     id: typeof raw.id === 'number' || typeof raw.id === 'string' ? raw.id : undefined,
     reference,
@@ -162,7 +174,7 @@ export async function createGeniusMembershipPayment(input: {
   if (!response.ok || !body.success || !body.data) {
     throw new Error(body.message || `GENIUSPAY_CREATION_${response.status}`);
   }
-  const payment = normalizePayment(body.data);
+  const payment = normalizePayment(body.data, { assumePendingOnSandboxCreation: true });
   if (payment.environment && payment.environment !== 'sandbox') throw new Error('GENIUSPAY_ENVIRONNEMENT_INATTENDU');
   if (!payment.checkoutUrl && !payment.paymentUrl) throw new Error('GENIUSPAY_CHECKOUT_MANQUANT');
   return payment;
