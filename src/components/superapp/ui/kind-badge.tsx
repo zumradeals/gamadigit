@@ -4,7 +4,7 @@ export const objectKinds = ['FORMATION', 'OPPORTUNITÉ', 'PROJET', 'ZUMRA', 'CAP
 export type ObjectKind = (typeof objectKinds)[number];
 
 const objectKindClasses: Record<ObjectKind, string> = {
-  FORMATION: 'bg-sky-100 text-sky-700',
+  FORMATION: 'bg-dgSky-100 text-dgSky-700',
   OPPORTUNITÉ: 'bg-gold-100 text-[#7A5518]',
   PROJET: 'bg-jade-100 text-jade-700',
   ZUMRA: 'bg-ink text-gold-100',
