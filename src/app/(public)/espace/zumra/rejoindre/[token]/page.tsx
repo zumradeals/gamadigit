@@ -3,7 +3,7 @@ import { ZumraInviteAccept } from '@/components/zumra/zumra-invite-accept';
 
 export const metadata: Metadata = {
   title: 'Invitation ZUMRA — Mon espace',
-  description: 'Acceptez une invitation a rejoindre une Zumra.',
+  description: 'Consultez une invitation et rejoignez une Zumra depuis votre espace DG Afrique.',
   robots: { index: false, follow: false },
 };
 
