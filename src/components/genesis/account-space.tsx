@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2, LogOut, RefreshCw } from 'lucide-react';
 import { MemberHome } from '@/components/superapp/home/member-home';
 import type { ZumraGroupSummary, ZumraMePayload } from '@/lib/zumra/types';
 
 type AccountPayload = {
   authenticated: boolean;
+  error?: string;
   account?: {
     entity: string;
     assurance: string | null;
@@ -30,6 +31,7 @@ export function AccountSpace() {
   const [zumra, setZumra] = useState<ZumraMePayload | null>(null);
   const [groups, setGroups] = useState<ZumraGroupSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
@@ -37,12 +39,19 @@ export function AccountSpace() {
 
     async function load() {
       try {
+        setLoadError('');
         const accountResponse = await fetch('/api/genesis/account/me', { cache: 'no-store' });
         const account = (await accountResponse.json()) as AccountPayload;
-        if (!accountResponse.ok || !account.authenticated) {
+
+        if (accountResponse.status === 401 || !account.authenticated) {
           window.location.href = '/connexion';
           return;
         }
+
+        if (!accountResponse.ok || !account.account) {
+          throw new Error(account.error || 'ESPACE_TEMPORAIREMENT_INDISPONIBLE');
+        }
+
         if (cancelled) return;
         setData(account);
 
@@ -60,7 +69,7 @@ export function AccountSpace() {
           }
         }
       } catch {
-        if (!cancelled) setData({ authenticated: false });
+        if (!cancelled) setLoadError('Votre espace est momentanément indisponible. Votre session reste ouverte ; réessayez dans un instant.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -86,6 +95,24 @@ export function AccountSpace() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-paper px-4 text-ink">
         <div className="flex items-center gap-3 text-body font-semibold"><Loader2 className="h-5 w-5 animate-spin text-gold" /> Chargement de votre espace…</div>
+      </main>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-paper px-4 text-ink">
+        <div className="w-full max-w-lg rounded-card border border-line bg-paper-card p-7 text-center">
+          <p className="font-display text-2xl">Votre espace reste connecté.</p>
+          <p className="mt-3 text-body text-slate-ink">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-meta font-medium text-paper"
+          >
+            <RefreshCw className="h-4 w-4" /> Réessayer
+          </button>
+        </div>
       </main>
     );
   }
