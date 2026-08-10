@@ -46,7 +46,11 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof CoreAccountError) {
       const status = error.status === 409 ? 409 : error.status === 429 ? 429 : error.status >= 500 ? 503 : 422;
-      return NextResponse.json({ ok: false, error: error.code }, { status, headers: { 'Cache-Control': 'no-store' } });
+      const pending = error.details?.pending;
+      return NextResponse.json(
+        { ok: false, error: error.code, ...(pending ? { pending } : {}) },
+        { status, headers: { 'Cache-Control': 'no-store' } },
+      );
     }
     return NextResponse.json({ ok: false, error: 'CORE_TEMPORAIREMENT_INDISPONIBLE' }, { status: 503 });
   }
