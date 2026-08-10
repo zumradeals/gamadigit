@@ -6,6 +6,7 @@ import {
   portalAccountCookie,
   readCanonicalIdentity,
 } from '@/lib/gamad-core/account';
+import { identityResolutionFailure } from '@/lib/gamad-core/identity-state';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,15 +30,18 @@ export async function GET() {
       },
     }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
-    if (error instanceof CoreAccountError && error.status === 401) {
-      const response = NextResponse.json({ authenticated: false }, { status: 401, headers: { 'Cache-Control': 'no-store' } });
+    const failure = identityResolutionFailure(error instanceof CoreAccountError ? error.status : undefined);
+    const response = NextResponse.json(
+      failure.error
+        ? { authenticated: failure.authenticated, error: failure.error }
+        : { authenticated: failure.authenticated },
+      { status: failure.status, headers: { 'Cache-Control': 'no-store' } },
+    );
+
+    if (failure.clearPortalCookie) {
       response.cookies.set(portalAccountCookie.name, '', { ...portalAccountCookie.options, expires: new Date(0) });
-      return response;
     }
 
-    return NextResponse.json(
-      { authenticated: true, error: 'IDENTITE_TEMPORAIREMENT_INDISPONIBLE' },
-      { status: 503, headers: { 'Cache-Control': 'no-store' } },
-    );
+    return response;
   }
 }
