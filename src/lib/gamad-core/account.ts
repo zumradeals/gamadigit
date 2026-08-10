@@ -1,3 +1,4 @@
+import { buildVerificationResendPayload } from '@/lib/gamad-core/account-flow';
 import { coreFetch, coreProductRequest, getGamadCoreConfig } from '@/lib/gamad-core/server';
 import {
   parsePortalSession,
@@ -16,6 +17,7 @@ export class CoreAccountError extends Error {
   constructor(
     public readonly code: string,
     public readonly status: number,
+    public readonly details?: Record<string, unknown>,
   ) {
     super(code);
     this.name = 'CoreAccountError';
@@ -69,7 +71,28 @@ export async function createGamadAccount(input: { name: string; identifier: stri
     erreur?: string;
   };
 
-  if (!response.ok) throw new CoreAccountError(body.erreur || `CREATION_COMPTE_${response.status}`, response.status);
+  if (!response.ok) {
+    const canResume = body.erreur === 'VERIFICATION_NON_LIVREE'
+      && Boolean(body.compte?.identite)
+      && Boolean(body.compte?.identifiant_reference)
+      && Boolean(body.verification?.reference)
+      && Boolean(body.verification?.expire_le);
+
+    throw new CoreAccountError(
+      body.erreur || `CREATION_COMPTE_${response.status}`,
+      response.status,
+      canResume ? {
+        pending: {
+          identity: body.compte?.identite,
+          identifierReference: body.compte?.identifiant_reference,
+          verificationReference: body.verification?.reference,
+          expiresAt: body.verification?.expire_le,
+          channel: input.type,
+        },
+      } : undefined,
+    );
+  }
+
   if (!body.compte?.identite || !body.compte.identifiant_reference || !body.verification?.reference || !body.verification.expire_le) {
     throw new CoreAccountError('REPONSE_COMPTE_INCOMPLETE', 502);
   }
@@ -100,14 +123,10 @@ export async function verifyGamadAccount(input: { identity: string; identifierRe
   return true;
 }
 
-export async function resendGamadVerification(input: { identifier: string; type: HumanIdentifierType; identifierReference: string }) {
+export async function resendGamadVerification(input: { destination: string; identifierReference: string }) {
   const response = await coreProductRequest('/comptes/verifications/renvoi', {
     method: 'POST',
-    body: JSON.stringify({
-      identifiant: input.identifier,
-      type_identifiant: input.type,
-      identifiant_reference: input.identifierReference,
-    }),
+    body: JSON.stringify(buildVerificationResendPayload(input.destination, input.identifierReference)),
   });
   const body = await response.json().catch(() => ({})) as { verification?: { reference?: string; expire_le?: string }; erreur?: string };
   if (!response.ok) throw new CoreAccountError(body.erreur || `RENVOI_${response.status}`, response.status);
