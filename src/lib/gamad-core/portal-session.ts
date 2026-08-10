@@ -7,6 +7,12 @@ export type PortalAccountSession = {
   expiresAt: string;
 };
 
+export type PortalSessionAttestation = {
+  entity: string;
+  assurance: string | null;
+  expiresAt: string;
+};
+
 function signingKey() {
   const secret = process.env.GAMAD_CORE_CONNECT_SECRET;
   if (!secret) throw new Error('GAMAD_CORE_CONNECT_SECRET manquant');
@@ -41,4 +47,28 @@ export function parsePortalSession(value?: string | null): PortalAccountSession 
   } catch {
     return null;
   }
+}
+
+/**
+ * CAP-002 — renouvelle l'enveloppe portail uniquement avec une échéance
+ * explicitement attestée par GAMAD Core. DG Afrique ne calcule ni ne prolonge
+ * lui-même la durée de session.
+ */
+export function renewPortalSessionFromAttestation(
+  session: PortalAccountSession,
+  attestation: PortalSessionAttestation,
+  nowMs = Date.now(),
+): PortalAccountSession | null {
+  if (!attestation.entity || attestation.entity !== session.entity) return null;
+
+  const currentExpiry = Date.parse(session.expiresAt);
+  const attestedExpiry = Date.parse(attestation.expiresAt);
+  if (!Number.isFinite(currentExpiry) || !Number.isFinite(attestedExpiry)) return null;
+  if (attestedExpiry <= nowMs || attestedExpiry < currentExpiry) return null;
+
+  return {
+    ...session,
+    assurance: attestation.assurance,
+    expiresAt: attestation.expiresAt,
+  };
 }
