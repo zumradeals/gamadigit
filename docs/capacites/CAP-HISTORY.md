@@ -120,30 +120,39 @@ Principes :
 ### Prod
 
 - `cursor` promu par fast-forward vers `82559c872da4c2e28e7b75f476776272bac170aa`.
-- Déploiement Vercel production : `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
+- Déploiement Vercel production initial du correctif : `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
+- Déploiement production courant vérifié après mises à jour documentaires : `dpl_4kekTkZZQnfVBbLSnikqEkxGBBKb` — READY, commit `75c722d735090484e1cdbea5f278cfa5984b21c3`.
 - Build Next.js terminé sans erreur ; `/api/genesis/account/logout`, `/espace` et `/federation/continue/[satellite]` compilés.
 
-La partie DG Afrique du canal front-channel est donc déployée. Elle reste volontairement inactive si le Core ne fournit aucun `logout_url` valide.
+La partie DG Afrique du canal front-channel est donc déployée. Elle reste volontairement fail-soft si le Core ne fournit aucun `logout_url` valide.
 
-### Blocage opérateur avant preuve production
+### Geste opérateur Core — terminé
 
-Le registre Core doit encore porter sur l'environnement PRODUCTION actif de `PRD-GAMAD-002` :
+L'autorité opérateur a déclaré l'environnement PRODUCTION de `PRD-GAMAD-002` par la voie gouvernée `AccesProduits::declarerEnvironnement()`, sous `AUT-GAMAD-001`, sans accès direct à la base.
 
-`logout_url = https://gamadrive.dgafrique.com/federation/deconnexion-centrale`
+Résultat rapporté et vérifié côté opérateur :
 
-Cette écriture est un geste d'autorité opérateur Core (`AUTORITE_INSCRIPTION`) et ne doit pas être simulée ou codée en dur dans DG Afrique.
+- `PRD-GAMAD-002` reste `ACTIF` et `federation_autorisee = 1` ;
+- environnement PRODUCTION actif avec `api_base_url = https://gamadrive.dgafrique.com` ;
+- `health_url = https://gamadrive.dgafrique.com/health` ;
+- `logout_url = https://gamadrive.dgafrique.com/federation/deconnexion-centrale` ;
+- `audience_federation = PRD-GAMAD-002` ;
+- décision CAP-CORE-004 `PERMIS` ;
+- journal opérationnel `ENVIRONNEMENT_PRODUIT_DECLARE`, décision `EXECUTEE` ;
+- console/Core et services déclarés sains après l'opération ;
+- aucun secret introduit dans les valeurs publiques déclarées.
 
-Le registre Core versionne un environnement redéclaré : l'ancienne version active est clôturée et la nouvelle est insérée dans la même transaction. L'opérateur doit reprendre exactement `api_base_url`, `health_url` et `audience_federation` de l'environnement PRODUCTION actif, et ne changer que `logout_url`.
+Écart observé : il s'agissait de la première déclaration PRODUCTION persistée, donc aucune ancienne version n'a été clôturée. Cela ne change pas le contrat DG attendu : le registre porte désormais le `logout_url` actif requis.
 
-### Validation encore requise
+### Validation navigateur encore requise
 
-Après déclaration Core, refaire le scénario navigateur :
+Tous les maillons techniques sont désormais en place. Il reste la preuve utilisateur finale :
 
 `connexion DG → ouverture GamaDrive → déconnexion DG → accès direct immédiat à GamaDrive`.
 
 Attendu : aucune session GamaDrive survivante ; le navigateur repasse par DG Afrique et requiert une nouvelle authentification centrale.
 
-**CAP-001 reste le seul gate actif et n'est pas VALIDÉ PROD à cause de cette entrée. Aucun CAP suivant n'est ouvert.**
+**Ne pas déclarer l'incident SSO clos avant ce test réel. CAP-001 reste le seul gate actif et n'est pas automatiquement VALIDÉ PROD par la résolution de cet incident.**
 
 ## Format obligatoire des prochaines entrées
 
