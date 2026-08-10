@@ -234,6 +234,49 @@ Dossier de preuve : `docs/capacites/proofs/CAP-002-2026-08-10.md`.
 
 Prochain geste : chantier Core/Claude sur l'échéance courante de session ; puis intégration DG, tests de renouvellement borné, final preview, tests navigateur, production et validation utilisateur.
 
+## 2026-08-10 — CAP-002 : contrat Core session courante préparé + raccord DG
+
+### Vérification préalable Core
+
+Claude a confirmé qu'aucune primitive Core officielle existante ne répondait au besoin du bearer Core courant. La vérification fédérée CAP-CORE-022 est bornée à un satellite/audience, lit l'expiration sans la faire glisser et ne remplace pas une primitive `sessions/current`.
+
+### Contrat Core préparé
+
+Commit Core `bdab896`, branche Claude dédiée :
+
+`GET /api/v1/sessions/current` avec `Authorization: Bearer <jeton déjà ouvert>`.
+
+Réponse 200 `no-store` : `entite`, `assurance`, `expire_le`; 401 si session absente/invalide/expirée/révoquée. `Ctr16::verifierSession()` retourne désormais l'`expire_le` réellement persisté après glissement ; `AuthentifierApi` transmet `gamad_expire_le` ; `SessionController::current()` expose le contrat. OpenAPI et documentation d'exploitation ont été mis à jour côté Core.
+
+Preuves locales annoncées : 28 assertions `authentification_p3`, 8/8 `sessions_current_p1`, garde journal verte, OpenAPI/console/fédération verts. Un échec readiness matching/pgsql de `api_v1_p1` est déclaré préexistant sur `main` et reproduit sans les changements.
+
+**État Core : implémenté/testé localement, mais non fusionné, non déployé VPS, aucune preuve live.**
+
+### Raccord DG
+
+Sur `cap/002-compte-dg-afrique` :
+
+- `98f5fffd3f95b0bd649aad481474b32f9fa40df2` — primitive `renewPortalSessionFromAttestation()` ;
+- `1c721a38dcfd32f87c409a644624ef248a30615a` — `readCurrentUserSession()` ;
+- `117deab63b4ca1ef70b54d137d74ad557849f113` — `/api/genesis/account/me` renouvelle le cookie uniquement à l'échéance Core ;
+- `4b9e8c882d6885632927f20a62efb9d5f4dfe1d7` — tests de bornage.
+
+Garde : même identité, échéance future, jamais régressive. DG ne calcule jamais une prolongation locale.
+
+### Preview DG
+
+`dpl_AbwStXbszQuJtforAc7q2db9VC5a` — **READY** sur `4b9e8c882d6885632927f20a62efb9d5f4dfe1d7`.
+
+Build : **16 tests / 16 pass / 0 fail**, `npm test && next build` vert, compilation/types verts.
+
+### Gate
+
+**CAP-002 reste EN DEV. CAP-003 reste BLOQUÉ.**
+
+Interdiction de promouvoir DG tant que le Core live ne contient pas `GET /api/v1/sessions/current` et que le preview DG n'a pas été testé contre ce Core live.
+
+Prochain geste : autorisation explicite du dirigeant pour fusion/déploiement Core `bdab896`, preuve checkout live, puis test d'intégration DG → Core avant production.
+
 ## Format obligatoire des prochaines entrées
 
 Pour chaque CAP, documenter :
