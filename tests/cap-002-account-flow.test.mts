@@ -7,6 +7,7 @@ import {
   pendingVerificationCodeIsActive,
   safeAccountReturnPath,
 } from '../src/lib/gamad-core/account-flow.ts';
+import { renewPortalSessionFromAttestation } from '../src/lib/gamad-core/portal-session.ts';
 
 const NOW = Date.parse('2026-08-10T12:00:00Z');
 
@@ -67,4 +68,60 @@ test('CAP-002 expires the local resume dossier after its bounded recovery window
   }, NOW);
 
   assert.equal(normalizePendingAccountVerification(pending, Date.parse(pending.resumeUntil) + 1), null);
+});
+
+test('CAP-002 renews the portal envelope only to the expiry attested by Core', () => {
+  const renewed = renewPortalSessionFromAttestation({
+    token: 'SESS-SECRET-OPAQUE',
+    entity: 'IDN-123',
+    assurance: 'AS1 — FACTEUR UNIQUE',
+    expiresAt: '2026-08-10T12:30:00Z',
+  }, {
+    entity: 'IDN-123',
+    assurance: 'AS1 — FACTEUR UNIQUE',
+    expiresAt: '2026-08-10T20:00:00Z',
+  }, NOW);
+
+  assert.deepEqual(renewed, {
+    token: 'SESS-SECRET-OPAQUE',
+    entity: 'IDN-123',
+    assurance: 'AS1 — FACTEUR UNIQUE',
+    expiresAt: '2026-08-10T20:00:00Z',
+  });
+});
+
+test('CAP-002 refuses an attestation for another identity', () => {
+  const renewed = renewPortalSessionFromAttestation({
+    token: 'SESS-SECRET-OPAQUE',
+    entity: 'IDN-123',
+    assurance: null,
+    expiresAt: '2026-08-10T12:30:00Z',
+  }, {
+    entity: 'IDN-999',
+    assurance: null,
+    expiresAt: '2026-08-10T20:00:00Z',
+  }, NOW);
+
+  assert.equal(renewed, null);
+});
+
+test('CAP-002 never shortens or invents a portal expiry', () => {
+  const session = {
+    token: 'SESS-SECRET-OPAQUE',
+    entity: 'IDN-123',
+    assurance: null,
+    expiresAt: '2026-08-10T20:00:00Z',
+  };
+
+  assert.equal(renewPortalSessionFromAttestation(session, {
+    entity: 'IDN-123',
+    assurance: null,
+    expiresAt: '2026-08-10T19:59:59Z',
+  }, NOW), null);
+
+  assert.equal(renewPortalSessionFromAttestation(session, {
+    entity: 'IDN-123',
+    assurance: null,
+    expiresAt: '2026-08-10T11:59:59Z',
+  }, NOW), null);
 });
