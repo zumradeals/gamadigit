@@ -3,11 +3,12 @@
 - **Famille :** Fondations humaines et ZUMRA
 - **Domaine :** Identity
 - **Propriétaire d'exécution :** HYBRID — DG Afrique orchestre l'expérience compte ; GAMAD Core crée l'identité, vérifie l'identifiant humain et authentifie
-- **Statut gate :** **EN SPEC**
+- **Statut gate :** **EN DEV**
 - **Validation production :** NON
 - **CAP précédent :** CAP-001 — **VALIDÉ PROD**
 - **CAP suivant autorisé :** NON — CAP-003 reste BLOQUÉ
-- **Branche active :** `cap/002-compte-dg-afrique`
+- **Branche DG active :** `cap/002-compte-dg-afrique`
+- **Dépendance Core préparée :** `zumradeals/gamad-core`, branche Claude dédiée, commit `bdab896` — testé localement mais NON fusionné / NON déployé au moment de cette mise à jour
 
 ## Source fonctionnelle V0.1
 
@@ -20,68 +21,44 @@ Le référentiel `DG_Afrique_Referentiel_Final_84_Capacites_V0.1` définit CAP-0
 
 ## Limite de CAP-002
 
-CAP-002 porte sur la **porte d'accès personnelle DG Afrique** : création, vérification, connexion, session portail, retour vers la destination utile et déconnexion.
+CAP-002 porte uniquement sur la porte d'accès personnelle DG Afrique : création, vérification, connexion, session portail, retour vers la destination utile et déconnexion.
 
-Il ne valide pas :
+Il ne valide pas CAP-003 profil, CAP-004 compétences, CAP-007 ZUMRA, CAP-018 lanceur satellite, CAP-051 portabilité d'identité ni les autres CAP futurs. Leur code préexistant peut être traversé pendant un test sans être validé par ricochet.
 
-- le contenu détaillé du profil de capacités — CAP-003 ;
-- les compétences — CAP-004 ;
-- ZUMRA — CAP-007 et suivants ;
-- le lanceur satellite en tant que capacité — CAP-018 ;
-- la portabilité d'identité — CAP-051.
-
-Du code de ces CAP peut être traversé pendant un test de compte sans être validé par ricochet.
-
-## Invariants CAP-002
+## Invariants
 
 1. Le compte DG Afrique est gratuit.
 2. Compte DG Afrique ≠ adhésion ZUMRA.
-3. GAMAD Core reste l'autorité de création de l'identité, de vérification de l'identifiant humain et d'authentification.
-4. DG Afrique ne conserve jamais le mot de passe en base, cookie, journal ou URL.
-5. Le code de vérification est livré au canal humain par le Core et n'est jamais retourné en clair par le Core au navigateur via DG Afrique.
-6. Une adresse EMAIL doit être vérifiée avant de servir à l'authentification normale.
-7. Une personne déjà connectée ne doit pas voir inutilement l'écran de connexion.
-8. Une session réellement invalide doit revenir à la porte de connexion ; une panne transitoire ne doit pas supprimer une session encore valide.
-9. Une destination locale sûre demandée avant authentification doit être reprise après connexion ; aucune redirection externe arbitraire ne doit être acceptée.
-10. Une création de compte dont la vérification n'est pas terminée doit pouvoir être reprise tant que le défi est exploitable, sans créer une seconde identité.
-11. La déconnexion DG ferme la session Core, efface le cookie portail et exécute le front-channel satellite déclaré lorsque nécessaire.
-12. La durée visible de session DG doit rester cohérente avec le contrat de session Core, sans inventer une permanence supplémentaire.
+3. GAMAD Core reste l'autorité d'identité, de vérification de l'identifiant humain et d'authentification.
+4. DG Afrique ne persiste jamais le mot de passe ni le code de vérification.
+5. EMAIL doit être vérifié avant authentification normale.
+6. Une session réellement invalide revient à la connexion ; une panne transitoire ne détruit pas une session encore valide.
+7. `next` n'accepte qu'un chemin local sûr.
+8. Une vérification interrompue doit pouvoir reprendre sans recréer l'identité lorsque le dossier local de reprise existe.
+9. La déconnexion ferme Core, efface le cookie portail et exécute le front-channel satellite gouverné lorsqu'il existe.
+10. DG ne calcule jamais lui-même une prolongation de session : le cookie ne peut être renouvelé que jusqu'à une échéance attestée par Core.
 
 ## Contrats Core audités
 
-### Création de compte
+### Création
 
-`POST /v1/comptes` derrière `gamad.api`.
+`POST /v1/comptes` derrière `gamad.api` avec `nom`, `type_identifiant`, `identifiant`, `mot_de_passe`.
 
-Entrée actuelle :
+Pour EMAIL/TELEPHONE le Core crée un défi et livre le code au canal humain. Le code brut ne traverse pas la frontière Core → navigateur.
 
-- `nom` ;
-- `type_identifiant` (`EMAIL`, `TELEPHONE`, `USERNAME`) ;
-- `identifiant` ;
-- `mot_de_passe` — minimum 6 caractères dans le contrat Compte GAMAD actuel.
-
-Le produit authentifié porte la demande. Pour EMAIL/TELEPHONE, le Core crée un défi puis livre le code au canal humain. Le code brut est retiré de la réponse produit avant retour HTTP.
-
-Erreurs structurantes observées :
-
-- `COMPTE_NON_CREATABLE` — 409 si le moyen de connexion existe déjà ;
-- `VERIFICATION_NON_LIVREE` — le compte existe mais le premier code n'a pas été livré ;
-- erreurs de socle / journal / création incomplète — 503 ;
-- création non autorisée — 403.
+Erreurs structurantes : `COMPTE_NON_CREATABLE`, `VERIFICATION_NON_LIVREE`, refus d'autorisation et indisponibilités du socle/journal.
 
 ### Vérification
 
 `POST /v1/comptes/verifications` derrière `gamad.api`.
 
-Le producteur du défi doit être le produit appelant. EMAIL et TELEPHONE restent `NON_VERIFIE` tant que le code n'est pas accepté. Un identifiant non vérifié ne peut pas être résolu pour authentification normale.
-
-Refus possibles observés : `VERIFICATION_INCONNUE`, `VERIFICATION_INACTIVE`, `VERIFICATION_EXPIREE`, `TROP_DE_TENTATIVES`, `CODE_INVALIDE`, plus indisponibilités de registre/journal.
+Refus utiles : `VERIFICATION_INCONNUE`, `VERIFICATION_INACTIVE`, `VERIFICATION_EXPIREE`, `TROP_DE_TENTATIVES`, `CODE_INVALIDE`.
 
 ### Renvoi
 
 `POST /v1/comptes/verifications/renvoi` derrière `gamad.api`.
 
-**Contrat Core actuel confirmé :**
+Contrat courant :
 
 ```json
 {
@@ -90,251 +67,127 @@ Refus possibles observés : `VERIFICATION_INCONNUE`, `VERIFICATION_INACTIVE`, `V
 }
 ```
 
-Le Core vérifie que la destination correspond au RID, que le producteur est le même, impose 60 secondes entre deux émissions et limite à 5 vérifications par heure.
+Le Core vérifie la destination, le producteur, impose le délai de renvoi et le quota horaire.
 
-### Connexion / session
+### Connexion
 
-`POST /v1/sessions` avec `identifiant`, `type_identifiant` et `secret`.
+`POST /v1/sessions` avec `identifiant`, `type_identifiant`, `secret`.
 
-Le Core ne révèle pas si l'identifiant ou le secret est faux : refus générique 401. La session actuelle est glissante : 8 h d'inactivité, plafond absolu 30 jours. Chaque vérification valide côté Core prolonge son `expire_le` jusqu'au plafond.
+Refus d'authentification générique en 401. Le Core applique 8 h d'inactivité glissantes avec plafond absolu 30 jours.
 
-`DELETE /v1/sessions/current` révoque la session Core courante et ferme les jetons fédérés encore liés.
+### Session courante — contrat CAP-002 préparé côté Core
 
-## Parcours DG Afrique audité
+Aucune primitive officielle adaptée n'existait avant ce chantier. Le Core a préparé sur le commit `bdab896` :
 
-### APIs existantes
+```http
+GET /api/v1/sessions/current
+Authorization: Bearer <jeton déjà ouvert>
+```
 
-- `/api/genesis/account/captcha`
-- `/api/genesis/account/register`
-- `/api/genesis/account/verify`
-- `/api/genesis/account/resend`
-- `/api/genesis/account/login`
-- `/api/genesis/account/me`
-- `/api/genesis/account/logout`
-
-### UI existante
-
-- `/connexion` : connexion / création / vérification dans un seul écran ;
-- `/espace` : espace membre ;
-- l'utilisateur déjà porteur d'un cookie portail signé et non expiré est redirigé de `/connexion` vers `/espace` ;
-- `/espace` reprend une fédération satellite en attente via son cookie dédié ;
-- `/api/genesis/account/me` distingue 401 réel et panne transitoire conformément à CAP-001.
-
-## Écarts de production identifiés pendant l'audit
-
-### GAP-002-A — Renvoi DG incompatible avec le contrat Core actuel
-
-DG envoie actuellement :
+Réponse attendue :
 
 ```json
 {
-  "identifiant": "...",
-  "type_identifiant": "EMAIL",
-  "identifiant_reference": "RID-..."
+  "entite": "IDN-...",
+  "assurance": "AS1 — FACTEUR UNIQUE",
+  "expire_le": "2026-08-10T20:00:00+00:00"
 }
 ```
 
-Le Core attend `identifiant_reference + destination`. Le bouton « Renvoyer le code » n'est donc pas contractuellement aligné.
+Propriétés du contrat :
 
-**Décision :** corriger DG pour envoyer exactement le contrat Core actuel et ajouter un test de régression.
+- passe par le middleware `gamad.api` normal ;
+- `200` + `Cache-Control: no-store` pour une session valide ;
+- `401` si absente/invalide/expirée/révoquée ;
+- `expire_le` est l'échéance réellement persistée après glissement ;
+- aucune nouvelle session, aucun second token, aucune exposition du bearer.
 
-### GAP-002-B — Retour `?next=` perdu après connexion
+Core a annoncé les preuves locales suivantes sur `bdab896` : 28 assertions `authentification_p3.php`, 8/8 `sessions_current_p1.php`, garde journal verte, OpenAPI/console/fédération verts. Un échec `api_v1_p1.php` readiness matching/pgsql est déclaré préexistant sur `main` et hors périmètre. **Ce contrat n'est pas encore une preuve production tant qu'il n'est pas fusionné et déployé sur le VPS.**
 
-Des parcours protégés, notamment une invitation ZUMRA, peuvent envoyer vers `/connexion?next=<chemin local>`. `AccountLogin` pousse aujourd'hui systématiquement `/espace` après succès.
+`DELETE /v1/sessions/current` reste la fermeture de session.
 
-**Décision :** accepter uniquement une destination locale sûre, refuser `//`, schémas/hosts externes et boucles `/connexion`, puis reprendre cette destination après login/vérification. Sans `next`, conserver `/espace`, ce qui préserve aussi la reprise fédérée existante.
+## Écarts DG trouvés et état
 
-Cette correction valide seulement le comportement de porte d'accès CAP-002 ; elle ne valide pas le CAP métier de la destination.
+### GAP-002-A — payload renvoi obsolète — CORRIGÉ SUR BRANCHE
 
-### GAP-002-C — Vérification interrompue non reprise de façon robuste
+DG envoie maintenant exactement `identifiant_reference + destination`. Test de régression présent.
 
-L'état `pending` (identité, RID, référence de vérification, expiration) vit uniquement dans l'état React. Un rechargement ou une fermeture de page le perd. Or un EMAIL non vérifié ne peut pas ouvrir de session et une nouvelle création sur le même email retourne `COMPTE_NON_CREATABLE`.
+### GAP-002-B — `?next=` perdu — CORRIGÉ SUR BRANCHE
 
-Le cas `VERIFICATION_NON_LIVREE` est également imparfait : le Core retourne le compte/RID/défi créé, mais la couche DG transforme aujourd'hui l'erreur en exception et perd ces références, alors que l'UI indique qu'un renvoi devrait permettre de reprendre.
+`safeAccountReturnPath()` accepte uniquement un chemin local DG, refuse `//`, origine/schéma externe et boucle `/connexion`, puis le parcours login/vérification reprend cette destination.
 
-**Décision CAP-002 côté DG :**
+### GAP-002-C — vérification interrompue — CORRIGÉ SUR BRANCHE
 
-- conserver un dossier de vérification côté navigateur sans mot de passe ni code ;
-- durée bornée par `expiresAt` ;
-- restaurer ce dossier après rechargement ;
-- l'effacer après vérification réussie, expiration explicite ou changement volontaire de compte ;
-- préserver le dossier retourné par le Core lorsque la création existe mais que la livraison initiale a échoué, afin de permettre le renvoi.
+DG conserve un dossier local borné contenant uniquement identité Core opaque, RID, référence de vérification, email et échéances. Aucun mot de passe ni code. Le dossier peut permettre un renvoi après expiration de l'ancien code et expire lui-même après 7 jours.
 
-Ce dossier contient uniquement des références opaques déjà délivrées au navigateur et la destination saisie ; il n'est ni une session authentifiée ni une preuve d'identité.
+`VERIFICATION_NON_LIVREE` conserve désormais les références de reprise du compte déjà créé afin d'éviter une seconde création.
 
-**Limite connue :** sans nouveau contrat Core, une reprise depuis un autre navigateur/appareil après perte totale de ce dossier local n'est pas possible. Ne pas inventer une route Core. Si le produit exige plus tard cette récupération cross-device, un contrat Core dédié sera nécessaire.
+Limite assumée : sans contrat Core supplémentaire, la reprise cross-device après perte totale du dossier local n'est pas fournie par CAP-002.
 
-### GAP-002-D — Session Core glissante, cookie DG actuellement figé à l'expiration initiale
+### GAP-002-D — expiration glissante Core / cookie DG — RACCORDÉ SUR BRANCHE, ATTEND CORE PROD
 
-Au login, DG fixe l'expiration du cookie portail à `expire_le` reçu à l'ouverture. Le Core prolonge ensuite la session à chaque vérification valide, mais son middleware HTTP courant n'expose pas la nouvelle échéance glissante à DG.
+DG contient maintenant :
 
-**Conséquence :** le navigateur DG peut supprimer son cookie après l'échéance initiale (~8 h) même si le Core aurait prolongé la session jusqu'au plafond de 30 jours.
+- `readCurrentUserSession()` → `GET /sessions/current` avec le bearer déjà ouvert ;
+- `renewPortalSessionFromAttestation()` → garde pure qui exige même identité, échéance future et non-régressive ;
+- `/api/genesis/account/me` → résout l'identité, lit l'attestation Core, puis réécrit le cookie signé uniquement jusqu'à `expire_le` attesté.
 
-**Décision :** ne pas falsifier une nouvelle date côté DG. CAP-002 nécessite soit :
+DG n'ajoute aucune durée locale, ne calcule pas 8 h et ne dépasse jamais la valeur Core.
 
-- un contrat Core minimal qui expose l'échéance courante de la session vérifiée (réponse ou en-tête authentifié), afin que DG puisse renouveler son cookie à la vraie échéance ;
-- soit une décision métier explicite disant que le portail DG reste volontairement limité à 8 h absolues malgré le Core glissant.
+Ce raccord ne doit pas être promu en production avant déploiement du contrat Core, sinon `/api/genesis/account/me` dépendrait d'une route absente sur le Core live.
 
-En l'absence de cette décision/primitive, CAP-002 ne pourra pas être déclaré `VALIDÉ PROD` sur la promesse « session glissante 8 h / plafond 30 jours ».
+## Sécurité
 
-## États UX CAP-002
+- mutations compte protégées same-origin ;
+- création/vérification/renvoi Core via identité produit serveur ;
+- secret produit et mot de passe humain jamais exposés ;
+- réponses compte/session `no-store` ;
+- aucun open redirect ;
+- aucune activation ZUMRA automatique ;
+- cookie portail signé HttpOnly/Secure/SameSite=Lax ;
+- renouvellement de cookie uniquement sur attestation Core cohérente.
 
-- `VISITEUR`
-- `CREATION_EN_COURS`
-- `VERIFICATION_EN_ATTENTE`
-- `VERIFICATION_A_RENVOYER`
-- `CONNEXION_EN_COURS`
-- `CONNECTE`
-- `SESSION_INVALIDE`
-- `SERVICE_TEMPORAIREMENT_INDISPONIBLE`
+## Critères d'acceptation
 
-L'utilisateur ne doit jamais voir les références Core, RID, jetons ou noms de contrats techniques comme contenu principal.
+- **AC-002-01** création gratuite sans adhésion ZUMRA automatique.
+- **AC-002-02** EMAIL non vérifié inutilisable pour connexion ; bon code → vérifié.
+- **AC-002-03** renvoi conforme au contrat Core et borné par ses limites.
+- **AC-002-04** reprise après reload sans mot de passe/code persisté.
+- **AC-002-05** `VERIFICATION_NON_LIVREE` reprend le même compte.
+- **AC-002-06** connexion ouvre session Core et cookie sécurisé puis Mon espace.
+- **AC-002-07** retour `next` local sûr ; aucune redirection externe.
+- **AC-002-08** utilisateur déjà connecté ne repasse pas inutilement par le formulaire.
+- **AC-002-09** Core 401 invalide le cookie ; panne non-401 conserve la session et propose réessai.
+- **AC-002-10** déconnexion centrale révoque Core, efface DG et lance le front-channel gouverné.
+- **AC-002-11** activité compte DG : le cookie est renouvelé uniquement jusqu'à l'`expire_le` courant attesté par Core, jamais par calcul local.
 
-## Données manipulées par DG
+## Tests DG actuels
 
-### Création / vérification
+Dernier head applicatif testé : `4b9e8c882d6885632927f20a62efb9d5f4dfe1d7`.
 
-- nom complet ;
-- email V1 ;
-- mot de passe uniquement en mémoire de formulaire / requête vers le serveur DG puis Core ; jamais persisté ;
-- référence d'identité Core, RID, référence de vérification, expiration ;
-- code à 6 chiffres uniquement présenté pour vérification, jamais journalisé.
+Preview Vercel : `dpl_AbwStXbszQuJtforAc7q2db9VC5a` — **READY**.
 
-### Session
+- `npm test && next build` ;
+- **16 tests / 16 pass / 0 fail** ;
+- tests CAP-001 conservés ;
+- tests CAP-002 : retour sûr, renvoi, reprise, durée dossier, renouvellement sur attestation, refus identité incohérente, refus échéance régressive/expirée ;
+- compilation Next.js réussie ;
+- types/lint réussis ;
+- génération statique réussie.
 
-- token Core dans cookie portail signé HttpOnly/Secure/SameSite=Lax ;
-- entité canonique ;
-- assurance ;
-- expiration connue.
+## Gate actuel et prochaine action
 
-## Sécurité et permissions
+**CAP-002 reste EN DEV. CAP-003 reste BLOQUÉ.**
 
-- toutes les mutations compte DG refusent les requêtes cross-origin via la garde same-origin ;
-- la création/vérification/renvoi Core se fait avec l'identité produit DG côté serveur ;
-- le secret produit Core ne franchit jamais le serveur ;
-- le mot de passe humain ne doit jamais être loggé ;
-- pas d'open redirect via `next` ;
-- aucune inscription DG ne doit activer ZUMRA automatiquement ;
-- les réponses compte/session sont `no-store`.
+Prochaine séquence obligatoire :
 
-## Critères d'acceptation CAP-002
-
-### AC-002-01 — Création gratuite et distincte de ZUMRA
-
-```gherkin
-GIVEN un visiteur sans compte
-WHEN il crée un compte DG Afrique avec un email disponible
-THEN le Core crée une identité/compte sans paiement
-AND aucune adhésion ZUMRA n'est créée automatiquement
-AND DG passe à l'étape de vérification
-```
-
-### AC-002-02 — Vérification avant authentification email
-
-```gherkin
-GIVEN un compte créé avec EMAIL non vérifié
-WHEN la personne tente l'authentification normale avant vérification
-THEN aucune session utilisateur n'est ouverte
-WHEN le bon code est confirmé
-THEN l'email devient vérifié
-AND la personne peut ouvrir sa session DG
-```
-
-### AC-002-03 — Renvoi conforme et borné
-
-```gherkin
-GIVEN une vérification en attente
-WHEN la personne demande un nouveau code
-THEN DG appelle le contrat Core actuel avec identifiant_reference + destination
-AND les refus de délai/volume sont présentés sans créer un autre compte
-```
-
-### AC-002-04 — Reprise après rechargement
-
-```gherkin
-GIVEN un compte créé et une vérification encore exploitable
-WHEN la page de connexion est rechargée
-THEN DG reprend l'étape de vérification sans redemander de créer le compte
-AND aucun mot de passe ni code n'a été persisté dans le dossier de reprise
-```
-
-### AC-002-05 — Livraison initiale échouée
-
-```gherkin
-GIVEN que le Core a créé le compte mais n'a pas livré le premier code
-WHEN DG reçoit VERIFICATION_NON_LIVREE avec les références de reprise
-THEN l'utilisateur reste sur le même compte
-AND peut demander un nouveau code selon les limites Core
-AND DG ne tente pas de créer une seconde identité
-```
-
-### AC-002-06 — Connexion
-
-```gherkin
-GIVEN un email vérifié et un mot de passe correct
-WHEN la personne se connecte
-THEN DG ouvre une session Core
-AND écrit un cookie portail sécurisé
-AND entre dans Mon espace
-```
-
-### AC-002-07 — Retour après authentification
-
-```gherkin
-GIVEN un utilisateur envoyé à /connexion avec une destination locale sûre
-WHEN son authentification réussit
-THEN il revient vers cette destination
-AND une URL externe ou ambiguë ne peut pas être injectée comme redirection
-```
-
-### AC-002-08 — Déjà connecté
-
-```gherkin
-GIVEN une session portail structurellement valide
-WHEN la personne ouvre /connexion
-THEN elle est redirigée vers /espace sans second formulaire de connexion
-```
-
-### AC-002-09 — Session invalide vs panne transitoire
-
-```gherkin
-GIVEN une session utilisateur
-WHEN le Core répond 401
-THEN le cookie portail est invalidé et la porte de connexion est reprise
-WHEN le Core est temporairement indisponible sans 401
-THEN DG conserve la session locale et propose de réessayer
-```
-
-### AC-002-10 — Déconnexion centrale
-
-```gherkin
-GIVEN une session DG ouverte
-WHEN la personne clique Se déconnecter
-THEN la session Core est révoquée
-AND le cookie DG est supprimé
-AND le front-channel satellite gouverné est exécuté lorsqu'il existe
-```
-
-### AC-002-11 — Durée de session cohérente
-
-```gherkin
-GIVEN une session Core active
-WHEN son expiration glisse selon le contrat Core
-THEN le cookie portail ne doit pas expirer avant la session Core uniquement parce qu'il conserve une ancienne échéance
-AND DG ne doit jamais prolonger au-delà d'une échéance réellement attestée par le Core
-```
-
-## Plan de développement autorisé
-
-1. corriger le payload de renvoi et le tester ;
-2. sécuriser et utiliser `next` ;
-3. rendre la vérification en attente reprenable côté DG sans secret ;
-4. préserver les références de reprise sur `VERIFICATION_NON_LIVREE` ;
-5. ajouter des tests CAP-002 sur les décisions pures / contrats DG ;
-6. obtenir la décision ou primitive Core pour l'expiration glissante avant validation finale ;
-7. preview → tests navigateur → production → preuves ;
-8. seulement après `VALIDÉ PROD`, ouvrir CAP-003.
-
-## Gate actuel
-
-La spec est auditée. **CAP-002 reste EN SPEC jusqu'au commit de cette fiche, puis peut passer EN DEV sur cette branche. CAP-003 reste BLOQUÉ.**
+1. autorisation dirigeant pour que Claude fusionne `bdab896` dans `gamad-core/main` et déploie le Core sur le VPS ;
+2. preuve Core live de `GET /api/v1/sessions/current` ;
+3. test d'intégration DG preview → Core live ;
+4. finaliser docs/preuves ;
+5. comparer branche DG à `cursor` ;
+6. fast-forward production seulement si preview et intégration sont verts ;
+7. tests navigateur CAP-002 ;
+8. logs production ;
+9. validation utilisateur ;
+10. seulement alors CAP-002 → `VALIDÉ PROD` et CAP-003 → `EN SPEC`.
