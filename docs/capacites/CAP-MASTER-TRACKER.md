@@ -6,7 +6,7 @@
 
 | CAP | Capacité | Statut gate | Fiche | Preuve prod |
 |---|---|---|---|---|
-| CAP-001 | IDENTITÉ PERSONNE | **EN SPEC** | `specs/CAP-001-identite-personne.md` | À établir |
+| CAP-001 | IDENTITÉ PERSONNE | **EN DEV** | `specs/CAP-001-identite-personne.md` | `proofs/CAP-001-2026-08-10.md` — en cours |
 | CAP-002 | COMPTE DG AFRIQUE | BLOQUÉ | `specs/CAP-002-compte-dg-afrique.md` (préexistante, à réauditer à son tour) | — |
 | CAP-003 | PROFIL DE CAPACITÉS | BLOQUÉ | À créer | — |
 | CAP-004 | COMPÉTENCES | BLOQUÉ | À créer | — |
@@ -96,3 +96,4 @@
 - Les écrans ZUMRA, l'accueil personnalisé et la fédération GamaDrive déjà présents dans le code **ne débloquent aucun CAP futur**.
 - Ils seront audités, ajustés si nécessaire, testés et validés en production lorsque leur CAP arrivera dans la séquence.
 - Toute IA qui reprend le chantier doit rechercher la première ligne qui n'est pas `VALIDÉ PROD` : c'est le seul CAP qu'elle est autorisée à faire progresser.
+- Au 2026-08-10, CAP-001 est en développement final. Le dernier blocage de preview connu est une limite de fréquence Vercel (`build-rate-limit`), pas une validation technique.

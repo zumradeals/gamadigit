@@ -7,12 +7,12 @@
 - Dépôt : `zumradeals/gamadigit`
 - Branche de production : `cursor`
 - Production : `https://dgafrique.com`
-- Stack actuelle : Next.js 15, React 19, TypeScript, Tailwind, Supabase/PostgreSQL, GAMAD Core, GeniusPay.
+- Stack : Next.js 15, React 19, TypeScript, Tailwind, Supabase/PostgreSQL, GAMAD Core, GeniusPay.
 - Laravel V2 n'est plus la trajectoire active de DG Afrique.
 
-## 2. Règle de chantier prioritaire
+## 2. Règle de chantier absolue
 
-Le développement suit désormais **strictement CAP-001 → CAP-084**.
+Le développement suit strictement **CAP-001 → CAP-084**.
 
 Avant toute action :
 
@@ -20,149 +20,129 @@ Avant toute action :
 2. trouver le premier CAP qui n'est pas `VALIDÉ PROD` ;
 3. ne travailler que sur ce CAP ;
 4. appliquer `docs/capacites/CAP-PRODUCTION-GATE.md` ;
-5. mettre à jour `docs/capacites/CAP-HISTORY.md` et ce fichier avant de terminer la session.
+5. lire le dossier de preuve du CAP actif ;
+6. mettre à jour `CAP-HISTORY.md` et ce fichier avant de terminer la session.
 
 **Aucun CAP N+1 ne doit être ouvert tant que CAP N n'est pas VALIDÉ PROD.**
 
-Du code peut déjà exister pour des CAP futurs. Il ne doit pas être supprimé automatiquement, mais il est considéré comme **préexistant / non validé** jusqu'à l'ouverture officielle du CAP.
+Du code peut déjà exister pour des CAP futurs. Il reste préexistant / non validé jusqu'à son tour.
 
 ## 3. Gate actif
 
 **CAP-001 — IDENTITÉ PERSONNE**
 
-Statut : `EN SPEC`.
+- Statut : `EN DEV`.
+- Branche active : `cap/001-finalize`.
+- Fiche : `docs/capacites/specs/CAP-001-identite-personne.md`.
+- Preuve : `docs/capacites/proofs/CAP-001-2026-08-10.md`.
+- CAP-002 reste **BLOQUÉ**.
 
-Fiche : `docs/capacites/specs/CAP-001-identite-personne.md`.
-
-Ne pas commencer CAP-002 avant que CAP-001 ait ses preuves de production et soit marqué `VALIDÉ PROD` dans le registre maître.
+Ne pas continuer ZUMRA, Apprendre, projets, satellites ou un autre module avant la clôture CAP-001.
 
 ## 4. Architecture d'identité à préserver
 
-- GAMAD Core est la source canonique de l'identité et de l'authentification.
-- DG Afrique ne doit pas remplacer cette identité par Supabase Auth.
-- Supabase sert aux données métier DG Afrique/ZUMRA, pas à devenir une seconde autorité d'identité.
-- La session portail DG Afrique contient une session Core signée dans un cookie HttpOnly sécurisé.
-- `/api/genesis/account/me` relit l'identité canonique auprès du Core.
-- Un `401` Core invalide réellement la session ; une panne transitoire ne doit pas déconnecter l'utilisateur.
-- Les identifiants techniques Core ne doivent pas être exposés inutilement dans l'UI utilisateur.
+- GAMAD Core / CAP-CORE-001 est l'autorité canonique de l'identité personne.
+- DG Afrique ne crée pas de seconde identité membre canonique dans Supabase.
+- La session portail contient un token Core, `entity`, assurance et expiration dans un cookie signé HttpOnly/Secure/SameSite=Lax.
+- `/api/genesis/account/me` résout la même `entity` via Core `GET /identites/{entity}`.
+- Core `401` signifie session invalide : réponse 401 et cookie portail effacé.
+- Une panne Core non-401 signifie indisponibilité temporaire : 503 mais session conservée.
+- Les identifiants techniques et tokens ne sont pas exposés inutilement dans l'UI.
 
-## 5. Satellites et incident SSO en cours de clôture
+### Supabase
 
-Principe produit :
+Le stockage métier ZUMRA existant utilise `core_identity_reference` comme point d'attache. Le client métier est serveur/service-role sans session utilisateur Supabase.
 
-> Le Core authentifie ; DG Afrique orchestre ; les satellites exécutent.
+L'ancien CMS `/admin` utilise encore Supabase Auth (`auth.users`). CAP-001 le borne explicitement au **plan de contrôle CMS** : ce credential ne doit jamais devenir l'identité canonique d'un membre ni la clé d'une adhésion, d'un groupe, d'un projet ou d'un satellite.
 
-- DG Afrique est la porte visible d'accès aux satellites.
-- GamaDrive est le premier et, à ce stade, seul satellite réel fédéré en production.
-- Le chantier interne GamaDrive appartient à un autre flux de travail ; ne pas développer ses fonctionnalités depuis ce dépôt.
-- Les satellites ne doivent présenter ni login ni logout indépendant à l'utilisateur.
+## 5. SSO GamaDrive — incident clos
 
-### Dépendances déjà déployées hors de ce dépôt
+GamaDrive est actuellement le seul satellite réel raccordé. Le chantier interne GamaDrive reste hors de ce dépôt.
 
-- Core PR #81 : revérification de la session centrale liée à une session satellite.
-- GamaDrive PR #3 : session Laravel bornée par la session Core + revérification périodique (~120 s), appliquée aux routes authentifiées.
-- Core PR #82 : champ gouverné `logout_url` sur les environnements produit.
-- GamaDrive PR #4 : `GET /federation/deconnexion-centrale`, qui ferme uniquement la session locale puis retourne vers le lanceur DG.
+Dépendances déployées :
 
-### Pourquoi la revérification périodique ne suffit pas
+- Core PR #81 : revérification de session centrale liée ;
+- GamaDrive PR #3 : middleware fédéré sur toutes les routes authentifiées + filet périodique ;
+- Core PR #82 : `logout_url` gouverné dans l'environnement produit ;
+- GamaDrive PR #4 : `GET /federation/deconnexion-centrale` ;
+- DG Afrique : lecture du `logout_url` Core et navigation front-channel après logout central.
 
-Un test navigateur réel a prouvé qu'une déconnexion DG suivie d'un retour immédiat sur GamaDrive pouvait encore laisser la session locale utilisable pendant la fenêtre de revérification. Cette preuve utilisateur a bloqué la validation et conduit au canal front-channel immédiat.
-
-### Travail DG Afrique déployé
-
-Le flux est maintenant en production sur `cursor` :
-
-1. DG lit dans le registre Core le `logout_url` de l'environnement `PRODUCTION` actif du satellite ;
-2. DG ferme la session Core utilisateur et efface le cookie portail ;
-3. l'API logout retourne `nextLogoutUrl` ;
-4. le navigateur navigue vers ce front-channel ;
-5. GamaDrive ferme sa session Laravel locale puis revient au lanceur DG ;
-6. sans session centrale, le lanceur doit revenir à l'authentification DG.
-
-Commits applicatifs :
-
-- `e2757747d0035ba029ed5e1b8e5dd026d4ca767a`
-- `8f8529f545065af282e49fd1c8e89952fb0264da`
-- `adaf81dcde4e5f94336fa8ce7d7cc55f6ae2d8bd`
-- `d52287fcf24c63d4b480c28e716b91178633765c`
-
-Promotion production initiale : `cursor` → `82559c872da4c2e28e7b75f476776272bac170aa`.
-Déploiement Vercel : `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
-
-Ne pas coder en dur l'URL de logout du satellite dans le flux DG. La valeur doit venir du registre Core.
-
-### Blocage opérateur réel
-
-Le produit Core `PRD-GAMAD-002`, environnement PRODUCTION actif, doit recevoir :
+Le Core porte maintenant pour `PRD-GAMAD-002` en PRODUCTION :
 
 `logout_url = https://gamadrive.dgafrique.com/federation/deconnexion-centrale`
 
-Cette opération appartient à l'autorité d'inscription Core. Le registre versionne l'environnement de manière transactionnelle : reprendre exactement les valeurs actuelles `api_base_url`, `health_url` et `audience_federation`, puis ne changer que `logout_url`.
+### Preuve utilisateur production
 
-Tant que cette valeur n'est pas enregistrée, DG reste fail-soft : déconnexion centrale réussie, mais aucun front-channel immédiat n'est appelé.
+Le 2026-08-10 vers 00:25 UTC, le scénario suivant a été testé dans le même navigateur :
 
-### Test navigateur obligatoire après le geste opérateur
+`connexion DG → GamaDrive → retour DG → déconnexion DG → accès direct immédiat GamaDrive`
 
-`connexion DG → GamaDrive → déconnexion DG → accès direct immédiat à GamaDrive`
+Résultat confirmé par l'utilisateur : **tout est OK** ; l'ancienne session satellite ne survit plus.
 
-Résultat attendu : GamaDrive ne conserve aucune session utilisateur ; le navigateur repasse par DG et demande une authentification centrale.
+L'incident est clos, mais cette preuve **ne valide aucun CAP satellite futur**. CAP-018, CAP-049, CAP-051, CAP-074 restent BLOQUÉS.
 
-Ne considérer ce défaut clos qu'après cette preuve réelle. Le fallback périodique GamaDrive reste utile mais n'est pas la preuve du logout immédiat.
+## 6. CAP-001 — travail déjà réalisé sur `cap/001-finalize`
 
-## 6. ZUMRA
+Commits :
 
-Des écrans ZUMRA existent déjà et ont été refondus : profil, adhésion, paiement initial, réseau, groupe, invitation et responsabilités.
+- `7efc07848c65cc1172217e67fe519b3d7b348681` — extraction `portal-session.ts` ;
+- `898e83cc7e387568b63fc140a29b3c390b9270e9` — `account.ts` utilise la primitive ;
+- `4634786f0439f46c7d063d64b17877a777de99c5` — tests cookie ;
+- `040da4f0fd91c8f75f5b645d0bf28449bab752f6` — `npm test` obligatoire avant build ;
+- `378882e265944574d3118e3eb1f829035d07bdb9` — primitive `identity-state.ts` ;
+- `aaad39b3709fcaf634d1260be135d6c8ef8f9329` — route `/me` reliée à cette primitive ;
+- `549b5cb1c08defffd4b04283769c7d86501c914a` — tests 401 / 503.
 
-Ils ne sont **pas automatiquement VALIDÉS** sous le nouveau système CAP. Lors du passage des CAP ZUMRA, auditer le comportement réel, les APIs, les règles de paiement, les responsabilités et les preuves de production.
+Audit Core et Supabase consigné dans la fiche et le dossier de preuve.
 
-Règles métier déjà retenues à préserver lors de l'audit :
+## 7. Blocage actuel : preview final Vercel
 
-- le compte DG Afrique est indépendant de l'adhésion ZUMRA ;
-- l'adhésion devient active uniquement après confirmation serveur du paiement initial ;
-- la contribution mensuelle est distincte du paiement d'adhésion ;
-- une Zumra en formation progresse vers 5 membres et 5 responsabilités fondatrices ;
-- ne pas inventer de catalogue public ou de matching tant qu'aucune API réelle ne le fournit.
+Le statut Vercel du head `549b5cb1c08defffd4b04283769c7d86501c914a` est `failure` avec une cible explicite `build-rate-limit`.
 
-## 7. Expérience utilisateur
+Ce n'est **pas** une preuve d'échec du code. Mais le gate interdit toute promotion tant qu'un build portant **tous** les tests finaux n'a pas réellement été exécuté et marqué `READY`.
 
-- Ne pas exposer inutilement le mot interne `GAMAD` dans le portail public/membre.
-- Préférer les concepts visibles : DG Afrique, ZUMRA, GamaDrive, services, apprentissage, projets, etc.
-- Le portail doit être simple pour un utilisateur non technique.
-- Les écrans doivent s'appuyer sur des données réelles ; pas de montants, matching, réputation ou statistiques fictives.
-- Le design Claude est une source d'inspiration UX, pas une source de règles métier.
+Des previews antérieurs de la même branche étaient READY avant les derniers tests ; ils ne suffisent pas.
 
-## 8. Sécurité
+## 8. Prochaine action exacte
 
-- Ne jamais écrire de secret dans les docs, commits, logs visibles ou réponses.
-- Ne jamais demander à l'utilisateur de coller un secret complet dans une conversation.
-- Ne pas placer les jetons fédérés dans les URLs.
-- Ne pas utiliser de force push ou d'opération destructive sans autorisation explicite.
-- Pour la production : feature branch → preview → vérification → fast-forward sûr vers `cursor`.
+1. Ne pas ouvrir CAP-002.
+2. Vérifier si la limite Vercel permet à nouveau un build du head de `cap/001-finalize`.
+3. Obtenir la preuve que `npm test` passe avant `next build`.
+4. Exiger preview final `READY`.
+5. Comparer `cap/001-finalize` à `cursor` ; la branche doit être uniquement en avance, sans divergence inattendue.
+6. Fast-forward vers `cursor` sans force.
+7. Attendre le déploiement production `READY`.
+8. Contrôler `/espace` et `/api/genesis/account/me` dans un parcours membre réel sans exposer d'identifiant/token.
+9. Contrôler les logs de production pour erreurs et absence de fuite sensible.
+10. Compléter `proofs/CAP-001-2026-08-10.md`, la fiche, l'historique, le registre maître et ce handoff.
+11. Si toutes les cases sont satisfaites : CAP-001 → `VALIDÉ PROD`, CAP-002 → `EN SPEC`.
+12. Sinon : CAP-001 reste actif et CAP-002 reste BLOQUÉ.
 
-## 9. État technique de référence au 2026-08-10
+## 9. Rollback CAP-001
 
-- Production applicative front-channel : `cursor` au moins à `82559c872da4c2e28e7b75f476776272bac170aa`.
-- Déploiement vérifié : `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
-- Une mise à jour documentaire ultérieure peut avancer `cursor` sans changer le comportement applicatif.
-- Gate fonctionnel : **CAP-001 reste NON VALIDÉ PROD**.
+Le changement CAP-001 est un refactoring/test du support de session et de la décision 401/503. Le rollback applicatif connu est un revert des commits CAP-001 ou, si nécessaire, retour au commit production antérieur `75c722d735090484e1cdbea5f278cfa5984b21c3`. Aucun rollback de données Core/Supabase n'est requis par ces changements.
 
-## 10. Reprise exacte
+## 10. ZUMRA et travaux futurs
 
-Si une IA reprend maintenant :
+Des écrans ZUMRA existent déjà : profil, adhésion, paiement initial, réseau, groupe, invitation et responsabilités. Ils ne sont pas validés sous le gate séquentiel et ne doivent pas être poursuivis avant leur CAP.
 
-1. ne pas ouvrir CAP-002 ;
-2. vérifier que l'opérateur Core a enregistré le `logout_url` de `PRD-GAMAD-002` ;
-3. faire exécuter le test navigateur de déconnexion immédiate ;
-4. consigner le résultat dans `CAP-HISTORY.md` ;
-5. si le test est vert, clôturer uniquement l'incident SSO ;
-6. reprendre ensuite le gate CAP-001 et ses preuves restantes ;
-7. ne marquer CAP-001 `VALIDÉ PROD` que lorsque son propre gate complet est satisfait.
+Règles métier déjà retenues à préserver lors de leur audit : compte DG indépendant de ZUMRA ; activation après confirmation serveur du paiement initial ; contribution mensuelle distincte ; groupe vers 5 membres / 5 responsabilités ; aucun catalogue/matching fictif.
 
-## 11. Fichiers à maintenir à chaque session
+## 11. Sécurité et discipline
+
+- Ne jamais écrire de secret dans docs, commits, logs visibles ou réponses.
+- Ne jamais demander à l'utilisateur de coller un secret complet.
+- Ne jamais mettre un jeton fédéré dans une URL.
+- Pas de force push ni d'opération destructive sans autorisation explicite.
+- Production : feature branch → preview réel → vérification → fast-forward sûr vers `cursor`.
+- Une limite de plateforme ou un build non exécuté n'est jamais transformé en preuve verte.
+
+## 12. Fichiers obligatoires à maintenir
 
 - `docs/capacites/CAP-MASTER-TRACKER.md`
 - `docs/capacites/CAP-HISTORY.md`
 - `docs/AI-HANDOFF.md`
-- la fiche du CAP actif dans `docs/capacites/specs/`
+- `docs/capacites/specs/CAP-001-identite-personne.md`
+- `docs/capacites/proofs/CAP-001-2026-08-10.md`
 
 Si ces fichiers ne reflètent pas l'état réel de fin de session, le travail n'est pas considéré terminé.

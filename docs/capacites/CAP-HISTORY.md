@@ -66,13 +66,13 @@ Actions :
 - création de `CAP-MASTER-TRACKER.md` couvrant CAP-001 à CAP-084 ;
 - tous les CAP futurs marqués BLOQUÉS ;
 - CAP-001 défini comme seul gate actif ;
-- création de `AI-HANDOFF.md` et de la fiche CAP-001 prévue dans la même séquence documentaire.
+- création de `AI-HANDOFF.md` et de la fiche CAP-001.
 
 ### État au moment du verrouillage
 
 - Branche production applicative : `cursor`.
 - Dernier commit applicatif production avant la gouvernance CAP : `d906d8a721a9193e326fbfe57159c2ce9d494b07`.
-- Déploiement production Vercel correspondant : `dpl_BVvMA4xfg1raB4naN4hK3nPp9fwx`, état READY au moment de la vérification.
+- Déploiement production Vercel correspondant : `dpl_BVvMA4xfg1raB4naN4hK3nPp9fwx`, READY au moment de la vérification.
 - Gate actif : **CAP-001 — IDENTITÉ PERSONNE**.
 
 ## 2026-08-10 — Incident SSO : déconnexion centrale non propagée à GamaDrive
@@ -85,65 +85,105 @@ Une première correction côté GamaDrive liait sa session locale à la session 
 
 ### Dépendances externes déployées
 
-- GAMAD Core PR #81 : contrat de revérification de session Core liée, déployé. Il permet au satellite de détecter une session centrale révoquée sans recevoir son bearer.
+- GAMAD Core PR #81 : contrat de revérification de session Core liée, déployé.
 - GamaDrive PR #3 : middleware de session fédérée sur l'ensemble des routes authentifiées, avec revérification périodique comme filet de sécurité.
 - GAMAD Core PR #82 : ajout de `logout_url` au registre des environnements produit, déployé ; URL HTTPS exigée en production.
 - GamaDrive PR #4 : `GET /federation/deconnexion-centrale`, déployé ; détruit la session locale sans appel Core puis redirige vers le lanceur DG Afrique.
-
-Ces éléments appartiennent à leurs dépôts respectifs et ne valident aucun CAP DG futur sous le gate séquentiel.
 
 ### Dev DG Afrique
 
 Branche : `fix/front-channel-logout`.
 
-Commits :
+Commits applicatifs :
 
 - `e2757747d0035ba029ed5e1b8e5dd026d4ca767a` — lecture du `logout_url` PRODUCTION actif depuis le registre Core ;
 - `8f8529f545065af282e49fd1c8e89952fb0264da` — exposition du registre local des satellites fédérés pour l'orchestration ;
-- `adaf81dcde4e5f94336fa8ce7d7cc55f6ae2d8bd` — le logout DG ferme la session centrale, efface son cookie et retourne le prochain front-channel ;
-- `d52287fcf24c63d4b480c28e716b91178633765c` — le navigateur suit le `nextLogoutUrl` Core-gouverné après déconnexion.
+- `adaf81dcde4e5f94336fa8ce7d7cc55f6ae2d8bd` — logout DG : fermeture session centrale + retour du front-channel ;
+- `d52287fcf24c63d4b480c28e716b91178633765c` — navigation du navigateur vers `nextLogoutUrl`.
 
-Principes :
+Principes préservés : pas d'URL GamaDrive codée en dur dans le logout, HTTPS sans credentials uniquement, fermeture centrale fail-soft si registre indisponible, un seul front-channel tant que GamaDrive est l'unique satellite réel.
 
-- aucune URL de déconnexion GamaDrive codée en dur dans le flux de logout ;
-- la valeur est lue dans le registre Core ;
-- seuls les `logout_url` HTTPS sans credentials sont acceptés côté DG ;
-- une panne/absence du registre n'empêche pas la fermeture de la session centrale ;
-- GamaDrive étant le seul satellite réel raccordé, le flux ne chaîne actuellement qu'un front-channel ; un futur multi-satellite devra définir explicitement son chaînage avant activation.
+### Preview et production DG
 
-### Preview
+- Preview applicatif `dpl_BAd48avZF3QuRH7WykKXjh67V9eu` — READY.
+- Preview branche complète `dpl_Eqg6N7FZ7JJyF9kwrzP5t7C2G3Jy` — READY.
+- Fast-forward sans force vers `cursor`.
+- Déploiement production `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
+- Documentation ultérieure sur `cursor` : `75c722d735090484e1cdbea5f278cfa5984b21c3`, production `dpl_4kekTkZZQnfVBbLSnikqEkxGBBKb` — READY.
 
-- Preview du code applicatif `d52287fcf24c63d4b480c28e716b91178633765c` : `dpl_BAd48avZF3QuRH7WykKXjh67V9eu` — READY.
-- Preview de la branche complète, documentation incluse, `82559c872da4c2e28e7b75f476776272bac170aa` : `dpl_Eqg6N7FZ7JJyF9kwrzP5t7C2G3Jy` — READY.
-- Comparaison avant promotion : branche `ahead=6`, `behind=0` par rapport à `cursor` ; fast-forward sans force.
+### Geste opérateur Core
 
-### Prod
+L'autorité Core a déclaré par la voie gouvernée `AccesProduits::declarerEnvironnement()` l'environnement PRODUCTION de `PRD-GAMAD-002` avec :
 
-- `cursor` promu par fast-forward vers `82559c872da4c2e28e7b75f476776272bac170aa`.
-- Déploiement Vercel production : `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
-- Build Next.js terminé sans erreur ; `/api/genesis/account/logout`, `/espace` et `/federation/continue/[satellite]` compilés.
+- produit toujours ACTIF et fédérable ;
+- audience `PRD-GAMAD-002` ;
+- `logout_url = https://gamadrive.dgafrique.com/federation/deconnexion-centrale` ;
+- journal `ENVIRONNEMENT_PRODUIT_DECLARE`, décision exécutée ;
+- aucun secret dans les valeurs publiques déclarées.
 
-La partie DG Afrique du canal front-channel est donc déployée. Elle reste volontairement inactive si le Core ne fournit aucun `logout_url` valide.
+Il s'agissait en réalité de la première déclaration d'environnement persistante pour ce produit ; aucune version précédente n'a donc été clôturée.
 
-### Blocage opérateur avant preuve production
+### Validation utilisateur finale — INCIDENT CLOS
 
-Le registre Core doit encore porter sur l'environnement PRODUCTION actif de `PRD-GAMAD-002` :
+Date : **2026-08-10**, vers **00:25 UTC**.
 
-`logout_url = https://gamadrive.dgafrique.com/federation/deconnexion-centrale`
+Scénario réel, même navigateur :
 
-Cette écriture est un geste d'autorité opérateur Core (`AUTORITE_INSCRIPTION`) et ne doit pas être simulée ou codée en dur dans DG Afrique.
+`connexion DG → ouverture GamaDrive → retour DG → déconnexion DG → accès direct immédiat GamaDrive`
 
-Le registre Core versionne un environnement redéclaré : l'ancienne version active est clôturée et la nouvelle est insérée dans la même transaction. L'opérateur doit reprendre exactement `api_base_url`, `health_url` et `audience_federation` de l'environnement PRODUCTION actif, et ne changer que `logout_url`.
+Attendu : l'ancienne session locale GamaDrive n'est plus exploitable et l'utilisateur repasse par la porte DG Afrique.
 
-### Validation encore requise
+Observé : **succès confirmé par l'utilisateur — « les tests ont marché tout est ok »**.
 
-Après déclaration Core, refaire le scénario navigateur :
+Conclusion : l'incident de déconnexion fédérée immédiate est **CLOS**. La revérification périodique GamaDrive reste un filet de sécurité. Cette clôture ne valide aucun CAP satellite futur ; CAP-018/CAP-049/CAP-051/CAP-074 restent BLOQUÉS.
 
-`connexion DG → ouverture GamaDrive → déconnexion DG → accès direct immédiat à GamaDrive`.
+## 2026-08-10 — CAP-001 : audit et finalisation technique
 
-Attendu : aucune session GamaDrive survivante ; le navigateur repasse par DG Afrique et requiert une nouvelle authentification centrale.
+### Spec
 
-**CAP-001 reste le seul gate actif et n'est pas VALIDÉ PROD à cause de cette entrée. Aucun CAP suivant n'est ouvert.**
+- Contrat Core réel `CAP-CORE-001 / CTR-01` audité dans `Ctr01.php` et `Ctr01Controller.php`.
+- Le Core conserve l'identité minimale et canonique ; il n'absorbe pas les profils/données métier des produits.
+- Limites CAP-001 clarifiées : CAP-002, CAP-003, CAP-018, CAP-051, CAP-052 et CAP-053 restent hors scope et BLOQUÉS.
+- Supabase Auth historique du CMS est documenté comme credential du plan de contrôle `/admin`, jamais comme identité membre ou point d'attache métier.
+
+### Audit données
+
+Points d'attache vérifiés dans les migrations existantes :
+
+- `zumra_memberships.core_identity_reference` unique ;
+- profil membre, groupes, membres, rôles, événements et paiements ZUMRA rattachés à la même référence Core ;
+- `/api/zumra/me` requête avec `session.entity` ;
+- client Supabase métier côté serveur en service role, sans persistance de session utilisateur Supabase.
+
+Ces éléments prouvent uniquement la structure d'identité ; ils ne valident aucun CAP ZUMRA futur.
+
+### Dev
+
+Nouvelle branche propre issue de la production courante : `cap/001-finalize`.
+
+Commits :
+
+- `7efc07848c65cc1172217e67fe519b3d7b348681` — primitive testable de session portail ;
+- `898e83cc7e387568b63fc140a29b3c390b9270e9` — `account.ts` utilise cette primitive ;
+- `4634786f0439f46c7d063d64b17877a777de99c5` — tests d'intégrité/expiration du cookie ;
+- `040da4f0fd91c8f75f5b645d0bf28449bab752f6` — `npm test` devient obligatoire avant `next build` ;
+- `378882e265944574d3118e3eb1f829035d07bdb9` — sémantique explicite des erreurs d'identité ;
+- `aaad39b3709fcaf634d1260be135d6c8ef8f9329` — `/api/genesis/account/me` utilise la primitive 401/503 ;
+- `549b5cb1c08defffd4b04283769c7d86501c914a` — tests 401 / panne transitoire.
+
+### Tests / Preview
+
+- Les previews antérieurs à l'ajout final des tests étaient READY.
+- Le head `549b5cb1c08defffd4b04283769c7d86501c914a` a reçu un statut Vercel `failure` dont la cible est explicitement `build-rate-limit`.
+- Ce statut n'est pas interprété comme une erreur applicative, mais **aucune promotion n'est autorisée** sans un build final réellement exécuté et READY.
+
+### Preuve durable
+
+Dossier : `docs/capacites/proofs/CAP-001-2026-08-10.md`.
+
+### Handoff
+
+CAP-001 reste le seul gate actif, statut `EN DEV`. CAP-002 reste BLOQUÉ. Prochain geste : obtenir un preview final avec `npm test` + `next build`, puis production, puis compléter les critères restants avant toute validation.
 
 ## Format obligatoire des prochaines entrées
 
