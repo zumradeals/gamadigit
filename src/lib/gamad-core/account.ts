@@ -4,6 +4,7 @@ import {
   parsePortalSession,
   serializePortalSession,
   type PortalAccountSession,
+  type PortalSessionAttestation,
 } from '@/lib/gamad-core/portal-session';
 
 export { parsePortalSession, serializePortalSession };
@@ -31,6 +32,13 @@ type CoreSession = {
   expire_le?: string;
   erreur?: string;
   message?: string;
+};
+
+type CoreCurrentSession = {
+  entite?: string;
+  assurance?: string | null;
+  expire_le?: string;
+  erreur?: string;
 };
 
 export type AccountCreationResult = {
@@ -141,6 +149,38 @@ export async function readCanonicalIdentity(session: PortalAccountSession) {
   });
   if (!response.ok) throw new CoreAccountError(response.status === 401 ? 'SESSION_INVALIDE' : 'IDENTITE_INDISPONIBLE', response.status);
   return response.json() as Promise<Record<string, unknown>>;
+}
+
+/**
+ * CAP-002 — lit l'échéance courante réellement attestée par GAMAD Core après
+ * passage par le middleware authentifié. Aucun calcul de durée n'est fait côté DG.
+ */
+export async function readCurrentUserSession(session: PortalAccountSession): Promise<PortalSessionAttestation> {
+  const config = getGamadCoreConfig();
+  const response = await coreFetch(`${config.baseUrl}/sessions/current`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${session.token}` },
+  });
+  const body = (await response.json().catch(() => ({}))) as CoreCurrentSession;
+
+  if (!response.ok) {
+    throw new CoreAccountError(
+      response.status === 401 ? 'SESSION_INVALIDE' : body.erreur || 'SESSION_COURANTE_INDISPONIBLE',
+      response.status || 503,
+    );
+  }
+  if (!body.entite || !body.expire_le) {
+    throw new CoreAccountError('REPONSE_SESSION_COURANTE_INCOMPLETE', 502);
+  }
+  if (body.entite !== session.entity) {
+    throw new CoreAccountError('SESSION_ENTITE_INCOHERENTE', 502);
+  }
+
+  return {
+    entity: body.entite,
+    assurance: typeof body.assurance === 'string' ? body.assurance : null,
+    expiresAt: body.expire_le,
+  };
 }
 
 export async function closeUserSession(session: PortalAccountSession) {
