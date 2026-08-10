@@ -1,130 +1,144 @@
 # AI HANDOFF — DG Afrique
 
-> **Lire ce fichier avant toute modification.** Il doit permettre à une autre IA de reprendre sans la conversation.
+> **Lire ce fichier avant toute modification.** Il doit permettre à une autre IA de reprendre sans accès à la conversation précédente.
 
-## 1. Projet canonique
+## Projet canonique
 
 - Dépôt : `zumradeals/gamadigit`
 - Production : branche `cursor`, `https://dgafrique.com`
-- Stack : Next.js 15, React 19, TypeScript, Tailwind, Supabase/PostgreSQL, GAMAD Core, GeniusPay.
+- Stack : Next.js 15, React 19, TypeScript, Tailwind, Supabase/PostgreSQL, GAMAD Core, GeniusPay
 - Laravel V2 n'est plus la trajectoire active.
 
-## 2. Loi du chantier
+## Règle absolue de chantier
 
-Progression obligatoire **CAP-001 → CAP-084**, un seul CAP actif.
+Le développement suit strictement **CAP-001 → CAP-084**.
 
-Avant toute action : lire `docs/capacites/CAP-MASTER-TRACKER.md`, `CAP-PRODUCTION-GATE.md`, la fiche et le dossier de preuve du CAP actif. Aucun CAP N+1 n'est ouvert avant `VALIDÉ PROD` de N. Un écran/API déjà présent pour un CAP futur reste préexistant/non validé.
+1. lire `docs/capacites/CAP-MASTER-TRACKER.md` ;
+2. prendre le premier CAP non `VALIDÉ PROD` ;
+3. ne travailler que sur ce CAP ;
+4. appliquer `docs/capacites/CAP-PRODUCTION-GATE.md` ;
+5. maintenir fiche, preuve, historique, tracker et ce handoff ;
+6. aucun CAP N+1 ne s'ouvre tant que CAP N n'est pas `VALIDÉ PROD`.
 
-Toujours finir une session en mettant à jour la fiche, le dossier de preuve, `CAP-HISTORY.md`, `CAP-MASTER-TRACKER.md` et ce handoff.
+Du code futur peut déjà exister : il reste préexistant/non validé jusqu'à son tour.
 
-## 3. État officiel
+## État officiel — 2026-08-10
 
 ### CAP-001 — IDENTITÉ PERSONNE
 
 **VALIDÉ PROD.**
 
+- preuve : `docs/capacites/proofs/CAP-001-2026-08-10.md`
 - commit applicatif : `76e4d1266f7ad4a1ca4772292145d8e138e69747`
 - preview : `dpl_5n97En7V4aDEeSTKgBdwzc6YPc56` READY
 - production : `dpl_7pSY1rsS2x8EbhcNym1He1nHCZYx` READY
-- validation utilisateur : `Mon espace OK`
-- preuve : `docs/capacites/proofs/CAP-001-2026-08-10.md`
+- validation utilisateur : « Mon espace OK »
 
-À préserver : Core est l'autorité canonique personne ; `session.entity` est le point d'attache ; Supabase métier n'est pas une seconde identité membre ; 401 Core invalide le cookie ; panne non-401 conserve la session.
+À préserver : GAMAD Core est l'autorité canonique ; `session.entity` est le point d'attache ; Supabase métier ne crée pas d'identité membre parallèle.
 
 ### CAP-002 — COMPTE DG AFRIQUE
 
-**EN DEV — seul gate actif.**
+**EN DEV — seul gate actif. CAP-003 à CAP-084 restent BLOQUÉS.**
 
-- branche : `cap/002-compte-dg-afrique`
-- fiche : `docs/capacites/specs/CAP-002-compte-dg-afrique.md`
-- preuve en cours : `docs/capacites/proofs/CAP-002-2026-08-10.md`
-- CAP-003 à CAP-084 : **BLOQUÉS**.
+Branche DG : `cap/002-compte-dg-afrique`.
 
-Référentiel V0.1 : compte gratuit, création, vérification, connexion, entrée dans Mon espace ; compte distinct de ZUMRA ; porte d'accès et non adhésion automatique.
+Référentiel V0.1 : compte gratuit, création, vérification, connexion, entrée dans Mon espace ; compte DG distinct de ZUMRA.
 
-## 4. CAP-002 — audit Core confirmé
+## Travaux CAP-002 déjà réalisés côté DG
 
-Core main :
+Écarts corrigés sur la branche :
 
-- `POST /v1/comptes` : création gouvernée par produit ; password min 6 ; EMAIL/TELEPHONE vérification requise ;
-- `POST /v1/comptes/verifications` : consommation du défi du même produit ;
-- `POST /v1/comptes/verifications/renvoi` : **contrat `{identifiant_reference,destination}`**, 60 s minimum, 5 émissions/h ;
-- EMAIL non vérifié ne peut pas servir à `resoudrePourAuthentification` ;
-- `POST /v1/sessions` : ouverture ;
-- `DELETE /v1/sessions/current` : fermeture ;
-- `Ctr16` : session 8 h d'inactivité glissantes, plafond absolu 30 jours.
+- renvoi de code aligné sur le contrat Core courant `identifiant_reference + destination` ;
+- `?next=` local sûr repris après authentification ;
+- reprise de vérification après reload via dossier local borné sans mot de passe ni code ;
+- `VERIFICATION_NON_LIVREE` conserve les références du même compte pour permettre le renvoi ;
+- limitation login Core 429 présentée proprement ;
+- session glissante : DG sait maintenant lire l'attestation Core et renouveler son cookie uniquement jusqu'à l'échéance attestée.
 
-Le Core livre le code de vérification au canal humain et ne renvoie pas le code brut au navigateur via DG.
+Dernier head applicatif testé : `4b9e8c882d6885632927f20a62efb9d5f4dfe1d7`.
 
-## 5. CAP-002 — corrections DG déjà faites sur la branche
+Preview : `dpl_AbwStXbszQuJtforAc7q2db9VC5a` — **READY**.
 
-Commits principaux :
+Build : **16 tests / 16 pass / 0 fail**, `npm test && next build` vert, compilation/types verts.
 
-- `c1b3ddd3b4089b52bc04f2a523912d9ef30d6d98` — spec/audit ;
-- `c6d3d73eac6455ac9dbe7b0f7f14910a451b1a46` — tracker EN DEV ;
-- `4cb95b0cf4291e5641d59608bc22c6deb7587718` + `c5eb890548bf0867fa4056ef9972aabd31abcc8f` — `account-flow.ts` ;
-- `ed8cc628760f7c15a2f729ffddeaad7918ca69c1` — `account.ts` aligné Core ;
-- `2586ca1feae0696beb6dc47e51758ca59000642b` — récupération du cas `VERIFICATION_NON_LIVREE` ;
-- `b1f69f22f02e00bb91c6eb79b136cc5f9581fe9d` — renvoi aligné ;
-- `4faf442fdd8ea69dfc4468754d6efc91f8310bfa` — `next` local sûr ;
-- `a62be11764c74a8da539cb8fdf086d1468824fac` — UI reprise de vérification ;
-- `d08e31d7199d6502a30ddb46f7739b283bb95e37` — 429 connexion ;
-- `ed75255b274f48c93b83252e466475fe3cac3d6f` — tests CAP-002.
+## Dépendance Core CAP-002 — état exact
 
-Comportements :
+Claude/Core a vérifié qu'aucune primitive existante ne répondait au besoin de connaître l'échéance glissée du bearer Core courant.
 
-1. renvoi Core avec `{identifiant_reference,destination}` ;
-2. `?next=` repris uniquement s'il est un chemin local sûr ;
-3. dossier de vérification reprenable après reload dans `localStorage`, sans password/code, borné 7 jours ;
-4. ancien code expiré peut être remplacé par renvoi sans recréer le compte ;
-5. `VERIFICATION_NON_LIVREE` conserve les références du compte déjà créé ;
-6. 429 login présenté comme trop de tentatives.
+Contrat préparé dans `zumradeals/gamad-core` :
 
-## 6. Preview DG actuel
+```http
+GET /api/v1/sessions/current
+Authorization: Bearer <jeton existant>
+```
 
-Head code : `ed75255b274f48c93b83252e466475fe3cac3d6f`.
+Réponse 200 `no-store` :
 
-Vercel : `dpl_FvNxDXp32TjpUnvTHhbNAP9focvW` — **READY**.
+```json
+{
+  "entite": "IDN-...",
+  "assurance": "AS1 — FACTEUR UNIQUE",
+  "expire_le": "..."
+}
+```
 
-Build : `npm test && next build` ; **13 tests / 13 pass / 0 fail** ; compilation, lint/types et génération 101/101 verts.
+Le `expire_le` est l'échéance réellement persistée après vérification/glissement. 401 si session absente/invalide/expirée/révoquée. Aucun nouveau jeton ni nouvelle session.
 
-**Ne pas promouvoir vers `cursor` maintenant.** Un bloqueur Core reste ouvert.
+Commit Core préparé : **`bdab896`**, sur branche Claude dédiée.
 
-## 7. BLOQUEUR — session Core glissante vs cookie DG
+Tests Core annoncés verts :
 
-DG fixe actuellement le cookie HttpOnly à l'`expire_le` reçu lors du `POST /sessions` initial. Le Core, lui, prolonge `expire_le` lors de chaque `verifierSession()` valide, jusqu'à 30 jours. `AuthentifierApi` ne transmet pas l'échéance rafraîchie aux contrôleurs/au produit.
+- `authentification_p3.php` — 28 assertions ;
+- `sessions_current_p1.php` — 8/8 ;
+- garde journal opérationnel verte ;
+- OpenAPI, console auth et fédération verts.
 
-Donc le navigateur DG peut supprimer son cookie à l'échéance initiale (~8 h) alors que la session Core a été prolongée. **Ne jamais fabriquer une nouvelle date côté DG.**
+`api_v1_p1.php` a un échec readiness matching/pgsql déclaré préexistant sur `main`, reproduit sans les changements CAP-002 et hors périmètre.
 
-Contrat Core minimal requis : après authentification valide, exposer l'`expire_le` courant attesté, par exemple via `GET /sessions/current`, un en-tête authentifié, ou une primitive officielle équivalente. DG renouvellera son cookie au maximum jusqu'à cette échéance attestée, jamais au-delà. Aucun nouveau token/compte/identité parallèle.
+**Important : `bdab896` n'est PAS fusionné dans `main`, PAS déployé sur le VPS et n'a aucune preuve live.** Claude attend une autorisation explicite du dirigeant pour fusionner/déployer.
 
-Ce point doit être traité dans le chantier Core/Claude ou résolu par une primitive Core déjà officielle. Ne pas modifier GamaDrive dans ce chantier.
+## Raccord DG déjà préparé
 
-## 8. Message technique à transmettre au chantier Core
+- `src/lib/gamad-core/account.ts` : `readCurrentUserSession()` appelle `GET /sessions/current` avec le bearer existant ;
+- `src/lib/gamad-core/portal-session.ts` : `renewPortalSessionFromAttestation()` exige même identité, échéance future et non-régressive ;
+- `/api/genesis/account/me` : résout l'identité, lit l'attestation puis réécrit le cookie signé avec l'`expire_le` Core ;
+- DG ne calcule jamais 8 h et ne prolonge jamais au-delà de Core.
 
-« CAP-002 DG Afrique audite la cohérence de session. Core Ctr16 glisse désormais l'expiration de 8 h d'inactivité jusqu'au plafond 30 jours, mais DG ne reçoit `expire_le` qu'au POST `/sessions` initial. `AuthentifierApi` appelle `verifierSession()` puis n'expose que entity/assurance/session, donc le cookie HttpOnly DG reste fixé à l'ancienne échéance et peut disparaître alors que Core a prolongé la session. Merci d'identifier d'abord s'il existe déjà une primitive officielle pour lire l'échéance courante. Sinon, implémenter le contrat minimal authentifié et non secret qui expose l'`expire_le` courant après vérification valide (GET `/sessions/current`, header ou équivalent), avec tests et preuve de déploiement. Ne pas créer une nouvelle session ni un second token. DG ne renouvellera son cookie qu'à l'échéance attestée par Core. »
+Ne pas promouvoir DG avant que la route Core soit live : sinon `/api/genesis/account/me` dépendrait d'un endpoint absent en production.
 
-## 9. Prochaine action exacte
+## Prochaine action exacte
 
-1. attendre le résultat du chantier Core ci-dessus ;
-2. auditer la sémantique exacte livrée ;
-3. intégrer le rafraîchissement de cookie DG sans dépasser `expire_le` Core ;
-4. ajouter tests CAP-002 de renouvellement borné ;
-5. mettre à jour fiche/preuve/historique ;
-6. final preview READY ;
-7. tests navigateur : création, vérification, reload, renvoi, connexion, `next`, déjà connecté, logout ;
-8. fast-forward `force:false` seulement après diff sûr ;
-9. production READY + logs + validation utilisateur ;
-10. seulement alors CAP-002 → VALIDÉ PROD et CAP-003 → EN SPEC.
+1. obtenir l'autorisation dirigeant pour que Claude fusionne `bdab896` dans `gamad-core/main` ;
+2. Claude déploie Core sur le VPS et revalide ses preuves sur checkout live ;
+3. récupérer le rapport de déploiement exact ;
+4. tester le preview DG `cap/002-compte-dg-afrique` contre le Core live ;
+5. si vert, finaliser preuve/historique ;
+6. comparer branche DG à `cursor` ;
+7. fast-forward `force:false` uniquement si ahead-only ;
+8. attendre Vercel production READY ;
+9. tests navigateur CAP-002 : création → vérification → reload/reprise → renvoi → connexion → `next` → Mon espace → déconnexion ;
+10. logs production + validation utilisateur ;
+11. seulement alors CAP-002 → `VALIDÉ PROD` et CAP-003 → `EN SPEC`.
 
-## 10. SSO GamaDrive — incident clos, hors gate actuel
+## Sécurité / discipline
 
-GamaDrive est le seul satellite réel raccordé. Core PR #81/#82, GamaDrive PR #3/#4 et front-channel DG sont en production. Test utilisateur central logout réussi. Cette preuve ne valide pas CAP-018/049/051/074.
-
-## 11. Discipline
-
-- jamais de secret dans docs/logs/réponses ;
-- ne jamais demander à l'utilisateur de coller un secret ;
+- aucun secret dans docs/logs/messages ;
+- ne jamais demander à l'utilisateur de coller un secret complet ;
 - pas de force push ;
-- branche → preview READY → compare → fast-forward sans force → prod READY → preuves ;
-- une preuve d'un CAP ne valide jamais un CAP futur par ricochet.
+- production DG : branche dédiée → preview READY → compare → fast-forward `force:false` ;
+- une preuve locale Core n'est pas une preuve production ;
+- une route Core non déployée bloque la promotion DG ;
+- les travaux ZUMRA, satellites, profil, compétences et autres CAP restent hors scope jusqu'à leur tour.
+
+## SSO GamaDrive — incident clos mais CAP futurs non validés
+
+Entrée et déconnexion centrale immédiate ont été validées navigateur. Core PR #81/#82, GamaDrive PR #3/#4 et DG front-channel sont en production. Cette preuve ne valide pas CAP-018/049/051/074.
+
+## Fichiers obligatoires à maintenir
+
+- `docs/capacites/CAP-PRODUCTION-GATE.md`
+- `docs/capacites/CAP-MASTER-TRACKER.md`
+- `docs/capacites/CAP-HISTORY.md`
+- `docs/AI-HANDOFF.md`
+- fiche du CAP actif
+- dossier de preuve du CAP actif
