@@ -46,17 +46,65 @@ Ne pas commencer CAP-002 avant que CAP-001 ait ses preuves de production et soit
 - Un `401` Core invalide réellement la session ; une panne transitoire ne doit pas déconnecter l'utilisateur.
 - Les identifiants techniques Core ne doivent pas être exposés inutilement dans l'UI utilisateur.
 
-## 5. Satellites
+## 5. Satellites et incident SSO en cours de clôture
 
 Principe produit :
 
 > Le Core authentifie ; DG Afrique orchestre ; les satellites exécutent.
 
 - DG Afrique est la porte visible d'accès aux satellites.
-- GamaDrive est le premier satellite fédéré en production.
+- GamaDrive est le premier et, à ce stade, seul satellite réel fédéré en production.
 - Le chantier interne GamaDrive appartient à un autre flux de travail ; ne pas développer ses fonctionnalités depuis ce dépôt.
-- DG Afrique ne doit gérer que son registre, son lanceur et son expérience d'accès quand les CAP correspondants seront ouverts.
-- Le modèle cible est une connexion/déconnexion centrale : les satellites ne doivent pas exposer une seconde logique d'identité comme produit indépendant.
+- Les satellites ne doivent présenter ni login ni logout indépendant à l'utilisateur.
+
+### Dépendances déjà déployées hors de ce dépôt
+
+- Core PR #81 : revérification de la session centrale liée à une session satellite.
+- GamaDrive PR #3 : session Laravel bornée par la session Core + revérification périodique (~120 s), appliquée aux routes authentifiées.
+- Core PR #82 : champ gouverné `logout_url` sur les environnements produit.
+- GamaDrive PR #4 : `GET /federation/deconnexion-centrale`, qui ferme uniquement la session locale puis retourne vers le lanceur DG.
+
+### Pourquoi la revérification périodique ne suffit pas
+
+Un test navigateur réel a prouvé qu'une déconnexion DG suivie d'un retour immédiat sur GamaDrive pouvait encore laisser la session locale utilisable pendant la fenêtre de revérification. Cette preuve utilisateur a bloqué la validation et conduit au canal front-channel immédiat.
+
+### Travail DG Afrique en cours
+
+Branche : `fix/front-channel-logout`.
+
+Le flux implémenté :
+
+1. DG lit dans le registre Core le `logout_url` de l'environnement `PRODUCTION` actif du satellite ;
+2. DG ferme la session Core utilisateur et efface le cookie portail ;
+3. l'API logout retourne `nextLogoutUrl` ;
+4. le navigateur navigue vers ce front-channel ;
+5. GamaDrive ferme sa session Laravel locale puis revient au lanceur DG ;
+6. sans session centrale, le lanceur doit revenir à l'authentification DG.
+
+Commits applicatifs de cette branche :
+
+- `e2757747d0035ba029ed5e1b8e5dd026d4ca767a`
+- `8f8529f545065af282e49fd1c8e89952fb0264da`
+- `adaf81dcde4e5f94336fa8ce7d7cc55f6ae2d8bd`
+- `d52287fcf24c63d4b480c28e716b91178633765c`
+
+Ne pas coder en dur l'URL de logout du satellite dans le flux DG. La valeur doit venir du registre Core.
+
+### Blocage opérateur réel
+
+Le produit Core `PRD-GAMAD-002`, environnement PRODUCTION actif, doit recevoir :
+
+`logout_url = https://gamadrive.dgafrique.com/federation/deconnexion-centrale`
+
+Cette opération appartient à l'autorité d'inscription Core. Tant que cette valeur n'est pas enregistrée, DG doit rester fail-soft : déconnexion centrale réussie, mais aucun front-channel immédiat disponible.
+
+### Test navigateur obligatoire après mise en production
+
+`connexion DG → GamaDrive → déconnexion DG → accès direct immédiat à GamaDrive`
+
+Résultat attendu : GamaDrive ne conserve aucune session utilisateur ; le navigateur repasse par DG et demande une authentification centrale.
+
+Ne considérer ce défaut clos qu'après cette preuve réelle. Le fallback périodique GamaDrive reste utile mais n'est pas la preuve du logout immédiat.
 
 ## 6. ZUMRA
 
@@ -88,32 +136,29 @@ Règles métier déjà retenues à préserver lors de l'audit :
 - Ne pas utiliser de force push ou d'opération destructive sans autorisation explicite.
 - Pour la production : feature branch → preview → vérification → fast-forward sûr vers `cursor`.
 
-## 9. État technique de référence au 2026-08-09
+## 9. État technique de référence
 
-Dernier commit applicatif production avant la mise en place de cette gouvernance :
+La branche de production est `cursor`. Les travaux front-channel sont isolés sur `fix/front-channel-logout` jusqu'à validation du preview puis fast-forward sûr.
 
-`d906d8a721a9193e326fbfe57159c2ce9d494b07`
+Preview final attendu pour le commit applicatif `d52287fcf24c63d4b480c28e716b91178633765c` :
 
-Dernier déploiement applicatif contrôlé :
+`dpl_BAd48avZF3QuRH7WykKXjh67V9eu`.
 
-`dpl_BVvMA4xfg1raB4naN4hK3nPp9fwx` — READY.
-
-Les commits documentaires de gouvernance CAP peuvent avancer après ce point sans changer le comportement applicatif.
+Vérifier qu'il est `READY` avant promotion.
 
 ## 10. Reprise exacte
 
-Si une IA reprend maintenant :
+Si une IA reprend pendant cet incident :
 
-1. ne pas continuer ZUMRA, GamaDrive, Apprendre ou un autre module ;
-2. auditer CAP-001 contre le référentiel, le Core et le comportement production ;
-3. compléter sa fiche ;
-4. identifier les écarts ;
-5. corriger uniquement les écarts CAP-001 ;
-6. tester en preview ;
-7. déployer ;
-8. exécuter les tests de production ;
-9. consigner les preuves ;
-10. seulement ensuite marquer CAP-001 `VALIDÉ PROD` et ouvrir CAP-002.
+1. ne pas ouvrir CAP-002 ;
+2. vérifier l'état du preview `dpl_BAd48avZF3QuRH7WykKXjh67V9eu` ;
+3. si READY et branche fast-forwardable, promouvoir `fix/front-channel-logout` vers `cursor` ;
+4. faire enregistrer le `logout_url` réel de `PRD-GAMAD-002` dans le Core par l'opérateur autorisé ;
+5. demander le test navigateur de déconnexion immédiate ;
+6. consigner le résultat ;
+7. reprendre ensuite seulement le gate CAP-001 et ses preuves restantes.
+
+Si l'incident est déjà clos, reprendre directement CAP-001 conformément à sa fiche. Ne jamais ouvrir un CAP suivant avant `VALIDÉ PROD`.
 
 ## 11. Fichiers à maintenir à chaque session
 
