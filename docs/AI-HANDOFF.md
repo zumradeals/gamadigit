@@ -68,11 +68,9 @@ Principe produit :
 
 Un test navigateur réel a prouvé qu'une déconnexion DG suivie d'un retour immédiat sur GamaDrive pouvait encore laisser la session locale utilisable pendant la fenêtre de revérification. Cette preuve utilisateur a bloqué la validation et conduit au canal front-channel immédiat.
 
-### Travail DG Afrique en cours
+### Travail DG Afrique déployé
 
-Branche : `fix/front-channel-logout`.
-
-Le flux implémenté :
+Le flux est maintenant en production sur `cursor` :
 
 1. DG lit dans le registre Core le `logout_url` de l'environnement `PRODUCTION` actif du satellite ;
 2. DG ferme la session Core utilisateur et efface le cookie portail ;
@@ -81,12 +79,15 @@ Le flux implémenté :
 5. GamaDrive ferme sa session Laravel locale puis revient au lanceur DG ;
 6. sans session centrale, le lanceur doit revenir à l'authentification DG.
 
-Commits applicatifs de cette branche :
+Commits applicatifs :
 
 - `e2757747d0035ba029ed5e1b8e5dd026d4ca767a`
 - `8f8529f545065af282e49fd1c8e89952fb0264da`
 - `adaf81dcde4e5f94336fa8ce7d7cc55f6ae2d8bd`
 - `d52287fcf24c63d4b480c28e716b91178633765c`
+
+Promotion production initiale : `cursor` → `82559c872da4c2e28e7b75f476776272bac170aa`.
+Déploiement Vercel : `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
 
 Ne pas coder en dur l'URL de logout du satellite dans le flux DG. La valeur doit venir du registre Core.
 
@@ -96,9 +97,11 @@ Le produit Core `PRD-GAMAD-002`, environnement PRODUCTION actif, doit recevoir :
 
 `logout_url = https://gamadrive.dgafrique.com/federation/deconnexion-centrale`
 
-Cette opération appartient à l'autorité d'inscription Core. Tant que cette valeur n'est pas enregistrée, DG doit rester fail-soft : déconnexion centrale réussie, mais aucun front-channel immédiat disponible.
+Cette opération appartient à l'autorité d'inscription Core. Le registre versionne l'environnement de manière transactionnelle : reprendre exactement les valeurs actuelles `api_base_url`, `health_url` et `audience_federation`, puis ne changer que `logout_url`.
 
-### Test navigateur obligatoire après mise en production
+Tant que cette valeur n'est pas enregistrée, DG reste fail-soft : déconnexion centrale réussie, mais aucun front-channel immédiat n'est appelé.
+
+### Test navigateur obligatoire après le geste opérateur
 
 `connexion DG → GamaDrive → déconnexion DG → accès direct immédiat à GamaDrive`
 
@@ -136,29 +139,24 @@ Règles métier déjà retenues à préserver lors de l'audit :
 - Ne pas utiliser de force push ou d'opération destructive sans autorisation explicite.
 - Pour la production : feature branch → preview → vérification → fast-forward sûr vers `cursor`.
 
-## 9. État technique de référence
+## 9. État technique de référence au 2026-08-10
 
-La branche de production est `cursor`. Les travaux front-channel sont isolés sur `fix/front-channel-logout` jusqu'à validation du preview puis fast-forward sûr.
-
-Preview final attendu pour le commit applicatif `d52287fcf24c63d4b480c28e716b91178633765c` :
-
-`dpl_BAd48avZF3QuRH7WykKXjh67V9eu`.
-
-Vérifier qu'il est `READY` avant promotion.
+- Production applicative front-channel : `cursor` au moins à `82559c872da4c2e28e7b75f476776272bac170aa`.
+- Déploiement vérifié : `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
+- Une mise à jour documentaire ultérieure peut avancer `cursor` sans changer le comportement applicatif.
+- Gate fonctionnel : **CAP-001 reste NON VALIDÉ PROD**.
 
 ## 10. Reprise exacte
 
-Si une IA reprend pendant cet incident :
+Si une IA reprend maintenant :
 
 1. ne pas ouvrir CAP-002 ;
-2. vérifier l'état du preview `dpl_BAd48avZF3QuRH7WykKXjh67V9eu` ;
-3. si READY et branche fast-forwardable, promouvoir `fix/front-channel-logout` vers `cursor` ;
-4. faire enregistrer le `logout_url` réel de `PRD-GAMAD-002` dans le Core par l'opérateur autorisé ;
-5. demander le test navigateur de déconnexion immédiate ;
-6. consigner le résultat ;
-7. reprendre ensuite seulement le gate CAP-001 et ses preuves restantes.
-
-Si l'incident est déjà clos, reprendre directement CAP-001 conformément à sa fiche. Ne jamais ouvrir un CAP suivant avant `VALIDÉ PROD`.
+2. vérifier que l'opérateur Core a enregistré le `logout_url` de `PRD-GAMAD-002` ;
+3. faire exécuter le test navigateur de déconnexion immédiate ;
+4. consigner le résultat dans `CAP-HISTORY.md` ;
+5. si le test est vert, clôturer uniquement l'incident SSO ;
+6. reprendre ensuite le gate CAP-001 et ses preuves restantes ;
+7. ne marquer CAP-001 `VALIDÉ PROD` que lorsque son propre gate complet est satisfait.
 
 ## 11. Fichiers à maintenir à chaque session
 
