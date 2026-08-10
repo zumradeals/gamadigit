@@ -5,9 +5,11 @@ export type PendingAccountVerification = {
   expiresAt: string;
   channel: 'EMAIL';
   identifier: string;
+  resumeUntil: string;
 };
 
 const DEFAULT_RETURN_PATH = '/espace';
+export const PENDING_VERIFICATION_RESUME_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function safeAccountReturnPath(value: unknown): string {
   if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) {
@@ -34,6 +36,16 @@ export function buildVerificationResendPayload(destination: string, identifierRe
   };
 }
 
+export function makePendingAccountVerification(
+  value: Omit<PendingAccountVerification, 'resumeUntil'>,
+  nowMs = Date.now(),
+): PendingAccountVerification {
+  return {
+    ...value,
+    resumeUntil: new Date(nowMs + PENDING_VERIFICATION_RESUME_MS).toISOString(),
+  };
+}
+
 export function normalizePendingAccountVerification(
   value: unknown,
   nowMs = Date.now(),
@@ -48,12 +60,14 @@ export function normalizePendingAccountVerification(
     || typeof input.expiresAt !== 'string' || !input.expiresAt.trim()
     || input.channel !== 'EMAIL'
     || typeof input.identifier !== 'string' || !input.identifier.trim()
+    || typeof input.resumeUntil !== 'string' || !input.resumeUntil.trim()
   ) {
     return null;
   }
 
-  const expiresAt = Date.parse(input.expiresAt);
-  if (!Number.isFinite(expiresAt) || expiresAt <= nowMs) return null;
+  const challengeExpiresAt = Date.parse(input.expiresAt);
+  const resumeUntil = Date.parse(input.resumeUntil);
+  if (!Number.isFinite(challengeExpiresAt) || !Number.isFinite(resumeUntil) || resumeUntil <= nowMs) return null;
 
   return {
     identity: input.identity,
@@ -62,5 +76,14 @@ export function normalizePendingAccountVerification(
     expiresAt: input.expiresAt,
     channel: 'EMAIL',
     identifier: input.identifier.trim(),
+    resumeUntil: input.resumeUntil,
   };
+}
+
+export function pendingVerificationCodeIsActive(
+  pending: Pick<PendingAccountVerification, 'expiresAt'>,
+  nowMs = Date.now(),
+): boolean {
+  const expiresAt = Date.parse(pending.expiresAt);
+  return Number.isFinite(expiresAt) && expiresAt > nowMs;
 }
