@@ -5,8 +5,11 @@ import {
   parsePortalSession,
   portalAccountCookie,
   readCanonicalIdentity,
+  readCurrentUserSession,
+  serializePortalSession,
 } from '@/lib/gamad-core/account';
 import { identityResolutionFailure } from '@/lib/gamad-core/identity-state';
+import { renewPortalSessionFromAttestation } from '@/lib/gamad-core/portal-session';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,15 +23,27 @@ export async function GET() {
 
   try {
     const identity = await readCanonicalIdentity(session);
-    return NextResponse.json({
+    const attestation = await readCurrentUserSession(session);
+    const renewed = renewPortalSessionFromAttestation(session, attestation);
+    if (!renewed) {
+      throw new CoreAccountError('ATTESTATION_SESSION_INVALIDE', 502);
+    }
+
+    const response = NextResponse.json({
       authenticated: true,
       account: {
-        entity: session.entity,
-        assurance: session.assurance,
-        expiresAt: session.expiresAt,
+        entity: renewed.entity,
+        assurance: renewed.assurance,
+        expiresAt: renewed.expiresAt,
         identity,
       },
     }, { headers: { 'Cache-Control': 'no-store' } });
+
+    response.cookies.set(portalAccountCookie.name, serializePortalSession(renewed), {
+      ...portalAccountCookie.options,
+      expires: new Date(renewed.expiresAt),
+    });
+    return response;
   } catch (error) {
     const failure = identityResolutionFailure(error instanceof CoreAccountError ? error.status : undefined);
     const response = NextResponse.json(
