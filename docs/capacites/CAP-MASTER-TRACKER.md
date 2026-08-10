@@ -7,7 +7,7 @@
 | CAP | Capacité | Statut gate | Fiche | Preuve prod |
 |---|---|---|---|---|
 | CAP-001 | IDENTITÉ PERSONNE | **VALIDÉ PROD** | `specs/CAP-001-identite-personne.md` | `proofs/CAP-001-2026-08-10.md` — final |
-| CAP-002 | COMPTE DG AFRIQUE | **EN SPEC** | `specs/CAP-002-compte-dg-afrique.md` — audit actif | — |
+| CAP-002 | COMPTE DG AFRIQUE | **EN DEV** | `specs/CAP-002-compte-dg-afrique.md` — audit complet, corrections en cours | — |
 | CAP-003 | PROFIL DE CAPACITÉS | BLOQUÉ | À créer | — |
 | CAP-004 | COMPÉTENCES | BLOQUÉ | À créer | — |
 | CAP-005 | APPRENTISSAGE | BLOQUÉ | À créer | — |
@@ -96,4 +96,4 @@
 - Les écrans ZUMRA, l'accueil personnalisé et la fédération GamaDrive déjà présents dans le code **ne débloquent aucun CAP futur**.
 - Ils seront audités, ajustés si nécessaire, testés et validés en production lorsque leur CAP arrivera dans la séquence.
 - Toute IA qui reprend le chantier doit rechercher la première ligne qui n'est pas `VALIDÉ PROD` : c'est le seul CAP qu'elle est autorisée à faire progresser.
-- **Au 2026-08-10 11:58 UTC, CAP-001 est VALIDÉ PROD et CAP-002 est le seul gate actif en EN SPEC.**
+- **Au 2026-08-10, CAP-002 est le seul gate actif en EN DEV. CAP-003 reste BLOQUÉ.**
