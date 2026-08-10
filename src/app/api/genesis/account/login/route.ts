@@ -37,8 +37,13 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof CoreAccountError) {
       const status = error.status === 401 ? 401 : error.status === 429 ? 429 : 503;
+      const code = error.status === 401
+        ? 'IDENTIFIANT_OU_SECRET_REFUSE'
+        : error.status === 429
+          ? 'TROP_DE_TENTATIVES_CONNEXION'
+          : error.code;
       return NextResponse.json(
-        { ok: false, error: error.status === 401 ? 'IDENTIFIANT_OU_SECRET_REFUSE' : error.code },
+        { ok: false, error: code },
         { status, headers: { 'Cache-Control': 'no-store' } },
       );
     }
