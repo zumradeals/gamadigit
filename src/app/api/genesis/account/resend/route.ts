@@ -9,19 +9,23 @@ export async function POST(request: Request) {
   if (crossOrigin) return crossOrigin;
 
   const body = (await request.json().catch(() => null)) as {
+    destination?: string;
     identifier?: string;
     identifierReference?: string;
   } | null;
 
-  const identifier = body?.identifier?.trim();
+  // `identifier` est accepté temporairement pour les onglets ayant chargé
+  // l'ancien bundle avant le déploiement. Le contrat Core reçoit toujours
+  // `destination` + `identifiant_reference`.
+  const destination = body?.destination?.trim() || body?.identifier?.trim();
   const identifierReference = body?.identifierReference;
 
-  if (!identifier || !identifierReference) {
+  if (!destination || !identifierReference) {
     return NextResponse.json({ ok: false, error: 'DONNEES_REQUISES' }, { status: 422 });
   }
 
   try {
-    const result = await resendGamadVerification({ identifier, type: 'EMAIL', identifierReference });
+    const result = await resendGamadVerification({ destination, identifierReference });
     return NextResponse.json({ ok: true, verification: result }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     if (error instanceof CoreAccountError) {
