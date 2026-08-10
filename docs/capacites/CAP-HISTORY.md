@@ -148,26 +148,15 @@ Fast-forward `force:false` de `cap/001-finalize` vers `cursor` après comparaiso
 
 Déploiement production `dpl_7pSY1rsS2x8EbhcNym1He1nHCZYx` — **READY**, aliases `dgafrique.com` et `www.dgafrique.com`, `aliasError=null`.
 
-Logs de build :
-
-- **8 tests** ;
-- **8 pass** ;
-- **0 fail** ;
-- compilation Next.js réussie ;
-- lint + validation types réussis ;
-- déploiement complété.
-
-Warnings Node `MODULE_TYPELESS_PACKAGE_JSON` observés mais non bloquants ; aucun changement de runtime n'a été introduit pour les supprimer dans CAP-001.
+Logs de build : 8 tests, 8 pass, 0 fail, compilation Next.js réussie, lint/types réussis, déploiement complété.
 
 ### Contrôle production
 
-Après déploiement, contrôle Vercel des erreurs runtime sur `/espace` et `/api/genesis/account/me` : **aucune erreur runtime trouvée** dans la fenêtre inspectée.
+Après déploiement, contrôle Vercel des erreurs runtime sur `/espace` et `/api/genesis/account/me` : aucune erreur runtime trouvée dans la fenêtre inspectée.
 
 ### Validation utilisateur finale CAP-001
 
 **2026-08-10 11:58 UTC : « Mon espace OK »** après le déploiement final CAP-001.
-
-Cette validation ferme le dernier critère visible du gate.
 
 ### Décision
 
@@ -180,6 +169,70 @@ Toutes les preuves sont regroupées dans `docs/capacites/proofs/CAP-001-2026-08-
 ## 2026-08-10 — Note de staging documentaire
 
 Lors de la préparation de la clôture documentaire, un fichier temporaire `.noop` a été créé par erreur sur `cursor` puis supprimé immédiatement. Aucun code, donnée, configuration ou comportement applicatif n'a été modifié. Cet incident de staging est conservé ici pour transparence et continuité IA.
+
+## 2026-08-10 — CAP-002 : audit, corrections DG et preview technique
+
+### Spec
+
+Le référentiel V0.1 a été repris comme source : compte DG gratuit, création, vérification, connexion et entrée dans Mon espace ; compte distinct de l'adhésion ZUMRA ; porte d'accès et non adhésion automatique.
+
+Contrats Core actuels audités : création de compte, vérification, renvoi, ouverture/fermeture de session, résolution des identifiants et durée de session.
+
+Quatre écarts ont été identifiés :
+
+1. payload DG de renvoi obsolète ;
+2. `?next=` perdu après connexion ;
+3. vérification en attente non reprenable après reload/fermeture ;
+4. cookie DG figé à l'expiration initiale alors que la session Core glisse de 8 h d'inactivité jusqu'au plafond 30 jours.
+
+### Dev DG
+
+Branche `cap/002-compte-dg-afrique`.
+
+Corrections effectuées :
+
+- renvoi aligné au contrat Core `{identifiant_reference,destination}` ;
+- retour après connexion borné à un chemin local sûr ;
+- dossier de vérification local reprenable, sans password/code, borné 7 jours ;
+- reprise du cas `VERIFICATION_NON_LIVREE` sur le même compte déjà créé ;
+- mapping explicite du 429 de connexion ;
+- tests CAP-002 dédiés.
+
+Commits jusqu'au premier preview complet :
+
+- `c1b3ddd3b4089b52bc04f2a523912d9ef30d6d98` — audit/spec ;
+- `c6d3d73eac6455ac9dbe7b0f7f14910a451b1a46` — EN DEV ;
+- `4cb95b0cf4291e5641d59608bc22c6deb7587718` — primitives compte ;
+- `ed8cc628760f7c15a2f729ffddeaad7918ca69c1` — alignement Core ;
+- `2586ca1feae0696beb6dc47e51758ca59000642b` — récupération livraison initiale échouée ;
+- `b1f69f22f02e00bb91c6eb79b136cc5f9581fe9d` — renvoi ;
+- `4faf442fdd8ea69dfc4468754d6efc91f8310bfa` — `next` sûr ;
+- `c5eb890548bf0867fa4056ef9972aabd31abcc8f` — reprise bornée ;
+- `a62be11764c74a8da539cb8fdf086d1468824fac` — UI ;
+- `d08e31d7199d6502a30ddb46f7739b283bb95e37` — 429 ;
+- `ed75255b274f48c93b83252e466475fe3cac3d6f` — tests.
+
+### Tests / Preview
+
+Preview Vercel `dpl_FvNxDXp32TjpUnvTHhbNAP9focvW` — **READY**.
+
+Build : `npm test && next build` ; **13 tests / 13 pass / 0 fail** ; compilation Next.js réussie ; lint/types verts ; génération statique 101/101.
+
+Les erreurs/cancel intermédiaires de commits plus anciens sont supersédées par ce head vert et ne constituent pas l'état courant.
+
+### BLOQUEUR Core avant production
+
+`Ctr16` prolonge réellement `expire_le` après chaque vérification de session valide. DG ne reçoit toutefois `expire_le` qu'au `POST /sessions` initial ; `AuthentifierApi` n'expose pas la nouvelle échéance. Le cookie HttpOnly DG peut donc expirer à la première échéance alors que Core a prolongé la session.
+
+Décision : **ne pas fabriquer une expiration locale.** Demander au chantier Core d'identifier une primitive officielle existante ou de livrer un contrat minimal authentifié exposant l'`expire_le` courant attesté. DG renouvellera ensuite son cookie uniquement jusqu'à cette échéance.
+
+**CAP-002 reste EN DEV. Aucune promotion `cursor` avant résolution, intégration et nouveau preview complet. CAP-003 reste BLOQUÉ.**
+
+Dossier de preuve : `docs/capacites/proofs/CAP-002-2026-08-10.md`.
+
+### Handoff
+
+Prochain geste : chantier Core/Claude sur l'échéance courante de session ; puis intégration DG, tests de renouvellement borné, final preview, tests navigateur, production et validation utilisateur.
 
 ## Format obligatoire des prochaines entrées
 
