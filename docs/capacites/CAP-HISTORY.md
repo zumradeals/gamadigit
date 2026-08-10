@@ -75,6 +75,66 @@ Actions :
 - Déploiement production Vercel correspondant : `dpl_BVvMA4xfg1raB4naN4hK3nPp9fwx`, état READY au moment de la vérification.
 - Gate actif : **CAP-001 — IDENTITÉ PERSONNE**.
 
+## 2026-08-10 — Incident SSO : déconnexion centrale non propagée à GamaDrive
+
+### Incident
+
+Le test navigateur réel a montré qu'après une déconnexion de DG Afrique, une session locale GamaDrive déjà ouverte restait utilisable. Le lancement fédéré d'entrée était correct ; la propagation de sortie ne l'était pas.
+
+Une première correction côté GamaDrive liait sa session locale à la session Core et la revérifiait périodiquement, mais une fenêtre d'environ 120 secondes restait possible. Le test utilisateur immédiat a donc continué d'échouer et a empêché toute déclaration prématurée de succès.
+
+### Dépendances externes déployées
+
+- GAMAD Core PR #81 : contrat de revérification de session Core liée, déployé. Il permet au satellite de détecter une session centrale révoquée sans recevoir son bearer.
+- GamaDrive PR #3 : middleware de session fédérée sur l'ensemble des routes authentifiées, avec revérification périodique comme filet de sécurité.
+- GAMAD Core PR #82 : ajout de `logout_url` au registre des environnements produit, déployé ; URL HTTPS exigée en production.
+- GamaDrive PR #4 : `GET /federation/deconnexion-centrale`, déployé ; détruit la session locale sans appel Core puis redirige vers le lanceur DG Afrique.
+
+Ces éléments appartiennent à leurs dépôts respectifs et ne valident aucun CAP DG futur sous le gate séquentiel.
+
+### Dev DG Afrique
+
+Branche : `fix/front-channel-logout`.
+
+Commits :
+
+- `e2757747d0035ba029ed5e1b8e5dd026d4ca767a` — lecture du `logout_url` PRODUCTION actif depuis le registre Core ;
+- `8f8529f545065af282e49fd1c8e89952fb0264da` — exposition du registre local des satellites fédérés pour l'orchestration ;
+- `adaf81dcde4e5f94336fa8ce7d7cc55f6ae2d8bd` — le logout DG ferme la session centrale, efface son cookie et retourne le prochain front-channel ;
+- `d52287fcf24c63d4b480c28e716b91178633765c` — le navigateur suit le `nextLogoutUrl` Core-gouverné après déconnexion.
+
+Principes :
+
+- aucune URL de déconnexion GamaDrive codée en dur dans le flux de logout ;
+- la valeur est lue dans le registre Core ;
+- seuls les `logout_url` HTTPS sans credentials sont acceptés côté DG ;
+- une panne/absence du registre n'empêche pas la fermeture de la session centrale ;
+- GamaDrive étant le seul satellite réel raccordé, le flux ne chaîne actuellement qu'un front-channel ; un futur multi-satellite devra définir explicitement son chaînage avant activation.
+
+### Preview
+
+Déploiement final de branche : `dpl_BAd48avZF3QuRH7WykKXjh67V9eu`.
+
+Au moment de cette entrée, la compilation Next.js et le contrôle TypeScript avaient franchi la phase de compilation avec succès ; attendre l'état Vercel `READY` avant tout fast-forward vers `cursor`.
+
+### Blocage opérateur avant preuve production
+
+Le registre Core doit encore porter sur l'environnement PRODUCTION actif de `PRD-GAMAD-002` :
+
+`logout_url = https://gamadrive.dgafrique.com/federation/deconnexion-centrale`
+
+Cette écriture est un geste d'autorité opérateur Core (`AUTORITE_INSCRIPTION`) et ne doit pas être simulée ou codée en dur dans DG Afrique.
+
+### Validation encore requise
+
+Après déploiement DG et déclaration Core, refaire le scénario navigateur :
+
+`connexion DG → ouverture GamaDrive → déconnexion DG → accès direct immédiat à GamaDrive`.
+
+Attendu : aucune session GamaDrive survivante ; le navigateur repasse par DG Afrique et requiert une nouvelle authentification centrale.
+
+**CAP-001 reste le seul gate actif et n'est pas VALIDÉ PROD à cause de cette entrée. Aucun CAP suivant n'est ouvert.**
+
 ## Format obligatoire des prochaines entrées
 
 Pour chaque CAP, ajouter des sous-sections datées :
