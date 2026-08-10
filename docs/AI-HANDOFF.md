@@ -46,7 +46,7 @@ Ne pas commencer CAP-002 avant que CAP-001 ait ses preuves de production et soit
 - Un `401` Core invalide réellement la session ; une panne transitoire ne doit pas déconnecter l'utilisateur.
 - Les identifiants techniques Core ne doivent pas être exposés inutilement dans l'UI utilisateur.
 
-## 5. Satellites et incident SSO en cours de clôture
+## 5. Satellites et incident SSO en attente de preuve finale
 
 Principe produit :
 
@@ -57,20 +57,16 @@ Principe produit :
 - Le chantier interne GamaDrive appartient à un autre flux de travail ; ne pas développer ses fonctionnalités depuis ce dépôt.
 - Les satellites ne doivent présenter ni login ni logout indépendant à l'utilisateur.
 
-### Dépendances déjà déployées hors de ce dépôt
+### Dépendances déployées hors de ce dépôt
 
 - Core PR #81 : revérification de la session centrale liée à une session satellite.
 - GamaDrive PR #3 : session Laravel bornée par la session Core + revérification périodique (~120 s), appliquée aux routes authentifiées.
 - Core PR #82 : champ gouverné `logout_url` sur les environnements produit.
 - GamaDrive PR #4 : `GET /federation/deconnexion-centrale`, qui ferme uniquement la session locale puis retourne vers le lanceur DG.
 
-### Pourquoi la revérification périodique ne suffit pas
-
-Un test navigateur réel a prouvé qu'une déconnexion DG suivie d'un retour immédiat sur GamaDrive pouvait encore laisser la session locale utilisable pendant la fenêtre de revérification. Cette preuve utilisateur a bloqué la validation et conduit au canal front-channel immédiat.
-
 ### Travail DG Afrique déployé
 
-Le flux est maintenant en production sur `cursor` :
+Le flux est en production sur `cursor` :
 
 1. DG lit dans le registre Core le `logout_url` de l'environnement `PRODUCTION` actif du satellite ;
 2. DG ferme la session Core utilisateur et efface le cookie portail ;
@@ -86,28 +82,30 @@ Commits applicatifs :
 - `adaf81dcde4e5f94336fa8ce7d7cc55f6ae2d8bd`
 - `d52287fcf24c63d4b480c28e716b91178633765c`
 
-Promotion production initiale : `cursor` → `82559c872da4c2e28e7b75f476776272bac170aa`.
-Déploiement Vercel : `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
+Production vérifiée : `cursor` au commit `75c722d735090484e1cdbea5f278cfa5984b21c3`, déploiement Vercel `dpl_4kekTkZZQnfVBbLSnikqEkxGBBKb` — READY.
 
 Ne pas coder en dur l'URL de logout du satellite dans le flux DG. La valeur doit venir du registre Core.
 
-### Blocage opérateur réel
+### Geste opérateur Core terminé
 
-Le produit Core `PRD-GAMAD-002`, environnement PRODUCTION actif, doit recevoir :
+L'environnement PRODUCTION de `PRD-GAMAD-002` est désormais déclaré par la voie gouvernée `AccesProduits::declarerEnvironnement()` sous l'autorité `AUT-GAMAD-001`.
 
-`logout_url = https://gamadrive.dgafrique.com/federation/deconnexion-centrale`
+Valeurs actives rapportées :
 
-Cette opération appartient à l'autorité d'inscription Core. Le registre versionne l'environnement de manière transactionnelle : reprendre exactement les valeurs actuelles `api_base_url`, `health_url` et `audience_federation`, puis ne changer que `logout_url`.
+- `api_base_url = https://gamadrive.dgafrique.com`
+- `health_url = https://gamadrive.dgafrique.com/health`
+- `logout_url = https://gamadrive.dgafrique.com/federation/deconnexion-centrale`
+- `audience_federation = PRD-GAMAD-002`
 
-Tant que cette valeur n'est pas enregistrée, DG reste fail-soft : déconnexion centrale réussie, mais aucun front-channel immédiat n'est appelé.
+Le produit reste ACTIF et fédérable. La décision CAP-CORE-004 a été `PERMIS` et l'opération a été journalisée comme `ENVIRONNEMENT_PRODUIT_DECLARE` / `EXECUTEE`. L'opérateur a indiqué qu'il s'agissait de la première déclaration persistée de cet environnement, donc aucune version précédente n'a été clôturée.
 
-### Test navigateur obligatoire après le geste opérateur
+### Test navigateur obligatoire restant
 
-`connexion DG → GamaDrive → déconnexion DG → accès direct immédiat à GamaDrive`
+`connexion DG → ouverture GamaDrive → déconnexion DG → accès direct immédiat à GamaDrive`
 
 Résultat attendu : GamaDrive ne conserve aucune session utilisateur ; le navigateur repasse par DG et demande une authentification centrale.
 
-Ne considérer ce défaut clos qu'après cette preuve réelle. Le fallback périodique GamaDrive reste utile mais n'est pas la preuve du logout immédiat.
+Ne considérer l'incident SSO clos qu'après cette preuve réelle. Le fallback périodique GamaDrive reste utile mais n'est pas la preuve du logout immédiat.
 
 ## 6. ZUMRA
 
@@ -141,22 +139,21 @@ Règles métier déjà retenues à préserver lors de l'audit :
 
 ## 9. État technique de référence au 2026-08-10
 
-- Production applicative front-channel : `cursor` au moins à `82559c872da4c2e28e7b75f476776272bac170aa`.
-- Déploiement vérifié : `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
-- Une mise à jour documentaire ultérieure peut avancer `cursor` sans changer le comportement applicatif.
-- Gate fonctionnel : **CAP-001 reste NON VALIDÉ PROD**.
+- Production applicative front-channel : `cursor` au commit `75c722d735090484e1cdbea5f278cfa5984b21c3`.
+- Déploiement production vérifié : `dpl_4kekTkZZQnfVBbLSnikqEkxGBBKb` — READY.
+- Le registre Core porte désormais le `logout_url` PRODUCTION actif de GamaDrive.
+- Gate fonctionnel : **CAP-001 reste NON VALIDÉ PROD** tant que son gate complet n'est pas satisfait.
 
 ## 10. Reprise exacte
 
 Si une IA reprend maintenant :
 
 1. ne pas ouvrir CAP-002 ;
-2. vérifier que l'opérateur Core a enregistré le `logout_url` de `PRD-GAMAD-002` ;
-3. faire exécuter le test navigateur de déconnexion immédiate ;
-4. consigner le résultat dans `CAP-HISTORY.md` ;
-5. si le test est vert, clôturer uniquement l'incident SSO ;
-6. reprendre ensuite le gate CAP-001 et ses preuves restantes ;
-7. ne marquer CAP-001 `VALIDÉ PROD` que lorsque son propre gate complet est satisfait.
+2. faire exécuter le test navigateur de déconnexion immédiate ;
+3. consigner le résultat dans `CAP-HISTORY.md` ;
+4. si le test est vert, clôturer l'incident SSO ;
+5. reprendre ensuite le gate CAP-001 et ses preuves restantes ;
+6. ne marquer CAP-001 `VALIDÉ PROD` que lorsque son propre gate complet est satisfait.
 
 ## 11. Fichiers à maintenir à chaque session
 
