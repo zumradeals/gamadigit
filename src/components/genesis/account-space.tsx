@@ -22,6 +22,11 @@ type GroupsPayload = {
   groups?: ZumraGroupSummary[];
 };
 
+type LogoutPayload = {
+  ok?: boolean;
+  nextLogoutUrl?: string | null;
+};
+
 function text(value: unknown) {
   return typeof value === 'string' && value.trim() ? value : null;
 }
@@ -87,8 +92,19 @@ export function AccountSpace() {
 
   async function logout() {
     setLoggingOut(true);
-    await fetch('/api/genesis/account/logout', { method: 'POST' }).catch(() => undefined);
-    window.location.href = '/';
+    let nextUrl = '/';
+
+    try {
+      const response = await fetch('/api/genesis/account/logout', { method: 'POST' });
+      const body = (await response.json().catch(() => ({}))) as LogoutPayload;
+      if (response.ok && typeof body.nextLogoutUrl === 'string' && body.nextLogoutUrl) {
+        nextUrl = body.nextLogoutUrl;
+      }
+    } catch {
+      // Même si le canal satellite est indisponible, on quitte l'espace local.
+    }
+
+    window.location.href = nextUrl;
   }
 
   if (loading) {
