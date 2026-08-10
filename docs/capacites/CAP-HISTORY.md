@@ -113,9 +113,17 @@ Principes :
 
 ### Preview
 
-Déploiement final de branche : `dpl_BAd48avZF3QuRH7WykKXjh67V9eu`.
+- Preview du code applicatif `d52287fcf24c63d4b480c28e716b91178633765c` : `dpl_BAd48avZF3QuRH7WykKXjh67V9eu` — READY.
+- Preview de la branche complète, documentation incluse, `82559c872da4c2e28e7b75f476776272bac170aa` : `dpl_Eqg6N7FZ7JJyF9kwrzP5t7C2G3Jy` — READY.
+- Comparaison avant promotion : branche `ahead=6`, `behind=0` par rapport à `cursor` ; fast-forward sans force.
 
-Au moment de cette entrée, la compilation Next.js et le contrôle TypeScript avaient franchi la phase de compilation avec succès ; attendre l'état Vercel `READY` avant tout fast-forward vers `cursor`.
+### Prod
+
+- `cursor` promu par fast-forward vers `82559c872da4c2e28e7b75f476776272bac170aa`.
+- Déploiement Vercel production : `dpl_kPxMbRom8z9CeguAmiTjXVeNAgXv` — READY.
+- Build Next.js terminé sans erreur ; `/api/genesis/account/logout`, `/espace` et `/federation/continue/[satellite]` compilés.
+
+La partie DG Afrique du canal front-channel est donc déployée. Elle reste volontairement inactive si le Core ne fournit aucun `logout_url` valide.
 
 ### Blocage opérateur avant preuve production
 
@@ -125,9 +133,11 @@ Le registre Core doit encore porter sur l'environnement PRODUCTION actif de `PRD
 
 Cette écriture est un geste d'autorité opérateur Core (`AUTORITE_INSCRIPTION`) et ne doit pas être simulée ou codée en dur dans DG Afrique.
 
+Le registre Core versionne un environnement redéclaré : l'ancienne version active est clôturée et la nouvelle est insérée dans la même transaction. L'opérateur doit reprendre exactement `api_base_url`, `health_url` et `audience_federation` de l'environnement PRODUCTION actif, et ne changer que `logout_url`.
+
 ### Validation encore requise
 
-Après déploiement DG et déclaration Core, refaire le scénario navigateur :
+Après déclaration Core, refaire le scénario navigateur :
 
 `connexion DG → ouverture GamaDrive → déconnexion DG → accès direct immédiat à GamaDrive`.
 
