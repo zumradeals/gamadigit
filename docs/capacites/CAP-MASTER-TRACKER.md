@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | CAP-001 | IDENTITÉ PERSONNE | **VALIDÉ PROD** | `specs/CAP-001-identite-personne.md` | `proofs/CAP-001-2026-08-10.md` — final |
 | CAP-002 | COMPTE DG AFRIQUE | **VALIDÉ PROD** | `specs/CAP-002-compte-dg-afrique.md` — final | `proofs/CAP-002-2026-08-10.md` — finalisé 2026-08-11 |
-| CAP-003 | PROFIL DE CAPACITÉS | **EN SPEC** | À créer | — |
+| CAP-003 | PROFIL DE CAPACITÉS | **EN SPEC** | `specs/CAP-003-profil-capacites.md` — à créer sur la branche CAP-003 | — |
 | CAP-004 | COMPÉTENCES | BLOQUÉ | À créer | — |
 | CAP-005 | APPRENTISSAGE | BLOQUÉ | À créer | — |
 | CAP-006 | TRANSMISSION | BLOQUÉ | À créer | — |
