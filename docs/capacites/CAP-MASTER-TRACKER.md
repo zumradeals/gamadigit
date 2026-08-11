@@ -2,13 +2,13 @@
 
 > **Source de vérité de progression.** La règle de passage est définie dans `CAP-PRODUCTION-GATE.md`.
 >
-> **Gate actif : CAP-002 — COMPTE DG AFRIQUE.** CAP-001 est VALIDÉ PROD. Tous les CAP suivants restent BLOQUÉS jusqu'à validation production séquentielle.
+> **Gate actif : CAP-003 — PROFIL DE CAPACITÉS.** CAP-001 et CAP-002 sont VALIDÉ PROD. Tous les CAP suivants restent BLOQUÉS jusqu'à validation production séquentielle.
 
 | CAP | Capacité | Statut gate | Fiche | Preuve prod |
 |---|---|---|---|---|
 | CAP-001 | IDENTITÉ PERSONNE | **VALIDÉ PROD** | `specs/CAP-001-identite-personne.md` | `proofs/CAP-001-2026-08-10.md` — final |
-| CAP-002 | COMPTE DG AFRIQUE | **EN DEV** | `specs/CAP-002-compte-dg-afrique.md` — audit complet, corrections en cours | — |
-| CAP-003 | PROFIL DE CAPACITÉS | BLOQUÉ | À créer | — |
+| CAP-002 | COMPTE DG AFRIQUE | **VALIDÉ PROD** | `specs/CAP-002-compte-dg-afrique.md` — final | `proofs/CAP-002-2026-08-10.md` — finalisé 2026-08-11 |
+| CAP-003 | PROFIL DE CAPACITÉS | **EN SPEC** | À créer | — |
 | CAP-004 | COMPÉTENCES | BLOQUÉ | À créer | — |
 | CAP-005 | APPRENTISSAGE | BLOQUÉ | À créer | — |
 | CAP-006 | TRANSMISSION | BLOQUÉ | À créer | — |
@@ -96,4 +96,4 @@
 - Les écrans ZUMRA, l'accueil personnalisé et la fédération GamaDrive déjà présents dans le code **ne débloquent aucun CAP futur**.
 - Ils seront audités, ajustés si nécessaire, testés et validés en production lorsque leur CAP arrivera dans la séquence.
 - Toute IA qui reprend le chantier doit rechercher la première ligne qui n'est pas `VALIDÉ PROD` : c'est le seul CAP qu'elle est autorisée à faire progresser.
-- **Au 2026-08-10, CAP-002 est le seul gate actif en EN DEV. CAP-003 reste BLOQUÉ.**
+- **Au 2026-08-11, CAP-003 est le seul gate actif en EN SPEC. CAP-004 reste BLOQUÉ.**
