@@ -36,7 +36,6 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     if (error instanceof CoreAccountError) {
-      console.warn('CAP-002 login Core refusal', { status: error.status, code: error.code });
       const status = error.status === 401 ? 401 : error.status === 429 ? 429 : 503;
       const code = error.status === 401
         ? 'IDENTIFIANT_OU_SECRET_REFUSE'
@@ -48,11 +47,6 @@ export async function POST(request: Request) {
         { status, headers: { 'Cache-Control': 'no-store' } },
       );
     }
-
-    console.warn('CAP-002 login unexpected failure', {
-      name: error instanceof Error ? error.name : 'UnknownError',
-      message: error instanceof Error ? error.message : 'Unknown failure',
-    });
     return NextResponse.json({ ok: false, error: 'CORE_TEMPORAIREMENT_INDISPONIBLE' }, { status: 503 });
   }
 }
