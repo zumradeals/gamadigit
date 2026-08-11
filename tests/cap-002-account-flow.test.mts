@@ -142,3 +142,15 @@ test('CAP-002 clears stale federation return state after account creation and lo
   assert.match(logoutSource, /federationReturnCookie\.name/);
   assert.match(logoutSource, /maxAge:\s*0/);
 });
+
+test('CAP-002 never prefetches a satellite opening from Mon espace', () => {
+  const memberHomeSource = readFileSync(
+    new URL('../src/components/superapp/home/member-home.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(
+    memberHomeSource,
+    /href="\/federation\/continue\/gamadrive"\s+prefetch=\{false\}/,
+  );
+});
