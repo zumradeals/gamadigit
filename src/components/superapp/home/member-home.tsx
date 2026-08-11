@@ -202,6 +202,7 @@ function ServicesPanel() {
       <div className="mt-5 grid gap-3 lg:grid-cols-2">
         <Link
           href="/federation/continue/gamadrive"
+          prefetch={false}
           className="group rounded-tile border border-line-strong bg-paper p-5 transition-colors hover:border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400"
         >
           <div className="flex items-start justify-between gap-4">
