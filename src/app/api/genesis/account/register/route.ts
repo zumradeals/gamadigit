@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server';
+import { federationReturnCookie } from '@/lib/federation/satellites';
 import { CoreAccountError, createGamadAccount } from '@/lib/gamad-core/account';
 import { rejectCrossOrigin } from '@/lib/http/same-origin';
 import { verifySimpleCaptcha } from '@/lib/simple-captcha';
 
 export const dynamic = 'force-dynamic';
+
+function clearFederationReturn(response: NextResponse): NextResponse {
+  response.cookies.set(federationReturnCookie.name, '', {
+    ...federationReturnCookie.options,
+    maxAge: 0,
+    expires: new Date(0),
+  });
+  return response;
+}
 
 export async function POST(request: Request) {
   const crossOrigin = rejectCrossOrigin(request);
@@ -33,7 +43,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await createGamadAccount({ name, identifier, type: 'EMAIL', password });
-    return NextResponse.json({
+    return clearFederationReturn(NextResponse.json({
       ok: true,
       pending: {
         identity: result.identity,
@@ -42,15 +52,16 @@ export async function POST(request: Request) {
         expiresAt: result.expiresAt,
         channel: result.channel,
       },
-    }, { status: 201, headers: { 'Cache-Control': 'no-store' } });
+    }, { status: 201, headers: { 'Cache-Control': 'no-store' } }));
   } catch (error) {
     if (error instanceof CoreAccountError) {
       const status = error.status === 409 ? 409 : error.status === 429 ? 429 : error.status >= 500 ? 503 : 422;
       const pending = error.details?.pending;
-      return NextResponse.json(
+      const response = NextResponse.json(
         { ok: false, error: error.code, ...(pending ? { pending } : {}) },
         { status, headers: { 'Cache-Control': 'no-store' } },
       );
+      return pending ? clearFederationReturn(response) : response;
     }
     return NextResponse.json({ ok: false, error: 'CORE_TEMPORAIREMENT_INDISPONIBLE' }, { status: 503 });
   }
