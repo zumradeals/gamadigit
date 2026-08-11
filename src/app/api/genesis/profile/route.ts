@@ -20,6 +20,10 @@ async function currentSession() {
   return parsePortalSession(jar.get(portalAccountCookie.name)?.value);
 }
 
+function owns(body: Record<string, unknown>, key: string) {
+  return Object.prototype.hasOwnProperty.call(body, key);
+}
+
 export async function GET() {
   const session = await currentSession();
   if (!session) {
@@ -78,13 +82,25 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: false, error: 'NON_AUTHENTIFIE' }, { status: 401 });
   }
 
-  const value = parseCapabilityProfileInput(await request.json().catch(() => null));
+  const raw = await request.json().catch(() => null);
+  const body = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
+  const value = parseCapabilityProfileInput(raw);
   if (!value) {
     return NextResponse.json({ ok: false, error: 'PROFIL_INVALIDE' }, { status: 422 });
   }
 
   const supabase = createSupabaseServiceClient();
   if (!supabase) {
+    return NextResponse.json({ ok: false, error: 'PROFIL_INDISPONIBLE' }, { status: 503 });
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from('dg_person_profiles')
+    .select('country,city,phone,current_activity,education,skills,no_skills_yet,learning_goals,sectors,intentions,participation_mode,open_to_recommendations')
+    .eq('core_identity_reference', session.entity)
+    .maybeSingle();
+
+  if (existingError) {
     return NextResponse.json({ ok: false, error: 'PROFIL_INDISPONIBLE' }, { status: 503 });
   }
 
@@ -99,18 +115,20 @@ export async function PATCH(request: Request) {
   const payload = {
     core_identity_reference: session.entity,
     ...(displayName ? { display_name: displayName } : {}),
-    country: value.country,
-    city: value.city,
-    phone: value.phone,
-    current_activity: value.currentActivity,
-    education: value.education,
-    skills: value.skills,
-    no_skills_yet: value.noSkillsYet,
-    learning_goals: value.learningGoals,
-    sectors: value.sectors,
-    intentions: value.intentions,
-    participation_mode: value.participationMode,
-    open_to_recommendations: value.openToRecommendations,
+    country: owns(body, 'country') ? value.country : existing?.country ?? null,
+    city: owns(body, 'city') ? value.city : existing?.city ?? null,
+    phone: owns(body, 'phone') ? value.phone : existing?.phone ?? null,
+    current_activity: owns(body, 'currentActivity') ? value.currentActivity : existing?.current_activity ?? null,
+    education: owns(body, 'education') ? value.education : existing?.education ?? null,
+    skills: owns(body, 'skills') || owns(body, 'noSkillsYet') ? value.skills : existing?.skills ?? [],
+    no_skills_yet: owns(body, 'noSkillsYet') ? value.noSkillsYet : Boolean(existing?.no_skills_yet),
+    learning_goals: owns(body, 'learningGoals') ? value.learningGoals : existing?.learning_goals ?? [],
+    sectors: owns(body, 'sectors') ? value.sectors : existing?.sectors ?? [],
+    intentions: owns(body, 'intentions') ? value.intentions : existing?.intentions ?? [],
+    participation_mode: owns(body, 'participationMode') ? value.participationMode : existing?.participation_mode ?? null,
+    open_to_recommendations: owns(body, 'openToRecommendations')
+      ? value.openToRecommendations
+      : existing ? Boolean(existing.open_to_recommendations) : true,
     updated_at: now,
   };
 
@@ -123,7 +141,8 @@ export async function PATCH(request: Request) {
   }
 
   // Pont de compatibilité temporaire : si la personne possède déjà un profil ZUMRA,
-  // on garde les champs partagés synchronisés sans créer d'adhésion ZUMRA.
+  // on synchronise les champs réellement partagés sans créer d'adhésion ni écraser
+  // les intentions spécifiques au parcours ZUMRA.
   const { data: legacy } = await supabase
     .from('zumra_member_profiles')
     .select('country,city,phone,participation_mode')
@@ -135,18 +154,17 @@ export async function PATCH(request: Request) {
       .from('zumra_member_profiles')
       .update({
         ...(displayName ? { display_name: displayName } : {}),
-        country: value.country ?? legacy.country,
-        city: value.city ?? legacy.city,
-        phone: value.phone ?? legacy.phone,
-        current_activity: value.currentActivity,
-        education: value.education,
-        skills: value.skills,
-        no_skills_yet: value.noSkillsYet,
-        learning_goals: value.learningGoals,
-        sectors: value.sectors,
-        intentions: value.intentions,
-        participation_mode: value.participationMode ?? legacy.participation_mode,
-        open_to_recommendations: value.openToRecommendations,
+        country: payload.country ?? legacy.country,
+        city: payload.city ?? legacy.city,
+        phone: payload.phone ?? legacy.phone,
+        current_activity: payload.current_activity,
+        education: payload.education,
+        skills: payload.skills,
+        no_skills_yet: payload.no_skills_yet,
+        learning_goals: payload.learning_goals,
+        sectors: payload.sectors,
+        participation_mode: payload.participation_mode ?? legacy.participation_mode,
+        open_to_recommendations: payload.open_to_recommendations,
         updated_at: now,
       })
       .eq('core_identity_reference', session.entity);
