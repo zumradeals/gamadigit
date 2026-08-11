@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   buildVerificationResendPayload,
@@ -124,4 +125,20 @@ test('CAP-002 never shortens or invents a portal expiry', () => {
     assurance: null,
     expiresAt: '2026-08-10T11:59:59Z',
   }, NOW), null);
+});
+
+test('CAP-002 clears stale federation return state after account creation and logout', () => {
+  const registerSource = readFileSync(
+    new URL('../src/app/api/genesis/account/register/route.ts', import.meta.url),
+    'utf8',
+  );
+  const logoutSource = readFileSync(
+    new URL('../src/app/api/genesis/account/logout/route.ts', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(registerSource, /return clearFederationReturn\(NextResponse\.json/);
+  assert.match(registerSource, /pending \? clearFederationReturn\(response\) : response/);
+  assert.match(logoutSource, /federationReturnCookie\.name/);
+  assert.match(logoutSource, /maxAge:\s*0/);
 });
