@@ -11,7 +11,8 @@ import {
   Network,
   WalletCards,
 } from 'lucide-react';
-import type { ZumraGroupSummary, ZumraMePayload, ZumraProfile } from '@/lib/zumra/types';
+import type { CapabilityProfile } from '@/lib/profile/capability-profile';
+import type { ZumraGroupSummary, ZumraMePayload } from '@/lib/zumra/types';
 import { CapabilityChip, EmptyState, Eyebrow, SuperButtonLink, SuperCard } from '@/components/superapp/ui';
 import { IntentCard, type HomeIntent } from './intent-card';
 import { NextActionCard, type NextAction } from './next-action';
@@ -30,7 +31,7 @@ function formatDate(value?: string | null) {
   return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 }
 
-function profileCompletion(profile?: ZumraProfile) {
+function profileCompletion(profile?: CapabilityProfile) {
   if (!profile) return 0;
   const checks = [
     Boolean(profile.displayName),
@@ -53,14 +54,16 @@ function contributionLabel(status?: string) {
   return 'Non démarrée';
 }
 
-function nextActionFor(zumra: ZumraMePayload | null, groups: ZumraGroupSummary[]): NextAction {
+function nextActionFor(zumra: ZumraMePayload | null, groups: ZumraGroupSummary[], profile?: CapabilityProfile): NextAction {
   if (!zumra?.enrolled) {
     return {
       eyebrow: 'Prochaine action utile',
-      title: 'Choisissez votre première direction',
-      description: 'Votre compte DG Afrique est prêt. Explorez les opportunités maintenant ; ZUMRA reste un parcours distinct que vous pouvez rejoindre lorsque vous le souhaitez.',
-      href: '/opportunites',
-      cta: 'Explorer',
+      title: profile?.exists ? 'Faites vivre votre profil' : 'Commencez par ce qui vous ressemble',
+      description: profile?.exists
+        ? 'Votre profil DG Afrique peut progressivement guider vos découvertes sans vous inscrire automatiquement à un programme.'
+        : 'Décrivez ce que vous savez faire, ce que vous voulez apprendre et ce que vous cherchez à accomplir. ZUMRA reste un parcours séparé.',
+      href: '/espace/profil',
+      cta: profile?.exists ? 'Voir mon profil' : 'Créer mon profil',
     };
   }
 
@@ -74,7 +77,7 @@ function nextActionFor(zumra: ZumraMePayload | null, groups: ZumraGroupSummary[]
     };
   }
 
-  const completion = profileCompletion(zumra.profile);
+  const completion = profileCompletion(profile);
   if (zumra.membership?.status === 'active' && completion < 100) {
     return {
       eyebrow: 'Profil de capacités',
@@ -121,14 +124,14 @@ function nextActionFor(zumra: ZumraMePayload | null, groups: ZumraGroupSummary[]
 
 type Props = {
   displayName: string;
+  profile?: CapabilityProfile;
   zumra: ZumraMePayload | null;
   groups: ZumraGroupSummary[];
 };
 
-export function MemberHome({ displayName, zumra, groups }: Props) {
+export function MemberHome({ displayName, profile, zumra, groups }: Props) {
   const firstName = displayName.trim().split(/\s+/)[0] || displayName;
-  const nextAction = nextActionFor(zumra, groups);
-  const profile = zumra?.profile;
+  const nextAction = nextActionFor(zumra, groups, profile);
   const active = zumra?.enrolled && zumra.membership?.status === 'active';
   const primaryGroup = groups[0];
   const today = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -281,8 +284,8 @@ function ZumraSituation({ zumra, group }: { zumra: ZumraMePayload | null; group?
   return <SuperCard><EmptyState eyebrow="ZUMRA" title="Votre parcours demande une vérification" description="Votre compte DG Afrique reste disponible. Ouvrez ZUMRA pour consulter l’état actuel de votre adhésion." cta={undefined} /></SuperCard>;
 }
 
-function CapabilitiesPanel({ profile }: { profile?: ZumraProfile }) {
-  const hasData = Boolean(profile && (profile.skills.length || profile.learningGoals.length || profile.intentions.length));
+function CapabilitiesPanel({ profile }: { profile?: CapabilityProfile }) {
+  const hasData = Boolean(profile && (profile.skills.length || profile.learningGoals.length || profile.intentions.length || profile.noSkillsYet));
   return (
     <SuperCard>
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -290,16 +293,16 @@ function CapabilitiesPanel({ profile }: { profile?: ZumraProfile }) {
           <Eyebrow tone="muted">Mon profil de capacités</Eyebrow>
           <h2 className="mt-2 font-display text-[1.4rem]">Ce que je sais, apprends et veux faire</h2>
         </div>
-        <SuperButtonLink as={Link} href="/espace/profil" variant="ghost" size="sm">{profile ? 'Gérer' : 'Créer'}</SuperButtonLink>
+        <SuperButtonLink as={Link} href="/espace/profil" variant="ghost" size="sm">{profile?.exists ? 'Gérer' : 'Créer'}</SuperButtonLink>
       </div>
       {!hasData ? (
-        <EmptyState title="Votre graphe personnel commence ici" description="Déclarez ce que vous savez faire, ce que vous souhaitez apprendre et vos intentions. Aucun diplôme n’est nécessaire pour commencer." />
+        <EmptyState title="Votre profil commence ici" description="Déclarez ce que vous savez faire, ce que vous souhaitez apprendre et ce que vous voulez accomplir. Aucun diplôme n’est nécessaire pour commencer." />
       ) : (
         <div className="space-y-5">
           {profile!.skills.length > 0 && <CapabilityRow title="Je sais faire" items={profile!.skills} state="ok" />}
           {profile!.learningGoals.length > 0 && <CapabilityRow title="Je veux apprendre" items={profile!.learningGoals} state="learning" />}
-          {profile!.intentions.length > 0 && <CapabilityRow title="Mes intentions" items={profile!.intentions} state="intent" />}
-          {profile!.noSkillsYet && profile!.skills.length === 0 && <p className="text-body text-slate-ink">Vous avez indiqué commencer sans compétence particulière. Ce n’est pas un profil vide : vos objectifs d’apprentissage peuvent guider la suite.</p>}
+          {profile!.intentions.length > 0 && <CapabilityRow title="Je veux accomplir" items={profile!.intentions} state="intent" />}
+          {profile!.noSkillsYet && profile!.skills.length === 0 && <p className="text-body text-slate-ink">Vous avez indiqué commencer sans compétence particulière. Vos objectifs d’apprentissage peuvent déjà guider la suite.</p>}
         </div>
       )}
     </SuperCard>
