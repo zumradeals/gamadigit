@@ -1,11 +1,22 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { parsePortalSession, portalAccountCookie, readCanonicalIdentity } from '@/lib/gamad-core/account';
+import {
+  CoreAccountError,
+  parsePortalSession,
+  portalAccountCookie,
+  readCanonicalIdentity,
+  readCurrentUserSession,
+  serializePortalSession,
+} from '@/lib/gamad-core/account';
+import { identityResolutionFailure } from '@/lib/gamad-core/identity-state';
+import { renewPortalSessionFromAttestation } from '@/lib/gamad-core/portal-session';
 import { rejectCrossOrigin } from '@/lib/http/same-origin';
 import { parseCapabilityProfileInput } from '@/lib/profile/capability-profile';
 import { createSupabaseServiceClient } from '@/lib/supabase/service';
 
 export const dynamic = 'force-dynamic';
+
+type RenewedSession = Parameters<typeof serializePortalSession>[0];
 
 function identityDisplayName(identity: Record<string, unknown>) {
   for (const key of ['denomination', 'nom', 'libelle']) {
@@ -24,15 +35,60 @@ function owns(body: Record<string, unknown>, key: string) {
   return Object.prototype.hasOwnProperty.call(body, key);
 }
 
-export async function GET() {
+function withRenewedSession(response: NextResponse, session: RenewedSession) {
+  response.cookies.set(portalAccountCookie.name, serializePortalSession(session), {
+    ...portalAccountCookie.options,
+    expires: new Date(session.expiresAt),
+  });
+  return response;
+}
+
+async function resolveActiveSession() {
   const session = await currentSession();
   if (!session) {
-    return NextResponse.json({ ok: false, error: 'NON_AUTHENTIFIE' }, { status: 401 });
+    return {
+      response: NextResponse.json(
+        { ok: false, error: 'NON_AUTHENTIFIE' },
+        { status: 401, headers: { 'Cache-Control': 'no-store' } },
+      ),
+    };
   }
 
+  try {
+    const identity = await readCanonicalIdentity(session);
+    const attestation = await readCurrentUserSession(session);
+    const renewed = renewPortalSessionFromAttestation(session, attestation);
+    if (!renewed) throw new CoreAccountError('ATTESTATION_SESSION_INVALIDE', 502);
+    return { session: renewed, identity };
+  } catch (error) {
+    const failure = identityResolutionFailure(error instanceof CoreAccountError ? error.status : undefined);
+    const response = NextResponse.json(
+      { ok: false, error: failure.error ?? 'NON_AUTHENTIFIE' },
+      { status: failure.status, headers: { 'Cache-Control': 'no-store' } },
+    );
+
+    if (failure.clearPortalCookie) {
+      response.cookies.set(portalAccountCookie.name, '', {
+        ...portalAccountCookie.options,
+        expires: new Date(0),
+      });
+    }
+
+    return { response };
+  }
+}
+
+export async function GET() {
+  const auth = await resolveActiveSession();
+  if ('response' in auth) return auth.response;
+
+  const { session, identity } = auth;
   const supabase = createSupabaseServiceClient();
   if (!supabase) {
-    return NextResponse.json({ ok: false, error: 'PROFIL_INDISPONIBLE' }, { status: 503 });
+    return withRenewedSession(
+      NextResponse.json({ ok: false, error: 'PROFIL_INDISPONIBLE' }, { status: 503 }),
+      session,
+    );
   }
 
   const { data: row, error } = await supabase
@@ -42,17 +98,14 @@ export async function GET() {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ ok: false, error: 'PROFIL_INDISPONIBLE' }, { status: 503 });
+    return withRenewedSession(
+      NextResponse.json({ ok: false, error: 'PROFIL_INDISPONIBLE' }, { status: 503 }),
+      session,
+    );
   }
 
-  let displayName = row?.display_name ?? null;
-  try {
-    displayName = identityDisplayName(await readCanonicalIdentity(session)) ?? displayName;
-  } catch {
-    // Le profil métier reste lisible si le libellé Core est temporairement indisponible.
-  }
-
-  return NextResponse.json({
+  const displayName = identityDisplayName(identity) ?? row?.display_name ?? null;
+  return withRenewedSession(NextResponse.json({
     ok: true,
     profile: {
       exists: Boolean(row),
@@ -70,28 +123,33 @@ export async function GET() {
       participationMode: row?.participation_mode ?? null,
       openToRecommendations: row ? Boolean(row.open_to_recommendations) : true,
     },
-  }, { headers: { 'Cache-Control': 'no-store' } });
+  }, { headers: { 'Cache-Control': 'no-store' } }), session);
 }
 
 export async function PATCH(request: Request) {
   const crossOrigin = rejectCrossOrigin(request);
   if (crossOrigin) return crossOrigin;
 
-  const session = await currentSession();
-  if (!session) {
-    return NextResponse.json({ ok: false, error: 'NON_AUTHENTIFIE' }, { status: 401 });
-  }
+  const auth = await resolveActiveSession();
+  if ('response' in auth) return auth.response;
 
+  const { session, identity } = auth;
   const raw = await request.json().catch(() => null);
   const body = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {};
   const value = parseCapabilityProfileInput(raw);
   if (!value) {
-    return NextResponse.json({ ok: false, error: 'PROFIL_INVALIDE' }, { status: 422 });
+    return withRenewedSession(
+      NextResponse.json({ ok: false, error: 'PROFIL_INVALIDE' }, { status: 422 }),
+      session,
+    );
   }
 
   const supabase = createSupabaseServiceClient();
   if (!supabase) {
-    return NextResponse.json({ ok: false, error: 'PROFIL_INDISPONIBLE' }, { status: 503 });
+    return withRenewedSession(
+      NextResponse.json({ ok: false, error: 'PROFIL_INDISPONIBLE' }, { status: 503 }),
+      session,
+    );
   }
 
   const { data: existing, error: existingError } = await supabase
@@ -101,16 +159,13 @@ export async function PATCH(request: Request) {
     .maybeSingle();
 
   if (existingError) {
-    return NextResponse.json({ ok: false, error: 'PROFIL_INDISPONIBLE' }, { status: 503 });
+    return withRenewedSession(
+      NextResponse.json({ ok: false, error: 'PROFIL_INDISPONIBLE' }, { status: 503 }),
+      session,
+    );
   }
 
-  let displayName: string | null = null;
-  try {
-    displayName = identityDisplayName(await readCanonicalIdentity(session));
-  } catch {
-    // Le nom canonique n'est pas requis pour enregistrer les données métier du profil.
-  }
-
+  const displayName = identityDisplayName(identity);
   const now = new Date().toISOString();
   const payload = {
     core_identity_reference: session.entity,
@@ -137,7 +192,10 @@ export async function PATCH(request: Request) {
     .upsert(payload, { onConflict: 'core_identity_reference' });
 
   if (error) {
-    return NextResponse.json({ ok: false, error: 'PROFIL_NON_ENREGISTRE' }, { status: 503 });
+    return withRenewedSession(
+      NextResponse.json({ ok: false, error: 'PROFIL_NON_ENREGISTRE' }, { status: 503 }),
+      session,
+    );
   }
 
   // Pont de compatibilité temporaire : si la personne possède déjà un profil ZUMRA,
@@ -170,5 +228,8 @@ export async function PATCH(request: Request) {
       .eq('core_identity_reference', session.entity);
   }
 
-  return NextResponse.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
+  return withRenewedSession(
+    NextResponse.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } }),
+    session,
+  );
 }
