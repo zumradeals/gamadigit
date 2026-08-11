@@ -69,20 +69,43 @@ test('CAP-003 profile API binds reads and writes to the authenticated Core ident
   assert.doesNotMatch(source, /body.*coreIdentityReference/s);
 });
 
-test('CAP-003 lets ZUMRA consume DG profile data without owning profile existence', () => {
+test('CAP-003 PATCH preserves profile fields that the current editor does not send', () => {
+  const source = readFileSync(
+    new URL('../src/app/api/genesis/profile/route.ts', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(source, /owns\(body, 'phone'\).*existing\?\.phone/s);
+  assert.match(source, /owns\(body, 'education'\).*existing\?\.education/s);
+  assert.match(source, /owns\(body, 'participationMode'\).*existing\?\.participation_mode/s);
+});
+
+test('CAP-003 keeps DG profile existence separate from ZUMRA enrollment and consent', () => {
+  const accountSpace = readFileSync(
+    new URL('../src/components/genesis/account-space.tsx', import.meta.url),
+    'utf8',
+  );
   const meSource = readFileSync(
     new URL('../src/app/api/zumra/me/route.ts', import.meta.url),
     'utf8',
   );
+
+  assert.match(accountSpace, /fetch\('\/api\/genesis\/profile'/);
+  assert.match(meSource, /if \(!membership\)[\s\S]*enrolled:\s*false/);
+  assert.match(meSource, /from\('dg_person_profiles'\)/);
+  assert.match(meSource, /from\('zumra_member_profiles'\)/);
+});
+
+test('CAP-003 lets ZUMRA reuse shared profile data without overwriting free DG intentions', () => {
   const enrollSource = readFileSync(
     new URL('../src/app/api/zumra/enroll/route.ts', import.meta.url),
     'utf8',
   );
 
-  assert.match(meSource, /from\('dg_person_profiles'\)/);
-  assert.match(meSource, /enrolled:\s*false[\s\S]*profile:\s*profilePayload\(profile\)/);
   assert.match(enrollSource, /from\('dg_person_profiles'\)/);
   assert.match(enrollSource, /from\('zumra_member_profiles'\)/);
+  assert.match(enrollSource, /canonicalIntentions/);
+  assert.match(enrollSource, /intentions:\s*value\.intentions/);
 });
 
 test('CAP-003 routes profile management through DG Afrique, not ZUMRA', () => {
