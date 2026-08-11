@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { listFederationSatellites } from '@/lib/federation/satellites';
+import { federationReturnCookie, listFederationSatellites } from '@/lib/federation/satellites';
 import { closeUserSession, parsePortalSession, portalAccountCookie } from '@/lib/gamad-core/account';
 import { readProductionLogoutUrl } from '@/lib/gamad-core/server';
 import { rejectCrossOrigin } from '@/lib/http/same-origin';
@@ -36,5 +36,10 @@ export async function POST(request: Request) {
     { headers: { 'Cache-Control': 'no-store' } },
   );
   response.cookies.set(portalAccountCookie.name, '', { ...portalAccountCookie.options, expires: new Date(0) });
+  response.cookies.set(federationReturnCookie.name, '', {
+    ...federationReturnCookie.options,
+    maxAge: 0,
+    expires: new Date(0),
+  });
   return response;
 }
