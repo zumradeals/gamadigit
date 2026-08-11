@@ -106,6 +106,16 @@ export async function POST(request: Request) {
     // Le profil reste enregistrable si le libelle Core est temporairement indisponible.
   }
 
+  const { data: existingCanonical, error: canonicalReadError } = await supabase
+    .from('dg_person_profiles')
+    .select('intentions')
+    .eq('core_identity_reference', session.entity)
+    .maybeSingle();
+
+  if (canonicalReadError) {
+    return NextResponse.json({ ok: false, error: 'PROFIL_DG_INDISPONIBLE' }, { status: 503 });
+  }
+
   const value = parsed.data;
   const sharedProfile = {
     ...(displayName ? { display_name: displayName } : {}),
@@ -118,15 +128,22 @@ export async function POST(request: Request) {
     current_activity: value.currentActivity || null,
     education: value.education || null,
     sectors: value.sectors,
-    intentions: value.intentions,
     participation_mode: value.participationMode,
     open_to_recommendations: value.openToRecommendations,
     updated_at: now,
   };
 
+  const canonicalIntentions = existingCanonical
+    ? (Array.isArray(existingCanonical.intentions) ? existingCanonical.intentions : [])
+    : value.intentions;
+
   const { error: canonicalProfileError } = await supabase
     .from('dg_person_profiles')
-    .upsert({ core_identity_reference: session.entity, ...sharedProfile }, { onConflict: 'core_identity_reference' });
+    .upsert({
+      core_identity_reference: session.entity,
+      ...sharedProfile,
+      intentions: canonicalIntentions,
+    }, { onConflict: 'core_identity_reference' });
 
   if (canonicalProfileError) {
     return NextResponse.json({ ok: false, error: 'PROFIL_DG_NON_ENREGISTRE' }, { status: 503 });
@@ -134,7 +151,11 @@ export async function POST(request: Request) {
 
   const { error: profileError } = await supabase
     .from('zumra_member_profiles')
-    .upsert({ core_identity_reference: session.entity, ...sharedProfile }, { onConflict: 'core_identity_reference' });
+    .upsert({
+      core_identity_reference: session.entity,
+      ...sharedProfile,
+      intentions: value.intentions,
+    }, { onConflict: 'core_identity_reference' });
 
   if (profileError) {
     return NextResponse.json({ ok: false, error: 'PROFIL_NON_ENREGISTRE' }, { status: 503 });
