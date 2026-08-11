@@ -80,7 +80,7 @@ function nextActionFor(zumra: ZumraMePayload | null, groups: ZumraGroupSummary[]
       eyebrow: 'Profil de capacités',
       title: 'Rendez votre profil plus utile',
       description: 'Compétences, apprentissages, secteurs et intentions permettront progressivement à DG Afrique de mieux orienter votre parcours.',
-      href: '/espace/zumra',
+      href: '/espace/profil',
       cta: 'Enrichir mon profil',
       progress: completion,
       progressLabel: `Profil ${completion} %`,
@@ -290,7 +290,7 @@ function CapabilitiesPanel({ profile }: { profile?: ZumraProfile }) {
           <Eyebrow tone="muted">Mon profil de capacités</Eyebrow>
           <h2 className="mt-2 font-display text-[1.4rem]">Ce que je sais, apprends et veux faire</h2>
         </div>
-        {profile && <SuperButtonLink as={Link} href="/espace/zumra" variant="ghost" size="sm">Gérer</SuperButtonLink>}
+        <SuperButtonLink as={Link} href="/espace/profil" variant="ghost" size="sm">{profile ? 'Gérer' : 'Créer'}</SuperButtonLink>
       </div>
       {!hasData ? (
         <EmptyState title="Votre graphe personnel commence ici" description="Déclarez ce que vous savez faire, ce que vous souhaitez apprendre et vos intentions. Aucun diplôme n’est nécessaire pour commencer." />
