@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Loader2, LogOut, RefreshCw } from 'lucide-react';
 import { MemberHome } from '@/components/superapp/home/member-home';
+import type { CapabilityProfile } from '@/lib/profile/capability-profile';
 import type { ZumraGroupSummary, ZumraMePayload } from '@/lib/zumra/types';
 
 type AccountPayload = {
@@ -15,6 +16,12 @@ type AccountPayload = {
     expiresAt: string;
     identity: Record<string, unknown>;
   };
+};
+
+type ProfilePayload = {
+  ok: boolean;
+  profile?: CapabilityProfile;
+  error?: string;
 };
 
 type GroupsPayload = {
@@ -33,6 +40,7 @@ function text(value: unknown) {
 
 export function AccountSpace() {
   const [data, setData] = useState<AccountPayload | null>(null);
+  const [profile, setProfile] = useState<CapabilityProfile | undefined>(undefined);
   const [zumra, setZumra] = useState<ZumraMePayload | null>(null);
   const [groups, setGroups] = useState<ZumraGroupSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +68,16 @@ export function AccountSpace() {
         if (cancelled) return;
         setData(account);
 
-        const zumraResponse = await fetch('/api/zumra/me', { cache: 'no-store' });
+        const [profileResponse, zumraResponse] = await Promise.all([
+          fetch('/api/genesis/profile', { cache: 'no-store' }),
+          fetch('/api/zumra/me', { cache: 'no-store' }),
+        ]);
+
+        if (profileResponse.ok) {
+          const profileBody = (await profileResponse.json()) as ProfilePayload;
+          if (!cancelled && profileBody.profile) setProfile(profileBody.profile);
+        }
+
         if (zumraResponse.ok) {
           const zumraBody = (await zumraResponse.json()) as ZumraMePayload;
           if (!cancelled) setZumra(zumraBody);
@@ -144,7 +161,7 @@ export function AccountSpace() {
 
   return (
     <main className="min-h-screen bg-paper text-ink">
-      <MemberHome displayName={displayName} zumra={zumra} groups={groups} />
+      <MemberHome displayName={displayName} profile={profile} zumra={zumra} groups={groups} />
       <div className="mx-auto flex max-w-[73.75rem] justify-end px-4 pb-8 sm:px-8 lg:px-12">
         <button
           type="button"
