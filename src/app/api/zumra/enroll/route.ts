@@ -103,12 +103,12 @@ export async function POST(request: Request) {
   try {
     displayName = identityDisplayName(await readCanonicalIdentity(session));
   } catch {
-    // Le profil ZUMRA reste enregistrable si le libelle Core est temporairement indisponible.
+    // Le profil reste enregistrable si le libelle Core est temporairement indisponible.
   }
 
   const value = parsed.data;
-  const profilePayload: Record<string, unknown> = {
-    core_identity_reference: session.entity,
+  const sharedProfile = {
+    ...(displayName ? { display_name: displayName } : {}),
     country: value.country,
     city: value.city,
     phone: value.phone,
@@ -121,12 +121,20 @@ export async function POST(request: Request) {
     intentions: value.intentions,
     participation_mode: value.participationMode,
     open_to_recommendations: value.openToRecommendations,
+    updated_at: now,
   };
-  if (displayName) profilePayload.display_name = displayName;
+
+  const { error: canonicalProfileError } = await supabase
+    .from('dg_person_profiles')
+    .upsert({ core_identity_reference: session.entity, ...sharedProfile }, { onConflict: 'core_identity_reference' });
+
+  if (canonicalProfileError) {
+    return NextResponse.json({ ok: false, error: 'PROFIL_DG_NON_ENREGISTRE' }, { status: 503 });
+  }
 
   const { error: profileError } = await supabase
     .from('zumra_member_profiles')
-    .upsert(profilePayload, { onConflict: 'core_identity_reference' });
+    .upsert({ core_identity_reference: session.entity, ...sharedProfile }, { onConflict: 'core_identity_reference' });
 
   if (profileError) {
     return NextResponse.json({ ok: false, error: 'PROFIL_NON_ENREGISTRE' }, { status: 503 });
