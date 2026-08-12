@@ -110,7 +110,7 @@ test('CAP-003 lets ZUMRA reuse shared profile data without overwriting free DG i
   assert.match(enrollSource, /intentions:\s*value\.intentions/);
 });
 
-test('CAP-003 routes profile management through DG Afrique, not ZUMRA', () => {
+test('CAP-003 routes profile management through DG Afrique without reducing the person to a score', () => {
   const home = readFileSync(
     new URL('../src/components/superapp/home/member-home.tsx', import.meta.url),
     'utf8',
@@ -121,5 +121,6 @@ test('CAP-003 routes profile management through DG Afrique, not ZUMRA', () => {
   );
 
   assert.match(home, /href="\/espace\/profil"/);
+  assert.doesNotMatch(home, /progressLabel:\s*`Profil/);
   assert.match(profilePage, /CapabilityProfileForm/);
 });
