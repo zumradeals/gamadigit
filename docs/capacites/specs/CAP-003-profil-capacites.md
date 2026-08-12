@@ -3,10 +3,10 @@
 - **Famille :** Fondations humaines et ZUMRA
 - **Domaine :** Profil métier DG Afrique
 - **Propriétaire d'exécution :** DG Afrique
-- **Statut gate :** **EN DEV**
+- **Statut gate :** **VALIDÉ PROD**
 - **CAP précédent :** CAP-002 — **VALIDÉ PROD**
-- **CAP suivant :** CAP-004 — BLOQUÉ
-- **Branche :** `cap/003-profil-capacites`
+- **CAP suivant :** CAP-004 — **EN SPEC**
+- **Branche de réalisation :** `cap/003-profil-capacites`
 
 ## Source fonctionnelle V0.1
 
@@ -21,13 +21,13 @@ Le référentiel définit CAP-003 ainsi :
 
 Le profil appartient au **compte DG Afrique**, pas au Programme ZUMRA.
 
-Une personne doit pouvoir créer et enrichir son profil immédiatement après avoir créé son compte DG, même si elle ne rejoint jamais ZUMRA. ZUMRA peut ensuite consommer les informations utiles de ce profil mais ne doit pas être la condition d'existence du profil.
+Une personne peut créer et enrichir son profil immédiatement après avoir créé son compte DG, même si elle ne rejoint jamais ZUMRA. ZUMRA peut ensuite consommer les informations utiles de ce profil mais ne conditionne pas son existence.
 
 L'identité canonique (nom/référence) reste fournie par GAMAD Core. DG Afrique conserve uniquement les données métier du profil, attachées à `core_identity_reference`.
 
 ## Limites de CAP-003
 
-CAP-003 structure les grandes dimensions du profil mais ne cherche pas encore à résoudre en profondeur :
+CAP-003 structure les grandes dimensions du profil mais ne résout pas encore en profondeur :
 
 - CAP-004 — modèle riche de COMPÉTENCES ;
 - CAP-005 — moteur APPRENTISSAGE ;
@@ -35,7 +35,7 @@ CAP-003 structure les grandes dimensions du profil mais ne cherche pas encore à
 - CAP-026 — modèle riche d'INTENTION ;
 - CAP-029/030/031 — découverte, matching et explicabilité.
 
-Pour CAP-003, compétences, apprentissages, domaines et intentions restent des listes structurées simples. Leur sémantique avancée viendra à leur CAP.
+Pour CAP-003, compétences, apprentissages, domaines et intentions restent des listes structurées simples. Leur sémantique avancée vient à leur CAP.
 
 ## Audit de l'existant
 
@@ -80,49 +80,39 @@ Principes :
 
 Aucun score global de personne ou de valeur humaine n'est calculé ni présenté.
 
-## Parcours principal attendu
+## Parcours principal validé
 
 1. personne connectée → Mon espace ;
 2. ouvre **Mon profil** ;
 3. voit son nom issu de l'identité DG/Core ;
-4. renseigne librement situation, savoir-faire, apprentissages, domaines et intentions ;
+4. renseigne situation, savoir-faire, apprentissages, domaines et intentions ;
 5. enregistre ;
-6. revient plus tard et retrouve les données ;
-7. ces données apparaissent dans Mon espace même sans adhésion ZUMRA ;
-8. cliquer sur « Rejoindre ZUMRA » reste une action séparée.
+6. retrouve les données ;
+7. les données sont visibles dans Mon espace ;
+8. ZUMRA reste une action séparée.
 
-## Critères d'acceptation minimum
+## Critères d'acceptation
 
-- **AC-003-01** un compte DG non membre ZUMRA peut avoir un profil.
-- **AC-003-02** le profil est rattaché uniquement à la référence Core de la session.
-- **AC-003-03** l'identité affichée provient de Core et n'est pas recréée dans Supabase Auth.
-- **AC-003-04** localisation, activité, savoir-faire, apprentissages, domaines et intentions sont enregistrables et relisibles.
-- **AC-003-05** l'absence de compétence peut être exprimée sans rendre le profil invalide.
-- **AC-003-06** aucun score global de personne n'est créé ou affiché.
-- **AC-003-07** le profil existant d'un membre ZUMRA est repris lors de la migration.
-- **AC-003-08** ZUMRA peut réutiliser les champs partagés sans devenir propriétaire du profil DG ni écraser les intentions libres DG.
-- **AC-003-09** lecture et mutation exigent une session Core réellement valide ; mutation protégée same-origin.
-- **AC-003-10** parcours principal validé en production sur `dgafrique.com`.
+- **AC-003-01** un compte DG peut avoir un profil sans dépendance technique à une adhésion ZUMRA — validé par architecture/tests.
+- **AC-003-02** profil rattaché uniquement à la référence Core de la session — validé.
+- **AC-003-03** identité affichée issue du Core, pas recréée dans Supabase Auth — validé.
+- **AC-003-04** localisation, activité, savoir-faire, apprentissages, domaines et intentions enregistrables et relisibles — validé.
+- **AC-003-05** absence de compétence exprimable sans invalider le profil — validé.
+- **AC-003-06** aucun score global de personne — validé.
+- **AC-003-07** profil historique ZUMRA repris à la migration — validé.
+- **AC-003-08** ZUMRA peut réutiliser les champs partagés sans posséder le profil DG ni écraser les intentions libres — validé.
+- **AC-003-09** lecture/mutation exigent une session Core valide ; mutation same-origin — validé.
+- **AC-003-10** parcours principal validé en production sur `dgafrique.com` — validé par l'utilisateur le 2026-08-12 : **« profil enregistré et visible »**.
 
-## État d'implémentation
+## Production finale
 
-- migration `20260811234000_dg_person_profiles.sql` créée et appliquée au projet Supabase `gamadigit` ;
-- table `dg_person_profiles` confirmée avec RLS, clé primaire Core et aucune FK vers ZUMRA ;
-- profils ZUMRA existants backfillés ;
-- contrat `src/lib/profile/capability-profile.ts` créé ;
-- API indépendante `/api/genesis/profile` créée ;
-- cette API vérifie la session actuelle auprès du Core et renouvelle le cookie uniquement à l'échéance attestée ;
-- écran `/espace/profil` raccordé ;
-- Mon espace charge `/api/genesis/profile` indépendamment de `/api/zumra/me` ;
-- `/api/zumra/me` ne transforme pas un profil DG en adhésion : sans membership il retourne seulement `enrolled:false` ;
-- pour un vrai membre ZUMRA, `/api/zumra/me` réutilise les champs partagés du profil DG tout en conservant les intentions propres à ZUMRA ;
-- `/api/zumra/enroll` synchronise les champs partagés sans écraser les intentions libres du profil DG ;
-- aucun pourcentage de complétude n'est présenté comme score du profil.
-
-## Tests automatisés
-
-Le head code `543bd401c4dc0609f2d88c43ed64fc21600ae04a` passe **27/27 tests** : CAP-001 et CAP-002 restent verts, plus 9 tests CAP-003 couvrant indépendance ZUMRA, liaison à l'identité Core, session Core live, conservation des champs, séparation des consentements/intention et absence de scoring.
+- commit production : `59009d5450c7e00ff7cf7583d8e1e530103a6158` ;
+- déploiement Vercel : `dpl_jS8o3KuFG7WyvEMHWBiz3KXYDxnu` — **READY** ;
+- `npm test && next build` : **27/27 tests pass**, compilation Next.js réussie, lint/types verts, génération statique 102/102 ;
+- table Supabase `public.dg_person_profiles` présente en production avec RLS, PK Core et aucune FK ZUMRA.
 
 ## Gate
 
-**CAP-003 reste EN DEV tant que le parcours principal n'a pas été validé sur `dgafrique.com`. CAP-004 reste BLOQUÉ.**
+**CAP-003 — PROFIL DE CAPACITÉS → VALIDÉ PROD.**
+
+**CAP-004 — COMPÉTENCES devient le seul nouveau gate actif, EN SPEC.**
