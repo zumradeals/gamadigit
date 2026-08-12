@@ -52,7 +52,7 @@ Le dirigeant a demandé de préserver le sens de DG Afrique et d'éviter une qu�
 
 **CAP-002 → VALIDÉ PROD.** Preuve : `docs/capacites/proofs/CAP-002-2026-08-10.md`.
 
-## 2026-08-11 — CAP-003 PROFIL DE CAPACITÉS
+## 2026-08-11 → 2026-08-12 — CAP-003 PROFIL DE CAPACITÉS
 
 ### Source / limite
 
@@ -75,7 +75,7 @@ Création de `public.dg_person_profiles` :
 - backfill des profils ZUMRA existants ;
 - aucun compte/identité parallèle.
 
-Migration `20260811234000_dg_person_profiles.sql` appliquée au Supabase production `gamadigit`. Contrôle live : table présente, RLS, PK Core, aucune FK ZUMRA, 1 profil historique repris au moment du contrôle.
+Migration `20260811234000_dg_person_profiles.sql` appliquée au Supabase production `gamadigit`. Contrôle live : table présente, RLS, PK Core, aucune FK ZUMRA, profil historique repris au moment du contrôle.
 
 ### Implémentation
 
@@ -87,17 +87,30 @@ Migration `20260811234000_dg_person_profiles.sql` appliquée au Supabase product
 - champs non édités préservés ;
 - ZUMRA peut réutiliser des champs partagés seulement dans un vrai contexte d'adhésion ;
 - les intentions libres DG ne sont pas écrasées par les intentions contrôlées ZUMRA ;
-- suppression du pourcentage de complétude visible : aucune personne n'est transformée en score.
+- aucun pourcentage de complétude visible : aucune personne n'est transformée en score.
 
-### Tests avant promotion
+### Tests / production
 
-Head code `543bd401c4dc0609f2d88c43ed64fc21600ae04a` : **27/27 tests verts** ; compilation Next.js réussie. Preview code `dpl_2ZDx8Wj8Mi1NHExFLLbbFTaeyEab` READY.
+Production finale avant clôture documentaire :
+
+- commit `59009d5450c7e00ff7cf7583d8e1e530103a6158` ;
+- Vercel `dpl_jS8o3KuFG7WyvEMHWBiz3KXYDxnu` — READY ;
+- `npm test && next build` : **27/27 tests pass** ;
+- compilation Next.js, lint/types et génération 102/102 verts.
+
+### Validation utilisateur
+
+**2026-08-12 00:22 UTC : « profil enregistré et visible »** après usage réel du parcours profil en production.
+
+Cette preuve valide le parcours principal de CAP-003. Les invariants de découplage ZUMRA, sécurité Core et absence de scoring sont couverts par l'architecture et les tests automatisés.
+
+### Décision
+
+**CAP-003 — PROFIL DE CAPACITÉS → VALIDÉ PROD.**
 
 Preuve : `docs/capacites/proofs/CAP-003-2026-08-11.md`.
 
-### Gate actuel
-
-**CAP-003 → EN DEV**, attente promotion production + un test utilisateur simple du parcours profil. **CAP-004 reste BLOQUÉ.**
+**CAP-004 — COMPÉTENCES → EN SPEC**, seul nouveau gate actif. CAP-005 à CAP-084 restent BLOQUÉS.
 
 ## Format des prochaines entrées
 
