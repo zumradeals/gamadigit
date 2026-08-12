@@ -11,111 +11,103 @@
 
 ## Règle de chantier
 
-Le développement suit **CAP-001 → CAP-084**.
+Le développement suit **CAP-001 → CAP-084**, un seul gate actif. Lire `docs/capacites/CAP-MASTER-TRACKER.md`, travailler uniquement le premier CAP non `VALIDÉ PROD`, maintenir spec/preuve/historique/tracker/handoff, puis seulement ouvrir le CAP suivant.
 
-1. lire `docs/capacites/CAP-MASTER-TRACKER.md` ;
-2. prendre le premier CAP non `VALIDÉ PROD` ;
-3. ne travailler que sur ce CAP ;
-4. appliquer `docs/capacites/CAP-PRODUCTION-GATE.md` ;
-5. maintenir fiche, preuve, historique, tracker et ce handoff ;
-6. aucun CAP N+1 ne s'ouvre tant que CAP N n'est pas `VALIDÉ PROD`.
+### Profondeur adoptée le 2026-08-11
 
-Du code futur peut déjà exister : il reste préexistant/non validé jusqu'à son tour.
+Ne plus poursuivre une perfection exhaustive avant d'avancer. Un CAP peut être validé quand le **parcours principal réel**, les **invariants sécurité/données critiques**, les **tests automatisés utiles** et la **production** sont verts. Les raffinements UX et cas rares non bloquants vont au backlog.
 
-### Règle de profondeur adoptée le 2026-08-11
+## État officiel
 
-Le gate ne recherche plus la perfection exhaustive avant de progresser. Un CAP peut être validé lorsque le **parcours principal réel**, les **invariants sécurité/données critiques**, les **tests automatisés utiles** et la **production** sont verts. Les raffinements UX et cas rares non bloquants vont au backlog d'amélioration continue.
+- **CAP-001 — IDENTITÉ PERSONNE : VALIDÉ PROD.**
+- **CAP-002 — COMPTE DG AFRIQUE : VALIDÉ PROD.** Preuve `docs/capacites/proofs/CAP-002-2026-08-10.md`.
+- **CAP-003 — PROFIL DE CAPACITÉS : EN DEV, seul gate actif.**
+- CAP-004 à CAP-084 : BLOQUÉS.
 
-## État officiel — 2026-08-11
+## CAP-003 — définition V0.1
 
-### CAP-001 — IDENTITÉ PERSONNE
+- décrire une personne par ce qu'elle sait faire, souhaite apprendre et cherche à accomplir ;
+- profil = source structurée de capacités, pas simple biographie ;
+- identité/localisation, activité, compétences existantes/recherchées, intérêts et intentions ;
+- garde-fou : **ne pas réduire la personne à un score**.
 
-**VALIDÉ PROD.**
+CAP-003 ne doit pas absorber CAP-004 COMPÉTENCES, CAP-005 APPRENTISSAGE, CAP-023/024 graphe/profil-source, CAP-026 INTENTION ni les moteurs de matching futurs.
 
-Preuve : `docs/capacites/proofs/CAP-001-2026-08-10.md`.
+## Décision architecturale CAP-003
 
-### CAP-002 — COMPTE DG AFRIQUE
+Avant CAP-003, le profil était prisonnier de ZUMRA : `zumra_member_profiles.core_identity_reference` possède une FK vers `zumra_memberships`. Impossible d'avoir un profil DG sans adhésion.
 
-**VALIDÉ PROD.**
+Correction : nouvelle table métier **`public.dg_person_profiles`**, attachée directement à la référence d'identité GAMAD Core.
 
-Preuve finale : `docs/capacites/proofs/CAP-002-2026-08-10.md`.
+Invariants :
 
-Production applicative finale :
+- `core_identity_reference` = clé primaire ;
+- aucune FK vers ZUMRA ;
+- RLS activée ;
+- aucune identité membre parallèle dans Supabase Auth ;
+- migration additive, profils ZUMRA existants backfillés ;
+- existence d'un profil DG ≠ adhésion/consentement ZUMRA ;
+- intentions libres DG séparées des intentions contrôlées ZUMRA ;
+- aucun score ou pourcentage de personne affiché.
 
-- commit `da39eb0dc7a2916c464e3e652591426fd7182535` ;
-- Vercel `dpl_FwwqzsHCSyccApqPS5DhfBPHGuAH` — READY ;
-- **18/18 tests verts** ;
-- aliases `dgafrique.com` et `www.dgafrique.com`.
+Migration `supabase/migrations/20260811234000_dg_person_profiles.sql` appliquée avec succès au projet Supabase `sgvzkvxefsazvsvvqtsj`. Contrôle live : table présente, RLS active, PK Core, aucune FK vers ZUMRA, 1 ancien profil backfillé au moment de l'audit.
 
-Core :
+## Code CAP-003 actuel
 
-- PR #83 fusionnée ;
-- `gamad-core/main` `67b2ca74c7b4e9e510d1bb4a0fa5f094e56d952b` ;
-- `GET /api/v1/sessions/current` live ;
-- DG renouvelle son cookie uniquement à l'`expire_le` attesté par Core.
+Branche : `cap/003-profil-capacites`.
 
-Tests utilisateur réels validés : connexion, Mon espace, déconnexion, `next=/formations`, redirection d'un utilisateur déjà connecté, création + email + vérification + première connexion d'un nouveau compte.
+Head code validé : `543bd401c4dc0609f2d88c43ed64fc21600ae04a`. Des commits documentaires suivent sur la même branche.
 
-Incident trouvé puis corrigé : un vieux cookie de retour GamaDrive pouvait rediriger une nouvelle identité vers le satellite. Création de compte et déconnexion effacent désormais cet état ; le lien GamaDrive dans Mon espace utilise `prefetch={false}`. Validation utilisateur finale : **« Mon espace DG OK »**.
+Fichiers principaux :
 
-Le re-test manuel spécifique reload/renvoi d'un second code reste un backlog non bloquant ; les contrats correspondants sont couverts automatiquement.
+- `src/lib/profile/capability-profile.ts` ;
+- `src/app/api/genesis/profile/route.ts` ;
+- `src/app/(public)/espace/profil/page.tsx` ;
+- `src/components/profile/capability-profile-form.tsx` ;
+- `src/components/genesis/account-space.tsx` ;
+- `src/components/superapp/home/member-home.tsx` ;
+- ponts `/api/zumra/me` et `/api/zumra/enroll`.
 
-### CAP-003 — PROFIL DE CAPACITÉS
+### Sécurité
 
-**EN SPEC — seul gate actif. CAP-004 à CAP-084 restent BLOQUÉS.**
+`/api/genesis/profile` :
 
-Source V0.1 :
+- session portail signée requise ;
+- vérification réelle auprès de GAMAD Core via `readCurrentUserSession()` ;
+- renouvellement seulement jusqu'à l'expiration attestée Core ;
+- mutation same-origin ;
+- identité de la ligne imposée par `session.entity`, jamais par le body client ;
+- champs non affichés par l'éditeur actuel préservés.
 
-- **Finalité :** décrire une personne par ce qu'elle est capable de faire, ce qu'elle souhaite apprendre et ce qu'elle cherche à accomplir.
-- **Capacité :** le profil devient une source structurée de capacités plutôt qu'une simple fiche biographique.
-- **Points clés :** identité et localisation ; activité actuelle ; compétences existantes ; compétences recherchées ; domaines d'intérêt et intentions.
-- **Garde-fou :** le profil doit rester utile à l'orientation sans réduire la personne à un score.
+### Séparation ZUMRA
 
-Important : CAP-003 décrit le **profil comme structure utile d'orientation**. CAP-004 reste responsable de la sémantique approfondie des compétences ; CAP-005 de l'apprentissage ; CAP-026 des intentions ; CAP-023/024 du graphe/profil-source à leur tour. CAP-003 ne doit pas avaler ces CAP futurs.
+- Mon espace charge `/api/genesis/profile` indépendamment de `/api/zumra/me` ;
+- `/api/zumra/me` sans membership retourne `enrolled:false` et ne transforme pas le profil DG en consentement ZUMRA ;
+- pour un membre réel, ZUMRA peut réutiliser les champs partagés ;
+- `/api/zumra/enroll` conserve les intentions libres DG et écrit ses propres intentions contrôlées dans le profil legacy ZUMRA.
 
-## Architecture à préserver
+## Tests
 
-- GAMAD Core reste l'autorité canonique d'identité/authentification.
-- `session.entity` / référence d'identité Core est le point d'attache stable.
-- Supabase/PostgreSQL porte les données métier DG/ZUMRA, pas une identité membre parallèle.
-- Supabase Auth historique reste un plan de contrôle admin/CMS, pas l'identité canonique membre.
-- DG Afrique est le portail/orchestrateur ; les satellites restent autonomes.
-- Ne pas modifier GamaDrive sans autorisation spécifique.
-- Éviter de modifier GAMAD Core hors nécessité explicite ; CAP-003 devrait rester côté DG métier.
+Head code `543bd401...` : **27/27 tests pass**, compilation Next.js réussie, lint/types sans erreur observée. Preview code `dpl_2ZDx8Wj8Mi1NHExFLLbbFTaeyEab` est READY.
 
-## Discipline Git / prod
-
-- branche dédiée pour le CAP actif ;
-- preview + tests ;
-- comparaison avec `cursor` ;
-- fast-forward `force:false` uniquement si ahead-only ;
-- attendre Vercel READY ;
-- test production du parcours principal ;
-- documenter puis `VALIDÉ PROD`.
-
-## Sécurité
-
-- aucun secret dans docs/logs/messages ;
-- ne jamais demander à l'utilisateur de coller un secret complet ;
-- pas de force push ;
-- ne pas fabriquer de données critiques pour faire passer un test ;
-- ne pas réduire un profil humain à une note ou un score global.
+Preuve en cours : `docs/capacites/proofs/CAP-003-2026-08-11.md`.
 
 ## Prochain geste exact
 
-1. créer la branche `cap/003-profil-capacites` depuis `cursor` après clôture CAP-002 ;
-2. auditer le profil déjà présent dans le code et les tables Supabase métier ;
-3. séparer ce qui appartient réellement à CAP-003 de CAP-004/005/026 et des CAP futurs ;
-4. écrire `docs/capacites/specs/CAP-003-profil-capacites.md` ;
-5. implémenter uniquement les écarts nécessaires au parcours principal ;
-6. tests → preview → production → validation rapide ;
-7. seulement ensuite CAP-004 s'ouvre.
+1. attendre le dernier preview documentaire READY ;
+2. comparer `cursor` et `cap/003-profil-capacites` ; exiger ahead-only / behind=0 ;
+3. fast-forward `cursor` avec `force:false` ;
+4. attendre production READY ;
+5. demander un seul test utilisateur sur `dgafrique.com` : ouvrir **Mon profil de capacités**, saisir quelques données, enregistrer, revenir à Mon espace et vérifier qu'elles apparaissent ;
+6. vérifier logs runtime + Supabase et confirmer qu'un profil DG n'a pas créé d'adhésion ZUMRA ;
+7. si vert : CAP-003 `VALIDÉ PROD`, docs de clôture, puis CAP-004 `EN SPEC`.
 
-## Fichiers obligatoires à maintenir
+## Architecture à préserver
 
-- `docs/capacites/CAP-PRODUCTION-GATE.md`
-- `docs/capacites/CAP-MASTER-TRACKER.md`
-- `docs/capacites/CAP-HISTORY.md`
-- `docs/AI-HANDOFF.md`
-- fiche du CAP actif
-- dossier de preuve du CAP actif
+- GAMAD Core = autorité canonique identité/authentification ;
+- Supabase/PostgreSQL = données métier ;
+- Supabase Auth historique = admin/CMS, pas identité membre ;
+- DG Afrique = portail/orchestrateur ;
+- satellites autonomes ;
+- ne pas modifier GamaDrive sans autorisation spécifique ;
+- pas de force push ; pas de secret dans docs/messages/logs.
