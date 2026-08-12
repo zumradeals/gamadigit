@@ -31,20 +31,18 @@ function formatDate(value?: string | null) {
   return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 }
 
-function profileCompletion(profile?: CapabilityProfile) {
-  if (!profile) return 0;
-  const checks = [
-    Boolean(profile.displayName),
+function profileNeedsEnrichment(profile?: CapabilityProfile) {
+  if (!profile) return true;
+  const signals = [
     Boolean(profile.country),
     Boolean(profile.city),
-    Boolean(profile.phone),
+    Boolean(profile.currentActivity),
     profile.skills.length > 0 || profile.noSkillsYet,
     profile.learningGoals.length > 0,
     profile.sectors.length > 0,
     profile.intentions.length > 0,
-    Boolean(profile.participationMode),
   ];
-  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  return signals.some((signal) => !signal);
 }
 
 function contributionLabel(status?: string) {
@@ -77,16 +75,13 @@ function nextActionFor(zumra: ZumraMePayload | null, groups: ZumraGroupSummary[]
     };
   }
 
-  const completion = profileCompletion(profile);
-  if (zumra.membership?.status === 'active' && completion < 100) {
+  if (zumra.membership?.status === 'active' && profileNeedsEnrichment(profile)) {
     return {
       eyebrow: 'Profil de capacités',
       title: 'Rendez votre profil plus utile',
       description: 'Compétences, apprentissages, secteurs et intentions permettront progressivement à DG Afrique de mieux orienter votre parcours.',
       href: '/espace/profil',
       cta: 'Enrichir mon profil',
-      progress: completion,
-      progressLabel: `Profil ${completion} %`,
     };
   }
 
