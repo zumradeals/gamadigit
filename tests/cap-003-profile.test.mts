@@ -57,7 +57,7 @@ test('CAP-003 storage is independent from ZUMRA membership', () => {
   assert.doesNotMatch(createTableBlock, /references\s+public\.zumra_memberships/i);
 });
 
-test('CAP-003 profile API binds reads and writes to the authenticated Core identity', () => {
+test('CAP-003 profile API binds reads and writes to a live authenticated Core identity', () => {
   const source = readFileSync(
     new URL('../src/app/api/genesis/profile/route.ts', import.meta.url),
     'utf8',
@@ -66,6 +66,8 @@ test('CAP-003 profile API binds reads and writes to the authenticated Core ident
   assert.match(source, /from\('dg_person_profiles'\)/);
   assert.match(source, /core_identity_reference:\s*session\.entity/);
   assert.match(source, /rejectCrossOrigin\(request\)/);
+  assert.match(source, /readCurrentUserSession\(session\)/);
+  assert.match(source, /renewPortalSessionFromAttestation\(session, attestation\)/);
   assert.doesNotMatch(source, /body.*coreIdentityReference/s);
 });
 
