@@ -35,17 +35,17 @@ CAP-003 structure les grandes dimensions du profil mais ne cherche pas encore à
 - CAP-026 — modèle riche d'INTENTION ;
 - CAP-029/030/031 — découverte, matching et explicabilité.
 
-Pour CAP-003, les compétences, apprentissages, domaines et intentions peuvent rester des listes structurées simples. Leur sémantique avancée viendra à leur CAP.
+Pour CAP-003, compétences, apprentissages, domaines et intentions restent des listes structurées simples. Leur sémantique avancée viendra à leur CAP.
 
 ## Audit de l'existant
 
-Avant CAP-003, les données pertinentes existaient dans `zumra_member_profiles`, avec : localisation, téléphone, compétences, apprentissages, activité, formation, secteurs, intentions et préférences.
+Avant CAP-003, les données pertinentes existaient dans `zumra_member_profiles`, avec localisation, téléphone, compétences, apprentissages, activité, formation, secteurs, intentions et préférences.
 
-Problème architectural : `zumra_member_profiles.core_identity_reference` possède une FK vers `zumra_memberships.core_identity_reference`. Le profil ne peut donc exister qu'après création d'une adhésion ZUMRA.
+Problème architectural : `zumra_member_profiles.core_identity_reference` possède une FK vers `zumra_memberships.core_identity_reference`. Le profil ne pouvait donc exister qu'après création d'une adhésion ZUMRA.
 
 De plus, `/api/zumra/me` retournait le profil uniquement après avoir trouvé une adhésion et `/api/zumra/enroll` créait adhésion + profil ensemble.
 
-**GAP-003-A : profil DG dépendant de ZUMRA — BLOQUANT, correction en cours.**
+**GAP-003-A : profil DG dépendant de ZUMRA — CORRIGÉ.**
 
 ## Architecture retenue
 
@@ -59,11 +59,14 @@ Principes :
 4. profil disponible pour tout compte DG authentifié ;
 5. RLS activée, accès applicatif via API serveur ;
 6. profils ZUMRA existants recopiés automatiquement à la migration ;
-7. pont de compatibilité maintenu temporairement vers `zumra_member_profiles` pour ne pas casser ZUMRA avant son CAP officiel.
+7. pont de compatibilité temporaire vers `zumra_member_profiles` uniquement pour les membres ZUMRA existants ;
+8. existence d'un profil DG ≠ adhésion ou consentement ZUMRA ;
+9. les intentions libres DG ne sont jamais remplacées par les choix contrôlés du formulaire d'adhésion ZUMRA ;
+10. aucun score ou pourcentage de valeur personnelle n'est affiché.
 
 ## Données CAP-003
 
-- nom canonique affiché depuis Core quand disponible ;
+- nom canonique affiché depuis Core ;
 - pays ;
 - ville/localité ;
 - activité actuelle ;
@@ -75,7 +78,7 @@ Principes :
 - consentement à recevoir des orientations/recommandations ;
 - champs historiques compatibles : téléphone, formation, mode de participation.
 
-Aucun score global de personne ou de valeur humaine n'est calculé.
+Aucun score global de personne ou de valeur humaine n'est calculé ni présenté.
 
 ## Parcours principal attendu
 
@@ -92,25 +95,34 @@ Aucun score global de personne ou de valeur humaine n'est calculé.
 
 - **AC-003-01** un compte DG non membre ZUMRA peut avoir un profil.
 - **AC-003-02** le profil est rattaché uniquement à la référence Core de la session.
-- **AC-003-03** l'identité affichée provient de Core quand disponible et n'est pas recréée dans Supabase Auth.
+- **AC-003-03** l'identité affichée provient de Core et n'est pas recréée dans Supabase Auth.
 - **AC-003-04** localisation, activité, savoir-faire, apprentissages, domaines et intentions sont enregistrables et relisibles.
-- **AC-003-05** l'absence de compétence peut être exprimée sans rendre le profil vide/invalide.
-- **AC-003-06** aucun score global n'est créé.
-- **AC-003-07** le profil existant d'un membre ZUMRA est repris sans perte lors de la migration.
-- **AC-003-08** ZUMRA peut lire le profil DG sans devenir son propriétaire.
-- **AC-003-09** mutation protégée same-origin et session obligatoire.
+- **AC-003-05** l'absence de compétence peut être exprimée sans rendre le profil invalide.
+- **AC-003-06** aucun score global de personne n'est créé ou affiché.
+- **AC-003-07** le profil existant d'un membre ZUMRA est repris lors de la migration.
+- **AC-003-08** ZUMRA peut réutiliser les champs partagés sans devenir propriétaire du profil DG ni écraser les intentions libres DG.
+- **AC-003-09** lecture et mutation exigent une session Core réellement valide ; mutation protégée same-origin.
 - **AC-003-10** parcours principal validé en production sur `dgafrique.com`.
 
 ## État d'implémentation
 
-- migration `20260811234000_dg_person_profiles.sql` créée et appliquée avec succès au projet Supabase `gamadigit` ;
+- migration `20260811234000_dg_person_profiles.sql` créée et appliquée au projet Supabase `gamadigit` ;
+- table `dg_person_profiles` confirmée avec RLS, clé primaire Core et aucune FK vers ZUMRA ;
 - profils ZUMRA existants backfillés ;
 - contrat `src/lib/profile/capability-profile.ts` créé ;
 - API indépendante `/api/genesis/profile` créée ;
-- `/api/zumra/me` lit désormais le profil canonique DG, y compris pour un utilisateur non enrôlé ;
-- `/api/zumra/enroll` synchronise le profil vers la table DG et conserve le pont legacy ZUMRA ;
-- écran `/espace/profil` en cours de raccord final.
+- cette API vérifie la session actuelle auprès du Core et renouvelle le cookie uniquement à l'échéance attestée ;
+- écran `/espace/profil` raccordé ;
+- Mon espace charge `/api/genesis/profile` indépendamment de `/api/zumra/me` ;
+- `/api/zumra/me` ne transforme pas un profil DG en adhésion : sans membership il retourne seulement `enrolled:false` ;
+- pour un vrai membre ZUMRA, `/api/zumra/me` réutilise les champs partagés du profil DG tout en conservant les intentions propres à ZUMRA ;
+- `/api/zumra/enroll` synchronise les champs partagés sans écraser les intentions libres du profil DG ;
+- aucun pourcentage de complétude n'est présenté comme score du profil.
+
+## Tests automatisés
+
+Le head code `543bd401c4dc0609f2d88c43ed64fc21600ae04a` passe **27/27 tests** : CAP-001 et CAP-002 restent verts, plus 9 tests CAP-003 couvrant indépendance ZUMRA, liaison à l'identité Core, session Core live, conservation des champs, séparation des consentements/intention et absence de scoring.
 
 ## Gate
 
-**CAP-003 reste EN DEV. CAP-004 reste BLOQUÉ.**
+**CAP-003 reste EN DEV tant que le parcours principal n'a pas été validé sur `dgafrique.com`. CAP-004 reste BLOQUÉ.**
