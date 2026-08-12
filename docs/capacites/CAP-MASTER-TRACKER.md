@@ -9,7 +9,7 @@
 | CAP-001 | IDENTITÉ PERSONNE | **VALIDÉ PROD** | `specs/CAP-001-identite-personne.md` | `proofs/CAP-001-2026-08-10.md` — final |
 | CAP-002 | COMPTE DG AFRIQUE | **VALIDÉ PROD** | `specs/CAP-002-compte-dg-afrique.md` — final | `proofs/CAP-002-2026-08-10.md` — final |
 | CAP-003 | PROFIL DE CAPACITÉS | **VALIDÉ PROD** | `specs/CAP-003-profil-capacites.md` — final | `proofs/CAP-003-2026-08-11.md` — finalisé 2026-08-12 |
-| CAP-004 | COMPÉTENCES | **EN SPEC** | À créer | — |
+| CAP-004 | COMPÉTENCES | **EN SPEC** | `specs/CAP-004-competences.md` | — |
 | CAP-005 | APPRENTISSAGE | BLOQUÉ | À créer | — |
 | CAP-006 | TRANSMISSION | BLOQUÉ | À créer | — |
 | CAP-007 | PROGRAMME ZUMRA | BLOQUÉ | `specs/CAP-007-programme-zumra.md` (préexistante, à réauditer à son tour) | — |
