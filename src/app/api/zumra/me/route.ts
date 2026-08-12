@@ -18,7 +18,6 @@ function textValue(value: unknown): string | null {
 function profilePayload(canonical: ProfileRow, legacy: ProfileRow) {
   if (!canonical && !legacy) return undefined;
 
-  const source = canonical ?? legacy;
   const participation = textValue(legacy?.participation_mode)
     ?? textValue(canonical?.participation_mode)
     ?? 'both';
