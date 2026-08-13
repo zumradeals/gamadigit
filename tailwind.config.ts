@@ -23,6 +23,9 @@ export default {
         mint: '#21C87A',
         sand: '#F5B942',
         cloud: '#F4F8FB',
+        copy: '#334452',
+        muted: '#7C8A9A',
+        border: '#E4EBF1',
         dgNavy: '#0B1F33',
         dgGold: '#C89B3C',
         dgGreen: '#2E6B4A',
@@ -87,6 +90,8 @@ export default {
       boxShadow: {
         soft: '0 18px 50px rgba(6, 31, 53, 0.10)',
         card: '0 24px 48px -18px rgba(10,27,51,.35)',
+        floating: '0 14px 36px rgba(6, 31, 53, 0.18)',
+        search: '0 18px 44px rgba(6, 31, 53, 0.28)',
       },
       keyframes: {
         pulseDot: { '0%,100%': { opacity: '.35' }, '50%': { opacity: '1' } },

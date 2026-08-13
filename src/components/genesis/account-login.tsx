@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   UserRound,
 } from 'lucide-react';
+import { Logo } from '@/components/brand/logo';
 import {
   makePendingAccountVerification,
   normalizePendingAccountVerification,
@@ -300,106 +301,112 @@ export function AccountLogin({ returnPath = '/espace' }: { returnPath?: string }
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:py-12">
-      <div className="mx-auto max-w-6xl">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-black text-dgNavy">
+    <main className="min-h-[calc(100vh-4.5rem)] bg-cloud px-4 py-6 sm:px-6 lg:py-10">
+      <div className="mx-auto w-full max-w-[1180px]">
+        <Link href="/" className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-extrabold text-ink">
           <ArrowLeft className="h-4 w-4" /> Retour à DG AFRIQUE
         </Link>
 
-        <div className="mt-7 grid overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl shadow-slate-200/60 lg:grid-cols-[.9fr_1.1fr]">
-          <section className="bg-dgNavy p-8 text-white sm:p-10 lg:p-12">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-dgGold"><UserRound className="h-6 w-6" /></div>
-            <p className="mt-8 text-xs font-black uppercase tracking-[0.18em] text-dgGold">Mon espace</p>
-            <h1 className="mt-3 text-4xl font-black tracking-[-0.04em] sm:text-5xl">Votre accès personnel à DG AFRIQUE.</h1>
-            <p className="mt-5 max-w-lg leading-8 text-slate-300">Créez gratuitement votre compte ou connectez-vous. Le compte vous ouvre votre espace personnel sans vous inscrire automatiquement à un programme.</p>
-            <div className="mt-8 space-y-4 text-sm text-slate-300">
-              <p className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-dgGold" /> Une seule porte d’accès personnelle.</p>
-              <p className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-dgGold" /> Une adresse email vérifiée avant la première connexion.</p>
-              <p className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-dgGold" /> Votre compte DG Afrique reste distinct de l’adhésion ZUMRA.</p>
+        <div className="mt-4 grid min-h-[670px] overflow-hidden rounded-[1.5rem] border border-border bg-white shadow-floating lg:grid-cols-[.88fr_1.12fr]">
+          <section className="relative overflow-hidden bg-ink p-7 text-white sm:p-10 lg:flex lg:flex-col lg:justify-between lg:p-12">
+            <div className="absolute -left-24 bottom-10 h-64 w-64 rounded-full bg-cyan/10 blur-3xl" />
+            <div className="absolute -right-20 top-20 h-64 w-64 rounded-full bg-sand/10 blur-3xl" />
+            <div className="relative">
+              <Logo />
+              <p className="dg-kicker mt-12 text-cyan">Un satellite de l’écosystème GAMAD</p>
+              <h1 className="mt-4 text-4xl font-black leading-tight tracking-[-0.04em] sm:text-5xl">Le numérique qui fait avancer vos projets.</h1>
+              <p className="mt-5 max-w-lg leading-8 text-white/65">Connectez-vous pour retrouver votre profil, vos accès et les services réellement disponibles dans votre espace DG Afrique.</p>
+            </div>
+            <div className="relative mt-10 space-y-4 text-sm text-white/65">
+              <p className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-mint" /> Une identité personnelle protégée par GAMAD Core.</p>
+              <p className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-mint" /> Une adresse email vérifiée avant la première connexion.</p>
+              <p className="flex items-start gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-mint" /> Un compte DG distinct de l’adhésion ZUMRA.</p>
             </div>
           </section>
 
           <section className="bg-white">
             {pending ? (
-              <form onSubmit={verify} className="mx-auto max-w-xl space-y-5 p-7 sm:p-10 lg:p-12">
+              <form onSubmit={verify} className="mx-auto max-w-xl space-y-5 p-7 sm:p-10 lg:p-14">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.15em] text-dgGold">Vérification</p>
-                  <h2 className="mt-2 text-3xl font-black text-dgNavy">Vérifiez votre adresse email</h2>
-                  <p className="mt-3 text-sm leading-6 text-slate-500">Saisissez le code à 6 chiffres envoyé à <strong>{pending.identifier}</strong>.</p>
+                  <p className="dg-kicker text-ocean">Vérification</p>
+                  <h2 className="mt-2 text-3xl font-black text-ink">Vérifiez votre adresse email</h2>
+                  <p className="mt-3 text-sm leading-6 text-muted">Saisissez le code à 6 chiffres envoyé à <strong className="text-copy">{pending.identifier}</strong>.</p>
                   {!pendingVerificationCodeIsActive(pending) && (
                     <p className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">Le dernier code a expiré. Demandez-en un nouveau ci-dessous.</p>
                   )}
                 </div>
-                <input value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" placeholder="000000" className="w-full rounded-2xl border border-slate-200 px-4 py-4 text-center text-2xl font-black tracking-[0.35em] outline-none focus:border-dgNavy" required />
-                {info && <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">{info}</p>}
-                {error && <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p>}
-                <button disabled={loading || code.length !== 6} className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-dgNavy px-5 py-4 text-sm font-black text-white disabled:opacity-60">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Vérifier et continuer</button>
-                <button type="button" onClick={resend} disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 px-5 py-4 text-sm font-black text-dgNavy disabled:opacity-50"><RefreshCw className="h-4 w-4" /> Renvoyer le code</button>
-                <button type="button" onClick={useAnotherAccount} disabled={loading} className="w-full text-sm font-bold text-slate-500 disabled:opacity-50">Utiliser une autre adresse</button>
+                <label htmlFor="verification-code" className="sr-only">Code de vérification à 6 chiffres</label>
+                <input id="verification-code" value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" placeholder="000000" className="focus-ring w-full rounded-2xl border border-border px-4 py-4 text-center text-2xl font-black tracking-[0.35em] text-ink" required />
+                <div aria-live="polite">{info && <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">{info}</p>}</div>
+                <div aria-live="assertive">{error && <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p>}</div>
+                <button disabled={loading || code.length !== 6} className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-ink px-5 py-4 text-sm font-black text-white disabled:opacity-60">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Vérifier et continuer</button>
+                <button type="button" onClick={resend} disabled={loading} className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-border px-5 py-4 text-sm font-black text-ink disabled:opacity-50"><RefreshCw className="h-4 w-4" /> Renvoyer le code</button>
+                <button type="button" onClick={useAnotherAccount} disabled={loading} className="focus-ring min-h-11 w-full rounded-full text-sm font-bold text-muted disabled:opacity-50">Utiliser une autre adresse</button>
               </form>
             ) : (
               <>
-                <div className="grid grid-cols-2 border-b border-slate-100 p-2 sm:p-3">
+                <div className="grid grid-cols-2 gap-2 border-b border-border p-3 sm:px-6 sm:py-4">
                   {(['login', 'register'] as Mode[]).map((item) => (
-                    <button key={item} type="button" onClick={() => { setMode(item); setError(''); setInfo(''); }} className={`rounded-xl px-3 py-3 text-sm font-black ${mode === item ? 'bg-dgNavy text-white' : 'text-slate-500'}`}>{item === 'login' ? 'Se connecter' : 'Créer un compte'}</button>
+                    <button key={item} type="button" onClick={() => { setMode(item); setError(''); setInfo(''); }} className={`focus-ring min-h-11 rounded-full px-3 py-3 text-sm font-black transition ${mode === item ? 'bg-ink text-white' : 'text-muted hover:bg-cloud'}`}>{item === 'login' ? 'Se connecter' : 'Créer un compte'}</button>
                   ))}
                 </div>
 
-                <form onSubmit={submit} className="mx-auto max-w-xl space-y-5 p-7 sm:p-10 lg:p-12">
+                <form onSubmit={submit} className="mx-auto max-w-xl space-y-5 p-7 sm:p-10 lg:p-14">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.15em] text-dgGold">{mode === 'login' ? 'Bienvenue' : 'Inscription gratuite'}</p>
-                    <h2 className="mt-2 text-3xl font-black text-dgNavy">{mode === 'login' ? 'Accéder à mon espace' : 'Créer mon accès personnel'}</h2>
+                    <p className="dg-kicker text-ocean">{mode === 'login' ? 'Bienvenue' : 'Inscription gratuite'}</p>
+                    <h2 className="mt-2 text-3xl font-black text-ink">{mode === 'login' ? 'Accéder à mon espace' : 'Créer mon accès personnel'}</h2>
+                    <p className="mt-2 text-sm leading-6 text-muted">{mode === 'login' ? 'Utilisez les identifiants de votre compte DG Afrique.' : 'Votre compte est gratuit et ne vous inscrit automatiquement à aucun programme.'}</p>
                   </div>
 
                   {mode === 'register' && (
                     <div>
-                      <label className="text-sm font-black text-slate-800">Nom complet</label>
-                      <input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" placeholder="Votre nom" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-4 text-sm outline-none focus:border-dgNavy" required />
+                      <label htmlFor="account-name" className="text-sm font-black text-copy">Nom complet</label>
+                      <input id="account-name" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" placeholder="Votre nom" className="focus-ring mt-2 w-full rounded-2xl border border-border px-4 py-4 text-sm text-ink" required />
                     </div>
                   )}
 
                   <div>
-                    <label className="text-sm font-black text-slate-800">Adresse email</label>
-                    <div className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 px-4 focus-within:border-dgNavy">
-                      <Mail className="h-5 w-5 text-slate-400" />
-                      <input value={identifier} onChange={(event) => setIdentifier(event.target.value)} type="email" autoComplete="email" placeholder="vous@exemple.com" className="min-w-0 flex-1 bg-transparent py-4 text-sm outline-none" required />
+                    <label htmlFor="account-email" className="text-sm font-black text-copy">Adresse email</label>
+                    <div className="focus-within:ring-cyan mt-2 flex items-center gap-3 rounded-2xl border border-border px-4 focus-within:ring-2">
+                      <Mail className="h-5 w-5 text-muted" />
+                      <input id="account-email" value={identifier} onChange={(event) => setIdentifier(event.target.value)} type="email" autoComplete="email" placeholder="vous@exemple.com" className="min-w-0 flex-1 bg-transparent py-4 text-sm text-ink outline-none" required />
                     </div>
                     {mode === 'register' && <p className="mt-2 text-xs text-slate-400">Un code de vérification sera envoyé à cette adresse.</p>}
                   </div>
 
                   <div>
-                    <label className="text-sm font-black text-slate-800">Mot de passe</label>
-                    <div className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 px-4 focus-within:border-dgNavy">
-                      <KeyRound className="h-5 w-5 text-slate-400" />
-                      <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={mode === 'register' ? 6 : undefined} placeholder="Votre mot de passe" className="min-w-0 flex-1 bg-transparent py-4 text-sm outline-none" required />
+                    <label htmlFor="account-password" className="text-sm font-black text-copy">Mot de passe</label>
+                    <div className="focus-within:ring-cyan mt-2 flex items-center gap-3 rounded-2xl border border-border px-4 focus-within:ring-2">
+                      <KeyRound className="h-5 w-5 text-muted" />
+                      <input id="account-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={mode === 'register' ? 6 : undefined} placeholder="Votre mot de passe" className="min-w-0 flex-1 bg-transparent py-4 text-sm text-ink outline-none" required />
                     </div>
                     {mode === 'register' && <p className="mt-2 text-xs text-slate-400">6 caractères minimum selon le contrat Core actuel.</p>}
                   </div>
 
                   {mode === 'register' && (
                     <div>
-                      <label className="text-sm font-black text-slate-800">Confirmer le mot de passe</label>
-                      <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" minLength={6} placeholder="Retapez votre mot de passe" className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-4 text-sm outline-none focus:border-dgNavy" required />
+                      <label htmlFor="account-password-confirmation" className="text-sm font-black text-copy">Confirmer le mot de passe</label>
+                      <input id="account-password-confirmation" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" minLength={6} placeholder="Retapez votre mot de passe" className="focus-ring mt-2 w-full rounded-2xl border border-border px-4 py-4 text-sm text-ink" required />
                     </div>
                   )}
 
                   {mode === 'register' && (
                     <div>
-                      <label className="text-sm font-black text-slate-800">Vérification rapide</label>
+                      <label htmlFor="captcha-answer" className="text-sm font-black text-copy">Vérification rapide</label>
                       <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
                         <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4 focus-within:border-dgNavy">
                           <span className="shrink-0 text-sm font-black text-dgNavy">{captchaLoading ? 'Calcul…' : captcha?.question ?? 'Indisponible'}</span>
-                          <input value={captchaAnswer} onChange={(event) => setCaptchaAnswer(event.target.value.replace(/\D/g, '').slice(0, 4))} inputMode="numeric" placeholder="Réponse" className="min-w-0 flex-1 bg-transparent py-4 text-sm outline-none" required />
+                          <input id="captcha-answer" value={captchaAnswer} onChange={(event) => setCaptchaAnswer(event.target.value.replace(/\D/g, '').slice(0, 4))} inputMode="numeric" placeholder="Réponse" className="min-w-0 flex-1 bg-transparent py-4 text-sm outline-none" required />
                         </div>
                         <button type="button" onClick={loadCaptcha} disabled={captchaLoading} aria-label="Changer le calcul" className="flex h-full min-h-12 items-center justify-center rounded-2xl border border-slate-200 px-4 text-dgNavy disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${captchaLoading ? 'animate-spin' : ''}`} /></button>
                       </div>
                     </div>
                   )}
 
-                  {info && <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">{info}</p>}
-                  {error && <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p>}
+                  <div aria-live="polite">{info && <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">{info}</p>}</div>
+                  <div aria-live="assertive">{error && <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p>}</div>
 
-                  <button disabled={loading || (mode === 'register' && (!captcha || captchaLoading))} className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-dgNavy px-5 py-4 text-sm font-black text-white disabled:opacity-60">
+                  <button disabled={loading || (mode === 'register' && (!captcha || captchaLoading))} className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-ink px-5 py-4 text-sm font-black text-white transition hover:bg-ink-700 disabled:opacity-60">
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === 'login' ? <KeyRound className="h-4 w-4" /> : <UserRound className="h-4 w-4" />}
                     {mode === 'login' ? 'Se connecter' : 'Créer gratuitement mon compte'}
                   </button>

@@ -129,14 +129,12 @@ export function MemberHome({ displayName, profile, zumra, groups }: Props) {
   const nextAction = nextActionFor(zumra, groups, profile);
   const active = zumra?.enrolled && zumra.membership?.status === 'active';
   const primaryGroup = groups[0];
-  const today = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
-
   return (
-    <div className="mx-auto max-w-[73.75rem] px-4 pb-16 pt-7 sm:px-8 lg:px-12 lg:pt-11">
+    <div className="mx-auto w-full max-w-[73.75rem] px-4 pb-12 pt-7 sm:px-8 lg:px-10 lg:pt-10">
       <header className="mb-7">
-        <div className="mb-3 font-mono text-[0.69rem] uppercase tracking-[0.1em] text-slate-muted">{today}</div>
-        <h1 className="mb-2 font-display text-[2rem] font-normal leading-[1.1] tracking-[-0.02em] lg:text-[2.85rem]">Bonjour {firstName}.</h1>
-        <p className="text-[1.1rem] text-slate-ink lg:text-[1.25rem]">Que souhaitez-vous faire aujourd’hui ?</p>
+        <p className="dg-kicker mb-3 text-ocean">Tableau de bord</p>
+        <h1 className="mb-2 text-[2rem] font-black leading-[1.1] tracking-[-0.035em] text-ink lg:text-[2.65rem]">Bonjour, {firstName}</h1>
+        <p className="text-base text-muted lg:text-lg">Voici les prochaines actions utiles dans votre espace DG Afrique.</p>
       </header>
 
       <div className="mb-9 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -172,13 +170,13 @@ export function MemberHome({ displayName, profile, zumra, groups }: Props) {
         </section>
       )}
 
-      <section className="mt-3.5 rounded-card border border-line bg-paper-card p-[1.375rem]">
+      <section className="mt-3.5 rounded-[1.125rem] border border-border bg-white p-[1.375rem]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <Eyebrow tone="muted">DG Afrique devient progressivement votre portail d’action</Eyebrow>
             <h2 className="mt-2 text-[1.08rem] font-semibold">Les recommandations apparaîtront lorsqu’elles pourront être expliquées par des données réelles.</h2>
           </div>
-          <span className="text-meta text-slate-muted">Correspondance, pas notation</span>
+          <span className="rounded-full bg-cloud px-3 py-1.5 text-meta font-semibold text-muted">Correspondance, jamais notation</span>
         </div>
       </section>
     </div>

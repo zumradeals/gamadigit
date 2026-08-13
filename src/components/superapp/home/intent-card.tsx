@@ -14,13 +14,13 @@ export function IntentCard({ intent }: { intent: HomeIntent }) {
   return (
     <Link
       href={intent.href}
-      className="flex min-h-[7.875rem] flex-col gap-2.5 rounded-card border border-line bg-paper-card p-5 text-left transition-colors hover:border-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400"
+      className="focus-ring group flex min-h-[8.25rem] flex-col gap-2.5 rounded-[1.125rem] border border-border bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-ocean/30 hover:shadow-floating"
     >
-      <span className="flex h-[2.125rem] w-[2.125rem] items-center justify-center rounded-[0.625rem] bg-gold-100 text-[#7A5518]">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cloud text-ocean transition group-hover:bg-ocean group-hover:text-white">
         <Icon aria-hidden="true" className="h-[17px] w-[17px]" />
       </span>
-      <strong className="text-[1.03rem] font-semibold tracking-[-0.01em]">{intent.label}</strong>
-      <span className="text-body text-slate-ink">{intent.description}</span>
+      <strong className="text-[1.03rem] font-extrabold tracking-[-0.01em] text-ink">{intent.label}</strong>
+      <span className="text-body text-muted">{intent.description}</span>
     </Link>
   );
 }

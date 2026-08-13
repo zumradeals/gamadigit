@@ -4,7 +4,7 @@ export function Logo({ src = '/brand/dg-afrique.svg', className = '' }: { src?: 
       <img
         src={src}
         alt="DG AFRIQUE — Développement Global Afrique"
-        className="block h-12 w-auto max-w-[260px] object-contain sm:h-14 sm:max-w-[360px]"
+        className="block h-10 w-auto max-w-[190px] rounded-lg bg-white px-2 py-1 object-contain sm:h-11 sm:max-w-[230px]"
       />
     </div>
   );

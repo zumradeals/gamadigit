@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { ArrowLeft, CheckCircle2, Loader2, Save } from 'lucide-react';
+import { WorkspaceNav } from '@/components/genesis/workspace-nav';
 import type { CapabilityProfile } from '@/lib/profile/capability-profile';
 
 function splitList(value: string) {
@@ -109,33 +110,39 @@ export function CapabilityProfileForm() {
   }
 
   return (
-    <main className="min-h-screen bg-paper px-4 pb-20 pt-6 text-ink sm:px-8 lg:px-12 lg:pt-10">
-      <div className="mx-auto max-w-4xl">
+    <main className="min-h-[calc(100vh-4.5rem)] bg-cloud text-ink">
+      <div className="grid lg:grid-cols-[15rem_minmax(0,1fr)]">
+        <WorkspaceNav />
+        <div className="min-w-0 px-4 pb-20 pt-6 sm:px-8 lg:px-10 lg:pt-10">
+          <div className="mx-auto max-w-4xl">
         <div className="mb-6">
-          <Link href="/espace" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-ink hover:text-ink">
+          <Link href="/espace" className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-full px-2 text-sm font-extrabold text-copy hover:text-ink">
             <ArrowLeft className="h-4 w-4" /> Mon espace
           </Link>
         </div>
 
-        <section className="rounded-card border border-line bg-paper-card p-6 sm:p-8">
-          <p className="font-mono text-label uppercase tracking-[0.1em] text-gold">Profil de capacités</p>
-          <h1 className="mt-3 font-display text-[2.2rem] leading-tight sm:text-[2.8rem]">Ce que vous savez, apprenez et voulez accomplir.</h1>
-          <p className="mt-4 max-w-2xl text-body leading-7 text-slate-ink">
+        <section className="relative overflow-hidden rounded-[1.25rem] bg-ink p-6 text-white sm:p-8">
+          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-cyan/10 blur-3xl" />
+          <div className="relative">
+          <p className="dg-kicker text-cyan">Mon profil</p>
+          <h1 className="mt-3 text-[2.1rem] font-black leading-tight tracking-[-0.035em] sm:text-[2.65rem]">Présentez ce que vous savez faire et ce que vous voulez construire.</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65 sm:text-base">
             Ce profil appartient à votre compte DG Afrique. Il peut vous aider à être mieux orienté dans l’écosystème, sans vous inscrire automatiquement à ZUMRA et sans vous réduire à une note.
           </p>
+          </div>
         </section>
 
         {saved && (
-          <div className="mt-5 flex items-start gap-3 rounded-tile border border-[#B9DFC9] bg-[#EAF6F0] p-4 text-body font-medium text-[#245E45]">
+          <div aria-live="polite" className="mt-5 flex items-start gap-3 rounded-2xl border border-[#B9DFC9] bg-[#EAF6F0] p-4 text-body font-medium text-[#245E45]">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" /> Votre profil DG Afrique est enregistré.
           </div>
         )}
-        {error && <div className="mt-5 rounded-tile border border-red-200 bg-red-50 p-4 text-body font-medium text-red-800">{error}</div>}
+        {error && <div aria-live="assertive" className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-body font-medium text-red-800">{error}</div>}
 
         <form onSubmit={submit} className="mt-5 space-y-4">
           <Section title="Votre identité et votre situation" description="Votre nom vient de votre identité DG Afrique. Complétez seulement les éléments utiles à l’orientation.">
             <div className="grid gap-4 sm:grid-cols-2">
-              <ReadOnlyField label="Nom" value={displayName || 'Compte DG Afrique'} />
+              <ReadOnlyField label="Nom lié à votre identité DG" value={displayName || 'Compte DG Afrique'} />
               <Field label="Activité actuelle" value={currentActivity} onChange={setCurrentActivity} placeholder="Ex. commerçant, étudiant, artisan…" />
               <Field label="Pays" value={country} onChange={setCountry} placeholder="Ex. Côte d’Ivoire" />
               <Field label="Ville / localité" value={city} onChange={setCity} placeholder="Ex. Abidjan" />
@@ -144,8 +151,8 @@ export function CapabilityProfileForm() {
 
           <Section title="Ce que vous savez faire" description="Écrivez simplement vos savoir-faire, séparés par des virgules. L’expérience compte autant que les diplômes.">
             <TextArea value={skills} onChange={setSkills} placeholder="Ex. vente, couture, plomberie, informatique…" disabled={noSkillsYet} />
-            <label className="mt-3 flex items-start gap-3 text-body text-slate-ink">
-              <input type="checkbox" checked={noSkillsYet} onChange={(event) => setNoSkillsYet(event.target.checked)} className="mt-1" />
+            <label className="mt-3 flex min-h-11 items-start gap-3 rounded-xl p-2 text-body text-copy hover:bg-cloud">
+              <input type="checkbox" checked={noSkillsYet} onChange={(event) => setNoSkillsYet(event.target.checked)} className="mt-1 h-4 w-4 accent-ocean" />
               Je commence sans compétence particulière pour le moment.
             </label>
           </Section>
@@ -160,23 +167,25 @@ export function CapabilityProfileForm() {
 
           <Section title="Ce que vous cherchez à accomplir" description="Décrivez vos intentions avec vos propres mots. Elles pourront évoluer avec votre parcours.">
             <TextArea value={intentions} onChange={setIntentions} placeholder="Ex. trouver des partenaires, créer une activité, apprendre un métier…" />
-            <label className="mt-3 flex items-start gap-3 text-body text-slate-ink">
-              <input type="checkbox" checked={openToRecommendations} onChange={(event) => setOpenToRecommendations(event.target.checked)} className="mt-1" />
+            <label className="mt-3 flex min-h-11 items-start gap-3 rounded-xl p-2 text-body text-copy hover:bg-cloud">
+              <input type="checkbox" checked={openToRecommendations} onChange={(event) => setOpenToRecommendations(event.target.checked)} className="mt-1 h-4 w-4 accent-ocean" />
               J’accepte que DG Afrique utilise mon profil pour me proposer des orientations pertinentes.
             </label>
           </Section>
 
-          <div className="flex justify-end pt-2">
+          <div className="sticky bottom-3 flex justify-end rounded-2xl border border-border bg-white/95 p-3 shadow-floating backdrop-blur sm:static sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-paper disabled:opacity-50"
+              className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-extrabold text-white disabled:opacity-50 sm:w-auto"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Enregistrer mon profil
             </button>
           </div>
         </form>
+          </div>
+        </div>
       </div>
     </main>
   );
@@ -184,9 +193,9 @@ export function CapabilityProfileForm() {
 
 function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-card border border-line bg-paper-card p-5 sm:p-6">
-      <h2 className="font-display text-[1.45rem]">{title}</h2>
-      <p className="mt-1 mb-5 text-body text-slate-ink">{description}</p>
+    <section className="rounded-[1.125rem] border border-border bg-white p-5 shadow-sm sm:p-6">
+      <h2 className="text-xl font-black text-ink">{title}</h2>
+      <p className="mb-5 mt-1 text-body text-muted">{description}</p>
       {children}
     </section>
   );
@@ -194,13 +203,13 @@ function Section({ title, description, children }: { title: string; description:
 
 function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string }) {
   return (
-    <label className="block text-body font-semibold text-ink">
+    <label className="block text-body font-extrabold text-copy">
       {label}
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="mt-2 w-full rounded-tile border border-line-strong bg-paper px-4 py-3 font-normal outline-none focus:border-ink"
+        className="focus-ring mt-2 w-full rounded-2xl border border-border bg-white px-4 py-3 font-normal text-ink"
       />
     </label>
   );
@@ -208,10 +217,10 @@ function Field({ label, value, onChange, placeholder }: { label: string; value: 
 
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return (
-    <label className="block text-body font-semibold text-ink">
+    <div className="block text-body font-extrabold text-copy">
       {label}
-      <div className="mt-2 rounded-tile border border-line bg-paper px-4 py-3 font-normal text-slate-ink">{value}</div>
-    </label>
+      <div className="mt-2 rounded-2xl border border-border bg-cloud px-4 py-3 font-normal text-muted">{value}</div>
+    </div>
   );
 }
 
@@ -223,7 +232,7 @@ function TextArea({ value, onChange, placeholder, disabled = false }: { value: s
       placeholder={placeholder}
       disabled={disabled}
       rows={3}
-      className="w-full rounded-tile border border-line-strong bg-paper px-4 py-3 text-body outline-none focus:border-ink disabled:opacity-50"
+      className="focus-ring w-full rounded-2xl border border-border bg-white px-4 py-3 text-body text-ink disabled:bg-cloud disabled:opacity-60"
     />
   );
 }

@@ -14,12 +14,12 @@ export type NextAction = {
 
 export function NextActionCard({ action }: { action: NextAction }) {
   return (
-    <section className="rounded-card border border-gold-line bg-[linear-gradient(180deg,#FFFDF8,#FBF6EA)] p-[1.375rem]">
+    <section className="rounded-[1.125rem] border border-sand/40 bg-[linear-gradient(135deg,#FFFDF7,#FFF7E3)] p-[1.375rem] shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-5">
         <div className="min-w-[16rem] flex-1">
           <Eyebrow>{action.eyebrow}</Eyebrow>
-          <h2 className="mb-2 mt-2.5 text-[1.18rem] font-semibold tracking-[-0.012em]">{action.title}</h2>
-          <p className="max-w-xl text-body text-slate-ink">{action.description}</p>
+          <h2 className="mb-2 mt-2.5 text-[1.18rem] font-extrabold tracking-[-0.012em] text-ink">{action.title}</h2>
+          <p className="max-w-xl text-body text-copy">{action.description}</p>
         </div>
         <SuperButtonLink as={Link} href={action.href} className="shrink-0">
           {action.cta}<ArrowRight aria-hidden="true" className="h-4 w-4" />

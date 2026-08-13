@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Loader2, LogOut, RefreshCw } from 'lucide-react';
 import { MemberHome } from '@/components/superapp/home/member-home';
+import { WorkspaceNav } from '@/components/genesis/workspace-nav';
 import type { CapabilityProfile } from '@/lib/profile/capability-profile';
 import type { ZumraGroupSummary, ZumraMePayload } from '@/lib/zumra/types';
 
@@ -160,18 +161,23 @@ export function AccountSpace() {
   }
 
   return (
-    <main className="min-h-screen bg-paper text-ink">
-      <MemberHome displayName={displayName} profile={profile} zumra={zumra} groups={groups} />
-      <div className="mx-auto flex max-w-[73.75rem] justify-end px-4 pb-8 sm:px-8 lg:px-12">
-        <button
-          type="button"
-          onClick={logout}
-          disabled={loggingOut}
-          className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-paper-card px-4 py-2.5 text-meta font-medium text-slate-ink transition-colors hover:border-ink disabled:opacity-50"
-        >
-          {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
-          Se déconnecter
-        </button>
+    <main className="min-h-[calc(100vh-4.5rem)] bg-cloud text-ink">
+      <div className="grid lg:grid-cols-[15rem_minmax(0,1fr)]">
+        <WorkspaceNav />
+        <div className="min-w-0">
+          <MemberHome displayName={displayName} profile={profile} zumra={zumra} groups={groups} />
+          <div id="parametres" className="mx-auto flex w-full max-w-[73.75rem] justify-end px-4 pb-10 sm:px-8 lg:px-10">
+            <button
+              type="button"
+              onClick={logout}
+              disabled={loggingOut}
+              className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-white px-5 py-2.5 text-sm font-extrabold text-copy transition hover:border-ink disabled:opacity-50"
+            >
+              {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+              Se déconnecter
+            </button>
+          </div>
+        </div>
       </div>
     </main>
   );
