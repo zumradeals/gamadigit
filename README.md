@@ -1,75 +1,35 @@
-# GamaDigit
+# Boutique numérique autonome — refondation 2026
 
-GamaDigit rassemble les solutions numériques destinées aux particuliers, professionnels, entreprises et organisations.
+**Statut : conception contractuelle, pas encore application livrable.**
 
-> **Le numérique qui fait avancer vos projets.**
+Ce dépôt devient le socle d'une **nouvelle marque indépendante** consacrée à la vente de logiciels, abonnements et prestations d'accompagnement facultatives.
 
-GamaDigit est un satellite de l’écosystème GAMAD.
+- Positionnement validé : **prix accessibles + accompagnement facultatif**.
+- Marché initial : **Côte d'Ivoire** ; extension francophone envisagée ultérieurement.
+- Priorité : **Mobile First** ; achat fluide sans création obligatoire de compte.
+- Nom commercial : **non validé**. Aucun nom provisoire ne doit être publié comme marque définitive.
+- Ancien projet : conservé intégralement dans `archives/legacy-2026-11-11/` et sur la branche `archive/avant-boutique-autonome-2026-11-11`.
+- Ancienne branche de production `cursor` : **non modifiée**.
 
-## Familles d’offres
+## Contrats de référence
 
-1. Création web et applications
-2. Design et communication
-3. Hébergement et infrastructure
-4. Logiciels et abonnements
-5. Formation et accompagnement
-6. Solutions numériques pour entreprises
+1. [Vision et positionnement](docs/01-vision-et-positionnement.md)
+2. [Contrats métier](docs/02-contrats-metier.md)
+3. [Mobile First et acquisition organique](docs/03-parcours-mobile-seo.md)
+4. [Stratégie de reprise et archivage](docs/04-reprise-et-archivage.md)
+5. [Jalons et critères de validation](docs/05-jalons-validation.md)
+6. [Registre des décisions](docs/DECISIONS.md)
 
-## Stack
+## Règles de cohérence
 
-- Next.js avec App Router
-- React et TypeScript
-- Tailwind CSS
-- Supabase Auth, PostgreSQL et RLS
-- Lucide pour les icônes
+- Le projet actif n'est **ni un portail ni un module** de l'ancien écosystème.
+- Aucune identité, connexion, donnée, marque ou dépendance métier ne doit être réutilisée implicitement.
+- Les fichiers d'archives sont **en lecture historique uniquement** : ne pas les importer dans l'application active ni les compiler.
+- Seuls les éléments explicitement qualifiés et reconstruits peuvent intégrer le nouveau produit.
+- Git et ces contrats documentés font foi ; toute évolution doit être consignée par commit.
+- Ne pas confondre **vision**, **conception** et **implémentation**.
+- Ne pas présenter le dépôt comme un système de commerce opérationnel tant que les critères de recette ne sont pas satisfaits.
 
-## Fonctionnalités déjà posées
+## État de la refondation
 
-- accueil responsive ;
-- navigation desktop et mobile ;
-- pages des six familles ;
-- premières offres minimales ;
-- blog et articles ;
-- contact, WhatsApp et formulaire de devis ;
-- sitemap et robots ;
-- logo vectoriel, favicon et charte V1 ;
-- schéma Supabase avec politiques de sécurité ;
-- authentification du back-office ;
-- tableau de bord et écrans de lecture pour services, articles, prospects et paramètres.
-
-## Installation locale
-
-```bash
-npm install
-cp .env.example .env.local
-npm run dev
-```
-
-Ouvrir ensuite `http://localhost:3000`.
-
-## Supabase
-
-Consulter [`docs/04-installation-supabase.md`](docs/04-installation-supabase.md) pour :
-
-- appliquer les migrations ;
-- charger les données initiales ;
-- créer le premier administrateur ;
-- configurer les variables d’environnement.
-
-## Commandes qualité
-
-```bash
-npm run typecheck
-npm run build
-```
-
-## Documentation
-
-- [`docs/01-vision-produit.md`](docs/01-vision-produit.md)
-- [`docs/02-architecture-information.md`](docs/02-architecture-information.md)
-- [`docs/03-charte-graphique.md`](docs/03-charte-graphique.md)
-- [`docs/04-installation-supabase.md`](docs/04-installation-supabase.md)
-
-## État actuel
-
-Le socle public et la fondation du back-office sont en place. Le prochain lot concerne les formulaires CRUD sécurisés et la connexion des contenus publics à Supabase.
+La racine active a été volontairement nettoyée. **Aucune stack nouvelle, commande, paiement ou livraison n'est encore implémenté(e).** Le premier livrable est une base contractuelle auditable. L'application sera reconstruite par lots validés, sans mettre en risque le site historique.
