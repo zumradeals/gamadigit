@@ -45,3 +45,9 @@
 ## Limites du présent jalon
 
 Le commit de refondation crée un **espace contractuel vierge** ; l'application exploitable sera construite ultérieurement. Ce dépôt n'est pas encore une boutique livrable. Ne pas activer de déploiement automatique pour `main` avant l'existence d'un produit testé.
+
+## Implications de la nouvelle stack PHP/MySQL
+
+L'ancienne arborescence n'est **pas** une base exécutable pour cette boutique et ne sera **pas** transposée automatiquement. Les notions de catalogue, SEO et publication peuvent être réinterprétées dans des contrats PHP/MySQL indépendants ; les anciens services, frameworks, migrations et modules d'identité ne passent pas en production.
+
+Le dossier `archives/` est versionné à titre de traçabilité **mais doit être exclu de tous les transferts vers `public_html`**. Une archive Git n'est pas un dossier publiable. Tout inventaire de contenu utile doit documenter sa provenance, sa transformation et son nouveau contrat avant réintroduction.

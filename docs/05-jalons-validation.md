@@ -10,6 +10,15 @@
 
 **Critère de validation :** retrouver l'intégralité des anciens fichiers dans l'archive, constater que `cursor` n'a pas bougé, et relire les décisions.
 
+## V0.5 — Qualification technique PHP/MySQL/cPanel
+
+- Contrat d'architecture PHP/MySQL/cPanel accepté et version PHP réellement disponible vérifiée.
+- Mécanisme de configuration privée et séparation du répertoire public définis.
+- Schéma de base initial et stratégie de migration/retour arrière décrits avant création des tables métier.
+- Déploiement de recette documenté et reproductible sans serveur permanent.
+
+**Gate :** test d'un site PHP minimal dans l'environnement cible, liaison MySQL et vérification qu'archives, secrets et journaux ne sont pas accessibles publiquement.
+
 ## V1 — Catalogue maîtrisé
 
 - Catégories et offres publiables, fiches mobile, recherche et gestion de prix.
@@ -45,6 +54,6 @@
 
 ## Décisions ouvertes (ne pas présumer)
 
-Nom et domaine, identité graphique, premier catalogue concret, règles tarifaires, modes de règlement, procédures de livraison, obligations légales, prestataires, structure des rôles détaillée et choix techniques définitifs.
+Nom et domaine, identité graphique, premier catalogue concret, règles tarifaires, modes de règlement, procédures de livraison, obligations légales, prestataires, structure des rôles détaillée et intégrations complémentaires (PHP/MySQL/cPanel sont validés).
 
 Un gate terminé ne signifie pas qu'une maquette est un système. Les interfaces, règles métier, preuves de test et conditions d'exploitation sont vérifiées séparément.
